@@ -96,35 +96,35 @@ function createUserItem(user, isMe) {
 }
 
 // 处理服务器推送的在线用户列表
-function handleClientList(list, selfId) {
-  const rd = roomsData[activeRoomIndex];
+function handleClientList(idx, list, selfId) {
+  const rd = roomsData[idx];
   if (!rd) return;
   rd.userList = list;
   rd.userMap = {};
   list.forEach(u => { rd.userMap[u.clientId] = u; });
   rd.myId = selfId;
-  renderUserList();
+  if (activeRoomIndex === idx) renderUserList();
 }
 // 新用户上线或资料变更
-function handleClientSecured(user) {
-  const rd = roomsData[activeRoomIndex];
+function handleClientSecured(idx, user) {
+  const rd = roomsData[idx];
   if (!rd) return;
-  let idx = rd.userList.findIndex(u => u.clientId === user.clientId);
-  if (idx === -1) {
+  let uidx = rd.userList.findIndex(u => u.clientId === user.clientId);
+  if (uidx === -1) {
     rd.userList.push(user);
   } else {
-    rd.userList[idx] = user;
+    rd.userList[uidx] = user;
   }
   rd.userMap[user.clientId] = user;
-  renderUserList();
+  if (activeRoomIndex === idx) renderUserList();
 }
 // 用户下线
-function handleClientLeft(clientId) {
-  const rd = roomsData[activeRoomIndex];
+function handleClientLeft(idx, clientId) {
+  const rd = roomsData[idx];
   if (!rd) return;
   rd.userList = rd.userList.filter(u => u.clientId !== clientId);
   delete rd.userMap[clientId];
-  renderUserList();
+  if (activeRoomIndex === idx) renderUserList();
 }
 
 let chat = null;
@@ -225,9 +225,9 @@ function loginFormHandler(modal) {
     const callbacks = {
       onServerClosed: () => setStatus('服务器连接关闭'),
       onServerSecured: () => setStatus('与服务器安全连接已建立'),
-      onClientSecured: (user) => handleClientSecured(user),
-      onClientList: (list, selfId) => handleClientList(list, selfId),
-      onClientLeft: (clientId) => handleClientLeft(clientId),
+      onClientSecured: (user) => handleClientSecured(idx, user),
+      onClientList: (list, selfId) => handleClientList(idx, list, selfId),
+      onClientLeft: (clientId) => handleClientLeft(idx, clientId),
       onClientMessage: (msg) => {
         if (msg.username === newRd.myName) return;
         roomsData[idx].messages.push({ type: 'other', text: msg.data, name: msg.username, avatar: msg.username });
@@ -306,9 +306,9 @@ function openLoginModal() {
     const callbacks = {
       onServerClosed: () => setStatus('服务器连接关闭'),
       onServerSecured: () => setStatus('与服务器安全连接已建立'),
-      onClientSecured: (user) => handleClientSecured(user),
-      onClientList: (list, selfId) => handleClientList(list, selfId),
-      onClientLeft: (clientId) => handleClientLeft(clientId),
+      onClientSecured: (user) => handleClientSecured(idx, user),
+      onClientList: (list, selfId) => handleClientList(idx, list, selfId),
+      onClientLeft: (clientId) => handleClientLeft(idx, clientId),
       onClientMessage: (msg) => {
         if (msg.username === newRd.myName) return;
         roomsData[idx].messages.push({ type: 'other', text: msg.data, name: msg.username, avatar: msg.username });
