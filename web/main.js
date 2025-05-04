@@ -32,6 +32,10 @@ function switchRoom(index) {
 function renderChatArea() {
   const chatArea = document.getElementById('chat-area');
   if (!chatArea) return;
+  if (activeRoomIndex < 0 || !roomsData[activeRoomIndex]) {
+    chatArea.innerHTML = '';
+    return;
+  }
   chatArea.innerHTML = '';
   roomsData[activeRoomIndex].messages.forEach(m => {
     if (m.type === 'me') addMsg(m.text, true);
