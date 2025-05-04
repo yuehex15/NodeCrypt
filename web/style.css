@@ -80,7 +80,7 @@ body {
 .room {
     display: flex;
     align-items: center;
-    padding: 10px 16px;
+    padding: 15px 15px;
     border-bottom: 1px solid #eee;
     cursor: pointer;
     background: #f6f6f6;

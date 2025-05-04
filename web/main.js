@@ -138,9 +138,8 @@ function renderRooms(activeId = 0) {
     const div = document.createElement("div");
     div.className = "room" + (i === activeId ? " active" : "");
     div.innerHTML = `
-      <span class="avatar">${getSvgAvatar("R"+(i+1), 42)}</span>
       <div class="info">
-        <div class="title">Room ${i+1}</div>
+        <div class="title" style="font-size: 1.18em; font-weight: bold;">#Room ${i+1}</div>
         <div class="lastmsg"></div>
       </div>
       <div class="time"></div>
@@ -165,8 +164,7 @@ function renderMainHeader() {
   }
   document.getElementById("main-header").innerHTML = `
     <div style="display: flex; align-items: center;">
-      <span class="avatar">${getSvgAvatar(roomName[0] || 'R', 40)}</span>
-      <div class="group-title">${escapeHTML(roomName)}</div>
+      <div class="group-title" style="font-size: 1.22em; font-weight: bold;">#${escapeHTML(roomName)}</div>
       <span style="margin-left:10px;font-size:13px;color:#888;">${onlineCount} members</span>
     </div>
     <div class="main-header-actions">
