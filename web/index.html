@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>Telegram UI 聊天室框架</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- 登录页面 -->
+  <div class="login-container" id="login-container">
+    <h1>Sign in to Chatroom</h1>
+    <p class="subtips">请输入用户名、房间名，房间密码可选</p>
+    <form id="login-form">
+      <div class="input-group">
+        <label for="username">Username</label>
+        <input id="username" type="text" autocomplete="username" required="">
+      </div>
+      <div class="input-group">
+        <label for="room">Room Name</label>
+        <input id="room" type="text" required="">
+      </div>
+      <div class="input-group">
+        <label for="password">Room Password <span class="optional">(optional)</span></label>
+        <input id="password" type="password" autocomplete="off">
+      </div>
+      <button type="submit" class="login-btn">NEXT</button>
+    </form>
+  </div>
+  <!-- 聊天主界面，初始隐藏 -->
+  <div class="container" id="chat-container" style="display:none;">
+    <!-- 左侧房间栏 -->
+    <div class="sidebar">
+      <div class="sidebar-user">
+        <span class="avatar" id="sidebar-user-avatar"></span>
+        <span class="sidebar-username" id="sidebar-username">我的昵称</span>
+      </div>
+      <div class="search">
+        <span class="menu-icon">&#9776;</span>
+        <input type="text" placeholder="Search">
+      </div>
+      <div class="rooms" id="room-list">
+        <!-- JS填充房间项 -->
+      </div>
+    </div>
+    <!-- 中间聊天区 -->
+    <div class="main">
+      <div class="main-header" id="main-header">
+        <!-- JS填充房间头部 -->
+        <div class="main-header-actions">
+          <button class="more-btn" id="more-btn" aria-label="更多选项">
+            <span class="more-btn-dot"></span>
+            <br>
+            <span class="more-btn-dot"></span>
+            <br>
+            <span class="more-btn-dot"></span>
+          </button>
+          <div class="more-menu" id="more-menu">
+            <div class="more-menu-item" data-action="share">分享</div>
+            <div class="more-menu-item" data-action="exit">退出</div>
+          </div>
+        </div>
+      </div>
+      <div class="chat-area" id="chat-area">
+        <!-- JS填充消息区 -->
+      </div>
+      <div class="chat-input-area">
+        <div class="rows-wrapper chat-input-wrapper chat-input-main-wrapper chat-rows-wrapper">
+          <svg viewBox="0 0 11 20" width="11" height="20" class="bubble-tail"><!-- 可用空svg或自定义 --></svg>
+          <div class="new-message-wrapper rows-wrapper-row" data-offset="commands">
+            <div class="input-message-container">
+              <div class="input-message-input is-empty scrollable scrollable-y no-scrollbar" contenteditable="true" dir="auto" tabindex="-1" style="transition-duration: 0ms; height: 37px;"></div>
+              <span class="input-field-placeholder i18n is-empty">Message</span>
+              <div contenteditable="true" tabindex="-1" class="input-message-input is-empty scrollable scrollable-y no-scrollbar input-field-input-fake"></div>
+            </div>
+            <input type="file" multiple style="display: none;">
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 右侧在线用户栏 -->
+    <div class="rightbar">
+      <div class="rightbar-header">
+        <div class="rightbar-group">
+          <div class="group-info">
+            <div class="title">Members</div>
+            <div class="group-desc" id="rightbar-group-desc"></div>
+          </div>
+        </div>
+      </div>
+      <div class="rightbar-tabs tabs" id="member-tabs">
+      </div>
+      <div class="members" id="member-list">
+        <!-- JS填充成员列表 -->
+      </div>
+    </div>
+  </div>
+  <script src="ChatCrypt.bundle.js"></script>
+  <script type="module" src="main.js"></script>
+</body>
+</html>
