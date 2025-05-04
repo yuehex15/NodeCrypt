@@ -406,7 +406,6 @@ function setupMoreBtnMenu() {
   let animating = false;
 
   function openMenu() {
-    if (animating) return;
     menu.classList.remove('close');
     menu.classList.add('open');
     menu.style.display = 'block';
@@ -438,7 +437,28 @@ function setupMoreBtnMenu() {
       if (e.target.dataset.action === 'share') {
         alert('分享功能待实现');
       } else if (e.target.dataset.action === 'exit') {
-        alert('退出功能待实现');
+        // 退出当前房间
+        if (activeRoomIndex >= 0 && roomsData[activeRoomIndex]) {
+          // 优先彻底销毁连接
+          const chatInst = roomsData[activeRoomIndex].chat;
+          if (chatInst && typeof chatInst.destruct === 'function') {
+            chatInst.destruct();
+          } else if (chatInst && typeof chatInst.disconnect === 'function') {
+            chatInst.disconnect();
+          }
+          roomsData[activeRoomIndex].chat = null;
+          // 移除房间
+          roomsData.splice(activeRoomIndex, 1);
+          if (roomsData.length > 0) {
+            // 切换到第一个房间
+            switchRoom(0);
+          } else {
+            // 没有房间了，回到登录
+            activeRoomIndex = -1;
+            document.getElementById('chat-container').style.display = 'none';
+            document.getElementById('login-container').style.display = '';
+          }
+        }
       }
       closeMenu();
     }
