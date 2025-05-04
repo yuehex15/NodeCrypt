@@ -13,6 +13,74 @@ function getSvgAvatar(text, size = 42) {
   `.replace(/\n/g, '');
 }
 
+// 在线用户列表数据结构
+let userList = [];
+let userMap = {};
+let myId = null;
+let currentRoom = '';
+
+// 获取用户名首字母（前2位大写）
+function getInitials(name) {
+  if (!name) return '?';
+  return name.slice(0, 2).toUpperCase();
+}
+// 简单转义，防止XSS
+function escapeHTML(str) {
+  return str.replace(/[&<>"']/g, function (c) {
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c];
+  });
+}
+
+// 渲染在线用户列表（右侧Members）
+function renderUserList() {
+  const userListEl = document.getElementById('member-list');
+  userListEl.innerHTML = '';
+  // 不再提前 return，让 main-header 始终刷新
+  let me = userList.find(u => u.clientId === myId);
+  let others = userList.filter(u => u.clientId !== myId);
+  if (me) userListEl.appendChild(createUserItem(me, true));
+  others.forEach(u => userListEl.appendChild(createUserItem(u, false)));
+  renderMainHeader(); // 在线用户变化时刷新
+}
+function createUserItem(user, isMe) {
+  let div = document.createElement('div');
+  div.className = 'member' + (isMe ? ' me' : '');
+  div.innerHTML = `
+    <span class="avatar">${getSvgAvatar(getInitials(user.username), 38)}</span>
+    <div class="member-info">
+      <div class="member-name">${escapeHTML(user.username)}${isMe ? ' (我)' : ''}</div>
+    </div>
+  `;
+  // 不可点击
+  return div;
+}
+
+// 处理服务器推送的在线用户列表
+function handleClientList(list, selfId) {
+  userList = list;
+  userMap = {};
+  userList.forEach(u => { userMap[u.clientId] = u; });
+  myId = selfId;
+  renderUserList();
+}
+// 新用户上线或资料变更
+function handleClientSecured(user) {
+  let idx = userList.findIndex(u => u.clientId === user.clientId);
+  if (idx === -1) {
+    userList.push(user);
+  } else {
+    userList[idx] = user;
+  }
+  userMap[user.clientId] = user;
+  renderUserList();
+}
+// 用户下线
+function handleClientLeft(clientId) {
+  userList = userList.filter(u => u.clientId !== clientId);
+  delete userMap[clientId];
+  renderUserList();
+}
+
 let chat = null;
 let myName = '';
 
@@ -87,12 +155,19 @@ function renderRooms(activeId = 0) {
 }
 
 // 渲染主面板房间头部（UI占位）
-function renderMainHeader(roomId = 0) {
+function renderMainHeader() {
+  // 取当前房间名和在线人数
+  let roomName = currentRoom || 'Room';
+  // 如果用户列表不包含自己，则显示人数+1
+  let onlineCount = userList && userList.length ? userList.length : 0;
+  if (!userList.some(u => u.clientId === myId)) {
+    onlineCount += 1;
+  }
   document.getElementById("main-header").innerHTML = `
     <div style="display: flex; align-items: center;">
-      <span class="avatar">${getSvgAvatar("R"+(roomId+1), 40)}</span>
-      <div class="group-title">Room ${roomId+1}</div>
-      <span style="margin-left:10px;font-size:13px;color:#888;">${MEMBER_COUNT} members</span>
+      <span class="avatar">${getSvgAvatar(roomName[0] || 'R', 40)}</span>
+      <div class="group-title">${escapeHTML(roomName)}</div>
+      <span style="margin-left:10px;font-size:13px;color:#888;">${onlineCount} members</span>
     </div>
     <div class="main-header-actions">
       <button class="more-btn" id="more-btn" aria-label="更多选项">
@@ -106,30 +181,12 @@ function renderMainHeader(roomId = 0) {
       </div>
     </div>
   `;
-  setupMoreBtnMenu(); // 每次渲染都重新绑定事件
+  setupMoreBtnMenu();
 }
 
 // 清空消息区（UI占位）
 function clearChat() {
   document.getElementById("chat-area").innerHTML = "";
-}
-
-// 渲染成员列表（UI占位）
-function renderMembers() {
-  const list = document.getElementById("member-list");
-  list.innerHTML = "";
-  for (let i = 0; i < MEMBER_COUNT; i++) {
-    const div = document.createElement("div");
-    div.className = "member";
-    div.innerHTML = `
-      <span class="avatar">${getSvgAvatar("U"+(i+1), 38)}</span>
-      <div class="member-info">
-        <div class="member-name">User${i+1}</div>
-        <div class="member-status"></div>
-      </div>
-    `;
-    list.appendChild(div);
-  }
 }
 
 // 右侧tab切换
@@ -283,6 +340,7 @@ window.addEventListener('DOMContentLoaded', () => {
         return;
       }
       myName = username;
+      currentRoom = room;
       loginContainer.style.display = 'none';
       chatContainer.style.display = '';
       const sidebarUsername = document.getElementById('sidebar-username');
@@ -290,12 +348,14 @@ window.addEventListener('DOMContentLoaded', () => {
       const avatar = document.getElementById('sidebar-user-avatar');
       if (avatar) avatar.innerHTML = getSvgAvatar(username, 44);
       setStatus('正在连接...');
+      renderMainHeader(); // 登录后立即渲染一次
       // 初始化 ChatCrypt
       const callbacks = {
         onServerClosed: () => setStatus('服务器连接关闭'),
         onServerSecured: () => setStatus('与服务器安全连接已建立'),
-        onClientSecured: () => {}, // 不显示“与xxx建立安全连接”
-        onClientList: () => {}, // 不显示“当前在线”
+        onClientSecured: (user) => handleClientSecured(user),
+        onClientList: (list, selfId) => handleClientList(list, selfId),
+        onClientLeft: (clientId) => handleClientLeft(clientId),
         onClientMessage: (msg) => {
           if (msg.username === myName) return;
           addOtherMsg(msg.data, msg.username, msg.username);
@@ -332,6 +392,6 @@ window.addEventListener('DOMContentLoaded', () => {
 // 初始化
 renderRooms();
 renderMainHeader();
-renderMembers();
+renderUserList();
 setupTabs();
 clearChat();
