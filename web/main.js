@@ -223,8 +223,8 @@ function loginFormHandler(modal) {
     setStatus('Connecting...');
     // 初始化 ChatCrypt
     const callbacks = {
-      onServerClosed: () => setStatus('Server connection closed'),
-      onServerSecured: () => setStatus('Secure connection to server'),
+      onServerClosed: () => setStatus('Node connection closed'),
+      onServerSecured: () => setStatus('Secure connection to node'),
       onClientSecured: (user) => handleClientSecured(idx, user),
       onClientList: (list, selfId) => handleClientList(idx, list, selfId),
       onClientLeft: (clientId) => handleClientLeft(idx, clientId),
@@ -252,21 +252,21 @@ function openLoginModal() {
     <div class="login-modal-bg"></div>
     <div class="login-modal-card">
       <button class="login-modal-close" style="position:absolute;right:10px;top:10px;font-size:22px;background:none;border:none;cursor:pointer;">&times;</button>
-      <h1>Sign in to Chatroom</h1>
+      <h1>Enter a Node</h1>
       <form id="login-form-modal">
         <div class="input-group">
           <label for="username-modal">Username</label>
           <input id="username-modal" type="text" autocomplete="username" required="">
         </div>
         <div class="input-group">
-          <label for="room-modal">Room Name</label>
+          <label for="room-modal">Node Name</label>
           <input id="room-modal" type="text" required="">
         </div>
         <div class="input-group">
-          <label for="password-modal">Room Password <span class="optional">(optional)</span></label>
+          <label for="password-modal">Node Password <span class="optional">(optional)</span></label>
           <input id="password-modal" type="password" autocomplete="off">
         </div>
-        <button type="submit" class="login-btn">NEXT</button>
+        <button type="submit" class="login-btn">ENTER</button>
       </form>
     </div>
   `;
@@ -296,11 +296,11 @@ function openLoginModal() {
     // 关闭modal
     modal.remove();
     document.getElementById('chat-container').style.display = '';
-    setStatus('正在连接...');
+    setStatus('Connecting...');
     // 初始化 ChatCrypt
     const callbacks = {
-      onServerClosed: () => setStatus('服务器连接关闭'),
-      onServerSecured: () => setStatus('与服务器安全连接已建立'),
+      onServerClosed: () => setStatus('Node connection closed'),
+      onServerSecured: () => setStatus('Secure connection to node'),
       onClientSecured: (user) => handleClientSecured(idx, user),
       onClientList: (list, selfId) => handleClientList(idx, list, selfId),
       onClientLeft: (clientId) => handleClientLeft(idx, clientId),
