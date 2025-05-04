@@ -51,24 +51,29 @@ body {
 }
 
 .sidebar .search {
-    display: flex;
-    align-items: center;
-    padding: 16px;
-    background: #fff;
-    border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 18px 0 18px 0;
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 1.13rem;
+  font-weight: 600;
+  color: #30a8f7;
+  letter-spacing: 1px;
+  cursor: pointer;
+  user-select: none;
 }
 
-.sidebar .search input {
-    border: none;
-    background: #f6f6f6;
-    padding: 8px;
-    border-radius: 16px;
-    flex: 1;
-    margin-left: 8px;
+.sidebar .search input,
+.sidebar .search .menu-icon {
+    display: none !important;
 }
 
-.menu-icon {
-    font-size: 22px;
+.sidebar .search:hover {
+    box-shadow: 0 2px 12px 0 #30a8f733, 0 1.5px 6px 0 #30a8f71a;
+    background: #f3faff;
+    transition: box-shadow 0.18s, background 0.18s;
 }
 
 .sidebar .rooms {
