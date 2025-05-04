@@ -276,10 +276,11 @@ body {
     border: 1px solid #e0e0e0;
     margin-right: 0;
     margin-left: 0;
+    padding: 4px 18px 13px 18px;
 }
 
 .bubble.other .bubble-meta {
-    right: 10px;
+    right: 8px;
 }
 
 .bubble .bubble-meta {
@@ -326,7 +327,7 @@ body {
   font-size: 13px;
   color: #30a8f7;
   font-weight: 500;
-  margin-left: 4px;
+  margin-left: -5px;
 }
 
 /* Telegram风格输入区样式 */

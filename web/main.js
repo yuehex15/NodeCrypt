@@ -1,3 +1,5 @@
+import config from './config.js';
+
 // 生成简易SVG头像
 function getSvgAvatar(text, size = 42) {
   const color = "#30a8f7";
@@ -9,6 +11,51 @@ function getSvgAvatar(text, size = 42) {
       <text x="50%" y="57%" text-anchor="middle" dominant-baseline="middle" font-size="${size/2}" fill="#fff" font-family="Arial, sans-serif">${letter}</text>
     </svg>
   `.replace(/\n/g, '');
+}
+
+let chat = null;
+let myName = '';
+
+function setStatus(text) {
+  let statusBar = document.getElementById('status-bar');
+  if (!statusBar) {
+    statusBar = document.createElement('div');
+    statusBar.id = 'status-bar';
+    statusBar.style = 'color:green;padding:4px 10px;font-size:13px;';
+    document.body.appendChild(statusBar);
+  }
+  statusBar.innerText = text;
+}
+
+function addMsg(text) {
+  const chatArea = document.getElementById('chat-area');
+  if (!chatArea) return;
+  const div = document.createElement('div');
+  div.className = 'bubble me';
+  const now = new Date();
+  const time = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+  div.innerHTML = `<span class="bubble-content">${text}</span><span class="bubble-meta">${time}</span>`;
+  chatArea.appendChild(div);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function addOtherMsg(msg, name = '匿名', avatar = '') {
+  const chatArea = document.getElementById('chat-area');
+  if (!chatArea) return;
+  const bubbleWrap = document.createElement('div');
+  bubbleWrap.className = 'bubble-other-wrap';
+  bubbleWrap.innerHTML = `
+    <span class="bubble-other-avatar">${getSvgAvatar(avatar || name, 32)}</span>
+    <div class="bubble-other-main">
+      <div class="bubble other">
+        <div class="bubble-other-name">${name}</div>
+        <span class="bubble-content">${msg.replace(/\n/g, '<br>')}</span>
+        <span class="bubble-meta">${(new Date()).getHours().toString().padStart(2, '0')}:${(new Date()).getMinutes().toString().padStart(2, '0')}</span>
+      </div>
+    </div>
+  `;
+  chatArea.appendChild(bubbleWrap);
+  chatArea.scrollTop = chatArea.scrollHeight;
 }
 
 // 占位房间和成员数量，实际项目请用你的数据替换
@@ -222,31 +269,41 @@ function setupMoreBtnMenu() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  // 登录表单逻辑
   const loginContainer = document.getElementById('login-container');
   const chatContainer = document.getElementById('chat-container');
   const loginForm = document.getElementById('login-form');
   if (loginForm) {
     loginForm.addEventListener('submit', function(e) {
       e.preventDefault();
-      // 简单校验
       const username = document.getElementById('username').value.trim();
       const room = document.getElementById('room').value.trim();
-      // 密码可选
+      const password = document.getElementById('password').value.trim();
       if (!username || !room) {
         alert('请输入用户名和房间名');
         return;
       }
-      // 隐藏登录页，显示聊天主界面
+      myName = username;
       loginContainer.style.display = 'none';
       chatContainer.style.display = '';
-      // 设置用户名到侧边栏
       const sidebarUsername = document.getElementById('sidebar-username');
       if (sidebarUsername) sidebarUsername.textContent = username;
-      // 设置头像
       const avatar = document.getElementById('sidebar-user-avatar');
       if (avatar) avatar.innerHTML = getSvgAvatar(username, 44);
-      // 可根据room名做房间切换，这里简单模拟
+      setStatus('正在连接...');
+      // 初始化 ChatCrypt
+      const callbacks = {
+        onServerClosed: () => setStatus('服务器连接关闭'),
+        onServerSecured: () => setStatus('与服务器安全连接已建立'),
+        onClientSecured: () => {}, // 不显示“与xxx建立安全连接”
+        onClientList: () => {}, // 不显示“当前在线”
+        onClientMessage: (msg) => {
+          if (msg.username === myName) return;
+          addOtherMsg(msg.data, msg.username, msg.username);
+        }
+      };
+      chat = new window.ChatCrypt(config, callbacks);
+      chat.setCredentials(username, room, password);
+      chat.connect();
     });
   }
 
@@ -257,49 +314,19 @@ window.addEventListener('DOMContentLoaded', () => {
   const input = document.querySelector('.input-message-input');
   if (input) {
     input.focus();
-  }
-
-  // 回车发送消息
-  input.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      const text = input.innerText.trim();
-      if (text) {
-        const chatArea = document.getElementById('chat-area');
-        const bubble = document.createElement('div');
-        bubble.className = 'bubble me';
-        const now = new Date();
-        const time = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-        bubble.innerHTML = `
-          <span class="bubble-content">${text.replace(/\n/g, '<br>')}</span>
-          <span class="bubble-meta">${time}</span>
-        `;
-        chatArea.appendChild(bubble);
-        chatArea.scrollTop = chatArea.scrollHeight;
-        input.innerText = '';
-        input.dispatchEvent(new Event('input'));
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        const text = input.innerText.trim();
+        if (text && chat) {
+          chat.sendChannelMessage('text', text);
+          addMsg(text);
+          input.innerText = '';
+          input.dispatchEvent(new Event('input'));
+        }
       }
-    }
-  });
-
-  // 添加一个别人发的消息示例（带头像和名字）
-  window.addOtherMessage = function(msg, name = 'Alice', avatar = 'A') {
-    const chatArea = document.getElementById('chat-area');
-    const bubbleWrap = document.createElement('div');
-    bubbleWrap.className = 'bubble-other-wrap';
-    bubbleWrap.innerHTML = `
-      <span class="bubble-other-avatar">${avatar}</span>
-      <div class="bubble-other-main">
-        <div class="bubble other">
-          <div class="bubble-other-name">${name}</div>
-          <span class="bubble-content">${msg.replace(/\n/g, '<br>')}</span>
-          <span class="bubble-meta">${(new Date()).getHours().toString().padStart(2, '0')}:${(new Date()).getMinutes().toString().padStart(2, '0')}</span>
-        </div>
-      </div>
-    `;
-    chatArea.appendChild(bubbleWrap);
-    chatArea.scrollTop = chatArea.scrollHeight;
-  };
+    });
+  }
 });
 
 // 初始化
