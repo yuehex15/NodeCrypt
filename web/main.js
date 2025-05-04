@@ -159,7 +159,7 @@ function addMsg(text, isHistory = false) {
   chatArea.scrollTop = chatArea.scrollHeight;
 }
 
-function addOtherMsg(msg, name = '匿名', avatar = '', isHistory = false) {
+function addOtherMsg(msg, name = 'Anonymous', avatar = '', isHistory = false) {
   // 只有新消息才记录
   if (!isHistory && activeRoomIndex >= 0) roomsData[activeRoomIndex].messages.push({ type: 'other', text: msg, name, avatar });
   const chatArea = document.getElementById('chat-area');
@@ -204,10 +204,6 @@ function loginFormHandler(modal) {
     const username = document.getElementById('username').value.trim();
     const room = document.getElementById('room').value.trim();
     const password = document.getElementById('password').value.trim();
-    if (!username || !room) {
-      alert('请输入用户名和房间名');
-      return;
-    }
     // 生成房间数据并切换
     const newRd = getNewRoomData();
     newRd.room = room;
@@ -224,11 +220,11 @@ function loginFormHandler(modal) {
     if (modal) modal.remove();
     else document.getElementById('login-container').style.display = 'none';
     document.getElementById('chat-container').style.display = '';
-    setStatus('正在连接...');
+    setStatus('Connecting...');
     // 初始化 ChatCrypt
     const callbacks = {
-      onServerClosed: () => setStatus('服务器连接关闭'),
-      onServerSecured: () => setStatus('与服务器安全连接已建立'),
+      onServerClosed: () => setStatus('Server connection closed'),
+      onServerSecured: () => setStatus('Secure connection to server'),
       onClientSecured: (user) => handleClientSecured(idx, user),
       onClientList: (list, selfId) => handleClientList(idx, list, selfId),
       onClientLeft: (clientId) => handleClientLeft(idx, clientId),
@@ -257,7 +253,6 @@ function openLoginModal() {
     <div class="login-modal-card">
       <button class="login-modal-close" style="position:absolute;right:10px;top:10px;font-size:22px;background:none;border:none;cursor:pointer;">&times;</button>
       <h1>Sign in to Chatroom</h1>
-      <p class="subtips">请输入用户名、房间名，房间密码可选</p>
       <form id="login-form-modal">
         <div class="input-group">
           <label for="username-modal">Username</label>
@@ -286,10 +281,6 @@ function openLoginModal() {
     const username = document.getElementById('username-modal').value.trim();
     const room = document.getElementById('room-modal').value.trim();
     const password = document.getElementById('password-modal').value.trim();
-    if (!username || !room) {
-      alert('请输入用户名和房间名');
-      return;
-    }
     // 生成房间数据并切换
     const newRd = getNewRoomData();
     newRd.room = room;
@@ -340,14 +331,14 @@ function renderMainHeader() {
       <span style="margin-left:10px;font-size:13px;color:#888;">${onlineCount} members</span>
     </div>
     <div class="main-header-actions">
-      <button class="more-btn" id="more-btn" aria-label="更多选项">
+      <button class="more-btn" id="more-btn" aria-label="More">
         <span class="more-btn-dot"></span>
         <span class="more-btn-dot"></span>
         <span class="more-btn-dot"></span>
       </button>
       <div class="more-menu" id="more-menu">
-        <div class="more-menu-item" data-action="share">分享</div>
-        <div class="more-menu-item" data-action="exit">退出</div>
+        <div class="more-menu-item" data-action="share">Share</div>
+        <div class="more-menu-item" data-action="exit">Quit</div>
       </div>
     </div>
   `;

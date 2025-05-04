@@ -8,22 +8,21 @@
 <body>
   <!-- 登录页面 -->
   <div class="login-container" id="login-container">
-    <h1>Sign in to Chatroom</h1>
-    <p class="subtips">请输入用户名、房间名，房间密码</p>
+    <h1>Enter a Node</h1>
     <form id="login-form">
       <div class="input-group">
         <label for="username">Username</label>
         <input id="username" type="text" autocomplete="username" required="">
       </div>
       <div class="input-group">
-        <label for="room">Room Name</label>
+        <label for="room">Node Name</label>
         <input id="room" type="text" required="">
       </div>
       <div class="input-group">
-        <label for="password">Room Password <span class="optional">(optional)</span></label>
+        <label for="password">Node Password <span class="optional">(optional)</span></label>
         <input id="password" type="password" autocomplete="off">
       </div>
-      <button type="submit" class="login-btn">NEXT</button>
+      <button type="submit" class="login-btn">Enter</button>
     </form>
   </div>
   <!-- 聊天主界面，初始隐藏 -->
@@ -32,11 +31,11 @@
     <div class="sidebar">
       <div class="sidebar-user">
         <span class="avatar" id="sidebar-user-avatar"></span>
-        <span class="sidebar-username" id="sidebar-username">我的昵称</span>
+        <span class="sidebar-username" id="sidebar-username">My Name</span>
       </div>
       <div class="join-room">
         <svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true" style="width:22px;height:22px;vertical-align:middle;margin-right:25px;margin-left: 25px;"><path d="M21 3.01H3c-1.1 0-2 .9-2 2V9h2V4.99h18v14.03H3V15H1v4.01c0 1.1.9 1.98 2 1.98h18c1.1 0 2-.88 2-1.98v-14c0-1.11-.9-2-2-2zM11 16l4-4-4-4v3H1v2h10v3z"></path></svg>
-        进入新房间
+        Enter a channel
       </div>
       <div class="rooms" id="room-list">
         <!-- JS填充房间项 -->
@@ -55,8 +54,8 @@
             <span class="more-btn-dot"></span>
           </button>
           <div class="more-menu" id="more-menu">
-            <div class="more-menu-item" data-action="share">分享</div>
-            <div class="more-menu-item" data-action="exit">退出</div>
+            <div class="more-menu-item" data-action="share">Share</div>
+            <div class="more-menu-item" data-action="exit">Quit</div>
           </div>
         </div>
       </div>
