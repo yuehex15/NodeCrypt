@@ -17,6 +17,11 @@ function switchRoom(index) {
   myId = rd.myId;
   myName = rd.myName;
   chat = rd.chat;
+  // 同步更新sidebar用户名和头像
+  const sidebarUsername = document.getElementById('sidebar-username');
+  if (sidebarUsername) sidebarUsername.textContent = rd.myName;
+  const avatarEl = document.getElementById('sidebar-user-avatar');
+  if (avatarEl) avatarEl.innerHTML = getSvgAvatar(rd.myName, 44);
   renderRooms(index);
   renderMainHeader();
   renderUserList();
