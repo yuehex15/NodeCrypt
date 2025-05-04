@@ -50,7 +50,7 @@ body {
     box-shadow: 2px 0 8px #e0e0e0a0;
 }
 
-.sidebar .search {
+.sidebar .join-room {
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -65,12 +65,12 @@ body {
   user-select: none;
 }
 
-.sidebar .search input,
-.sidebar .search .menu-icon {
+.sidebar .join-room input,
+.sidebar .join-room .menu-icon {
     display: none !important;
 }
 
-.sidebar .search:hover {
+.sidebar .join-room:hover {
     box-shadow: 0 2px 12px 0 #30a8f733, 0 1.5px 6px 0 #30a8f71a;
     background: #f3faff;
     transition: box-shadow 0.18s, background 0.18s;
@@ -853,4 +853,46 @@ body {
 .login-btn:hover,
 .login-btn:focus {
   background: #2196e3;
+}
+
+.login-modal {
+  position: fixed;
+  z-index: 9999;
+  left: 0; top: 0; right: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.login-modal-bg {
+  position: absolute;
+  left: 0; top: 0; right: 0; bottom: 0;
+  background: rgba(255,255,255,0.5);
+  backdrop-filter: blur(12px);
+  z-index: 1;
+}
+.login-modal-card {
+  position: relative;
+  z-index: 2;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 16px rgba(60,80,100,0.13);
+  padding: 32px 24px 24px 24px;
+  min-width: 340px;
+  max-width: 90vw;
+  text-align: center;
+}
+.login-modal-close {
+  position: absolute;
+  right: 12px;
+  top: 10px;
+  background: none;
+  border: none;
+  font-size: 1.7rem;
+  color: #888;
+  cursor: pointer;
+  z-index: 3;
+  line-height: 1;
+}
+.login-modal-close:hover {
+  color: #30a8f7;
 }
