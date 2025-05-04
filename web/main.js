@@ -43,17 +43,22 @@ function renderChatArea() {
   });
 }
 
-// 生成简易SVG头像
+// 根据字符串生成固定颜色
+function stringToColor(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  // 生成明亮的色相，避免太灰
+  const h = Math.abs(hash) % 360;
+  return `hsl(${h}, 70%, 75%)`;
+}
+
+// 生成 Dicebear Micah 风格头像，背景色与用户名相关
 function getSvgAvatar(text, size = 42) {
-  const color = "#30a8f7";
-  // 只取第一个字母大写
-  const letter = text ? text[0].toUpperCase() : "?";
-  return `
-    <svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="${size/2}" cy="${size/2}" r="${size/2}" fill="${color}"/>
-      <text x="50%" y="57%" text-anchor="middle" dominant-baseline="middle" font-size="${size/2}" fill="#fff" font-family="Arial, sans-serif">${letter}</text>
-    </svg>
-  `.replace(/\n/g, '');
+  const seed = encodeURIComponent(text || 'User');
+  const bg = stringToColor(text || 'User');
+  return `<img src="https://api.dicebear.com/9.x/micah/svg?seed=${seed}&size=${size}" alt="avatar" width="${size}" height="${size}" style="border-radius:50%;background:${bg};object-fit:cover;" />`;
 }
 
 // 在线用户列表数据结构
@@ -90,7 +95,7 @@ function createUserItem(user, isMe) {
   let div = document.createElement('div');
   div.className = 'member' + (isMe ? ' me' : '');
   div.innerHTML = `
-    <span class="avatar">${getSvgAvatar(getInitials(user.username), 38)}</span>
+    <span class="avatar">${getSvgAvatar(user.username, 38)}</span>
     <div class="member-info">
       <div class="member-name">${escapeHTML(user.username)}${isMe ? ' (我)' : ''}</div>
     </div>
