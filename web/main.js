@@ -1,5 +1,39 @@
 import config from './config.js';
 
+// 多房间状态管理
+let roomsData = [];
+let activeRoomIndex = -1;
+function getNewRoomData() {
+  return { room: '', userList: [], userMap: {}, myId: null, myName: '', chat: null, messages: [] };
+}
+// 切换房间并恢复上下文，更新 UI
+function switchRoom(index) {
+  if (index < 0 || index >= roomsData.length) return;
+  activeRoomIndex = index;
+  const rd = roomsData[index];
+  currentRoom = rd.room;
+  userList = rd.userList;
+  userMap = rd.userMap;
+  myId = rd.myId;
+  myName = rd.myName;
+  chat = rd.chat;
+  renderRooms(index);
+  renderMainHeader();
+  renderUserList();
+  renderChatArea();
+}
+
+// 渲染当前房间消息区
+function renderChatArea() {
+  const chatArea = document.getElementById('chat-area');
+  if (!chatArea) return;
+  chatArea.innerHTML = '';
+  roomsData[activeRoomIndex].messages.forEach(m => {
+    if (m.type === 'me') addMsg(m.text, true);
+    else addOtherMsg(m.text, m.name, m.avatar, true);
+  });
+}
+
 // 生成简易SVG头像
 function getSvgAvatar(text, size = 42) {
   const color = "#30a8f7";
@@ -35,9 +69,10 @@ function escapeHTML(str) {
 function renderUserList() {
   const userListEl = document.getElementById('member-list');
   userListEl.innerHTML = '';
-  // 不再提前 return，让 main-header 始终刷新
-  let me = userList.find(u => u.clientId === myId);
-  let others = userList.filter(u => u.clientId !== myId);
+  const rd = roomsData[activeRoomIndex];
+  if (!rd) return;
+  let me = rd.userList.find(u => u.clientId === rd.myId);
+  let others = rd.userList.filter(u => u.clientId !== rd.myId);
   if (me) userListEl.appendChild(createUserItem(me, true));
   others.forEach(u => userListEl.appendChild(createUserItem(u, false)));
   renderMainHeader(); // 在线用户变化时刷新
@@ -57,27 +92,33 @@ function createUserItem(user, isMe) {
 
 // 处理服务器推送的在线用户列表
 function handleClientList(list, selfId) {
-  userList = list;
-  userMap = {};
-  userList.forEach(u => { userMap[u.clientId] = u; });
-  myId = selfId;
+  const rd = roomsData[activeRoomIndex];
+  if (!rd) return;
+  rd.userList = list;
+  rd.userMap = {};
+  list.forEach(u => { rd.userMap[u.clientId] = u; });
+  rd.myId = selfId;
   renderUserList();
 }
 // 新用户上线或资料变更
 function handleClientSecured(user) {
-  let idx = userList.findIndex(u => u.clientId === user.clientId);
+  const rd = roomsData[activeRoomIndex];
+  if (!rd) return;
+  let idx = rd.userList.findIndex(u => u.clientId === user.clientId);
   if (idx === -1) {
-    userList.push(user);
+    rd.userList.push(user);
   } else {
-    userList[idx] = user;
+    rd.userList[idx] = user;
   }
-  userMap[user.clientId] = user;
+  rd.userMap[user.clientId] = user;
   renderUserList();
 }
 // 用户下线
 function handleClientLeft(clientId) {
-  userList = userList.filter(u => u.clientId !== clientId);
-  delete userMap[clientId];
+  const rd = roomsData[activeRoomIndex];
+  if (!rd) return;
+  rd.userList = rd.userList.filter(u => u.clientId !== clientId);
+  delete rd.userMap[clientId];
   renderUserList();
 }
 
@@ -95,7 +136,9 @@ function setStatus(text) {
   statusBar.innerText = text;
 }
 
-function addMsg(text) {
+function addMsg(text, isHistory = false) {
+  // 只有新消息才记录
+  if (!isHistory && activeRoomIndex >= 0) roomsData[activeRoomIndex].messages.push({ type: 'me', text });
   const chatArea = document.getElementById('chat-area');
   if (!chatArea) return;
   const div = document.createElement('div');
@@ -107,7 +150,9 @@ function addMsg(text) {
   chatArea.scrollTop = chatArea.scrollHeight;
 }
 
-function addOtherMsg(msg, name = '匿名', avatar = '') {
+function addOtherMsg(msg, name = '匿名', avatar = '', isHistory = false) {
+  // 只有新消息才记录
+  if (!isHistory && activeRoomIndex >= 0) roomsData[activeRoomIndex].messages.push({ type: 'other', text: msg, name, avatar });
   const chatArea = document.getElementById('chat-area');
   if (!chatArea) return;
   const bubbleWrap = document.createElement('div');
@@ -126,40 +171,158 @@ function addOtherMsg(msg, name = '匿名', avatar = '') {
   chatArea.scrollTop = chatArea.scrollHeight;
 }
 
-// 占位房间和成员数量，实际项目请用你的数据替换
-const ROOM_COUNT = 4;
-const MEMBER_COUNT = 8;
-
-// 渲染房间列表（UI占位）
+// 渲染房间列表（动态多房间）
 function renderRooms(activeId = 0) {
-  const roomList = document.getElementById("room-list");
-  roomList.innerHTML = "";
-  for (let i = 0; i < ROOM_COUNT; i++) {
-    const div = document.createElement("div");
-    div.className = "room" + (i === activeId ? " active" : "");
+  const roomList = document.getElementById('room-list');
+  roomList.innerHTML = '';
+  roomsData.forEach((rd, i) => {
+    const div = document.createElement('div');
+    div.className = 'room' + (i === activeId ? ' active' : '');
     div.innerHTML = `
       <div class="info">
-        <div class="title" style="font-size: 1.18em; font-weight: bold;">#Room ${i+1}</div>
-        <div class="lastmsg"></div>
+        <div class="title">#${escapeHTML(rd.room)}</div>
       </div>
-      <div class="time"></div>
     `;
-    div.onclick = () => {
-      renderRooms(i);
-      renderMainHeader(i);
-      clearChat();
-    };
+    div.onclick = () => switchRoom(i);
     roomList.appendChild(div);
-  }
+  });
+}
+
+// 登录表单提交处理
+function loginFormHandler(modal) {
+  return function(e) {
+    e.preventDefault();
+    const username = document.getElementById('username').value.trim();
+    const room = document.getElementById('room').value.trim();
+    const password = document.getElementById('password').value.trim();
+    if (!username || !room) {
+      alert('请输入用户名和房间名');
+      return;
+    }
+    // 生成房间数据并切换
+    const newRd = getNewRoomData();
+    newRd.room = room;
+    newRd.myName = username;
+    roomsData.push(newRd);
+    const idx = roomsData.length - 1;
+    switchRoom(idx);
+    // 更新侧边栏
+    const sidebarUsername = document.getElementById('sidebar-username');
+    if (sidebarUsername) sidebarUsername.textContent = username;
+    const avatarEl = document.getElementById('sidebar-user-avatar');
+    if (avatarEl) avatarEl.innerHTML = getSvgAvatar(username, 44);
+    // 隐藏登录界面
+    if (modal) modal.remove();
+    else document.getElementById('login-container').style.display = 'none';
+    document.getElementById('chat-container').style.display = '';
+    setStatus('正在连接...');
+    // 初始化 ChatCrypt
+    const callbacks = {
+      onServerClosed: () => setStatus('服务器连接关闭'),
+      onServerSecured: () => setStatus('与服务器安全连接已建立'),
+      onClientSecured: (user) => handleClientSecured(user),
+      onClientList: (list, selfId) => handleClientList(list, selfId),
+      onClientLeft: (clientId) => handleClientLeft(clientId),
+      onClientMessage: (msg) => {
+        if (msg.username === newRd.myName) return;
+        roomsData[idx].messages.push({ type: 'other', text: msg.data, name: msg.username, avatar: msg.username });
+        if (activeRoomIndex === idx) renderChatArea();
+      }
+    };
+    chat = new window.ChatCrypt(config, callbacks);
+    chat.setCredentials(username, room, password);
+    chat.connect();
+    roomsData[idx].chat = chat;
+  };
+}
+
+// 打开新房间登录模态
+function openLoginModal() {
+  const loginContainer = document.getElementById('login-container');
+  // 创建一个新的modal，内容copy（不是复用）初始登录页面
+  const modal = document.createElement('div');
+  modal.className = 'login-modal';
+  // 复制登录表单内容
+  modal.innerHTML = `
+    <div class="login-modal-bg"></div>
+    <div class="login-modal-card">
+      <button class="login-modal-close" style="position:absolute;right:10px;top:10px;font-size:22px;background:none;border:none;cursor:pointer;">&times;</button>
+      <h1>Sign in to Chatroom</h1>
+      <p class="subtips">请输入用户名、房间名，房间密码可选</p>
+      <form id="login-form-modal">
+        <div class="input-group">
+          <label for="username-modal">Username</label>
+          <input id="username-modal" type="text" autocomplete="username" required="">
+        </div>
+        <div class="input-group">
+          <label for="room-modal">Room Name</label>
+          <input id="room-modal" type="text" required="">
+        </div>
+        <div class="input-group">
+          <label for="password-modal">Room Password <span class="optional">(optional)</span></label>
+          <input id="password-modal" type="password" autocomplete="off">
+        </div>
+        <button type="submit" class="login-btn">NEXT</button>
+      </form>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  // 关闭按钮
+  modal.querySelector('.login-modal-close').onclick = () => modal.remove();
+  // 表单提交逻辑，复用loginFormHandler但传入modal
+  const form = modal.querySelector('#login-form-modal');
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    // 获取输入
+    const username = document.getElementById('username-modal').value.trim();
+    const room = document.getElementById('room-modal').value.trim();
+    const password = document.getElementById('password-modal').value.trim();
+    if (!username || !room) {
+      alert('请输入用户名和房间名');
+      return;
+    }
+    // 生成房间数据并切换
+    const newRd = getNewRoomData();
+    newRd.room = room;
+    newRd.myName = username;
+    roomsData.push(newRd);
+    const idx = roomsData.length - 1;
+    switchRoom(idx);
+    // 更新侧边栏
+    const sidebarUsername = document.getElementById('sidebar-username');
+    if (sidebarUsername) sidebarUsername.textContent = username;
+    const avatarEl = document.getElementById('sidebar-user-avatar');
+    if (avatarEl) avatarEl.innerHTML = getSvgAvatar(username, 44);
+    // 关闭modal
+    modal.remove();
+    document.getElementById('chat-container').style.display = '';
+    setStatus('正在连接...');
+    // 初始化 ChatCrypt
+    const callbacks = {
+      onServerClosed: () => setStatus('服务器连接关闭'),
+      onServerSecured: () => setStatus('与服务器安全连接已建立'),
+      onClientSecured: (user) => handleClientSecured(user),
+      onClientList: (list, selfId) => handleClientList(list, selfId),
+      onClientLeft: (clientId) => handleClientLeft(clientId),
+      onClientMessage: (msg) => {
+        if (msg.username === newRd.myName) return;
+        roomsData[idx].messages.push({ type: 'other', text: msg.data, name: msg.username, avatar: msg.username });
+        if (activeRoomIndex === idx) renderChatArea();
+      }
+    };
+    chat = new window.ChatCrypt(config, callbacks);
+    chat.setCredentials(username, room, password);
+    chat.connect();
+    roomsData[idx].chat = chat;
+  });
 }
 
 // 渲染主面板房间头部（UI占位）
 function renderMainHeader() {
-  // 取当前房间名和在线人数
-  let roomName = currentRoom || 'Room';
-  // 如果用户列表不包含自己，则显示人数+1
-  let onlineCount = userList && userList.length ? userList.length : 0;
-  if (!userList.some(u => u.clientId === myId)) {
+  const rd = roomsData[activeRoomIndex];
+  let roomName = rd ? rd.room : 'Room';
+  let onlineCount = rd && rd.userList ? rd.userList.length : 0;
+  if (rd && !rd.userList.some(u => u.clientId === rd.myId)) {
     onlineCount += 1;
   }
   document.getElementById("main-header").innerHTML = `
@@ -328,42 +491,11 @@ window.addEventListener('DOMContentLoaded', () => {
   const chatContainer = document.getElementById('chat-container');
   const loginForm = document.getElementById('login-form');
   if (loginForm) {
-    loginForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-      const username = document.getElementById('username').value.trim();
-      const room = document.getElementById('room').value.trim();
-      const password = document.getElementById('password').value.trim();
-      if (!username || !room) {
-        alert('请输入用户名和房间名');
-        return;
-      }
-      myName = username;
-      currentRoom = room;
-      loginContainer.style.display = 'none';
-      chatContainer.style.display = '';
-      const sidebarUsername = document.getElementById('sidebar-username');
-      if (sidebarUsername) sidebarUsername.textContent = username;
-      const avatar = document.getElementById('sidebar-user-avatar');
-      if (avatar) avatar.innerHTML = getSvgAvatar(username, 44);
-      setStatus('正在连接...');
-      renderMainHeader(); // 登录后立即渲染一次
-      // 初始化 ChatCrypt
-      const callbacks = {
-        onServerClosed: () => setStatus('服务器连接关闭'),
-        onServerSecured: () => setStatus('与服务器安全连接已建立'),
-        onClientSecured: (user) => handleClientSecured(user),
-        onClientList: (list, selfId) => handleClientList(list, selfId),
-        onClientLeft: (clientId) => handleClientLeft(clientId),
-        onClientMessage: (msg) => {
-          if (msg.username === myName) return;
-          addOtherMsg(msg.data, msg.username, msg.username);
-        }
-      };
-      chat = new window.ChatCrypt(config, callbacks);
-      chat.setCredentials(username, room, password);
-      chat.connect();
-    });
+    loginForm.addEventListener('submit', loginFormHandler(null));
   }
+  // 绑定“进入新房间”按钮
+  const joinBtn = document.querySelector('.join-room');
+  if (joinBtn) joinBtn.onclick = openLoginModal;
 
   setupInputPlaceholder();
   setupMoreBtnMenu();
@@ -388,8 +520,8 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 // 初始化
-renderRooms();
+renderRooms(activeRoomIndex);
 renderMainHeader();
 renderUserList();
 setupTabs();
-clearChat();
+renderChatArea();

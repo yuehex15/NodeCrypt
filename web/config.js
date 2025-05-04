@@ -1,6 +1,6 @@
 const config = {
-    rsaPublic: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsB3/iPQiU6nvQhTMfTctJb4uCazd4Vbw0pSqPa/R2wRo5i3m8qqCQa1roTJ/n3aR1wmrR4KY7ntnMVlTWza75PB2OWAY0aKWZbAj5dsrfoT6GrCo72IXQpVGCn2RerddOQs/1rART3Y0nsL3K1SnVf0yQYh3QbWqd8if0Gpa8bBaL0Of1WnXoJyUpS3p9agbXIimdP6UayNtKh/VmkztvXr+36/f4s4zZN2hhMNeRJePpQ1MtAf+oSqlyaeYiFr5w6vphkGwNRn13oqmiXzcH4t4jSxFmEPLpZozz7JyEncOU0yBTj6iyCsrIegJkabLTqJkOXn25c2QbsddPfWvcwIDAQAB',
-    wsAddress: 'ws://46.232.60.69:8088',
+    rsaPublic: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzKsY85qZKPbpqclhaEYz9CXHUqTwXeyCYnyOVQfrDY2hao5kAqplU1NKp9wocg81e1ECFTMm75QFJhDL/Z/L6g76a1saFGd0flpZ2q55HtdIbeHmhVZd2C+CDfsfvoUtLiFSvKtlbxaE0hOn3pcurVFO6Re8QCB7PU7Rf4jdvylweFjQvf78oPG9rI1uzpPwZYfdh23HbYIp/U/PNilIjE9dNir7a4zfGvoFsXzpS3eL6M3ZpHBG7TqUZIexIJDH+CmnpUTs13j4ynLfCv2BqYcvrOlvGlS0fD8exJjmog7dCWgciWPtcI2G+S60EN6ouKs0lqUm9kDYltnIwWSGaQIDAQAB',
+    wsAddress: 'ws://127.0.0.1:8088',
     debug: true
 };
 
