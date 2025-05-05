@@ -15,7 +15,7 @@ async function ensureDicebear() {
   }
 }
 // 根据用户名生成 SVG 头像
-async function createAvatalrSVG(seed) {
+async function createAvatarSVG(seed) {
   await ensureDicebear();
   return dicebear.createAvatar(micah, { seed }).toString();
 }
