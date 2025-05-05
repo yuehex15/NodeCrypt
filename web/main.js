@@ -11,12 +11,6 @@ function switchRoom(index) {
   if (index < 0 || index >= roomsData.length) return;
   activeRoomIndex = index;
   const rd = roomsData[index];
-  currentRoom = rd.room;
-  userList = rd.userList;
-  userMap = rd.userMap;
-  myId = rd.myId;
-  myName = rd.myName;
-  chat = rd.chat;
   // 同步更新sidebar用户名和头像
   const sidebarUsername = document.getElementById('sidebar-username');
   if (sidebarUsername) sidebarUsername.textContent = rd.myName;
@@ -60,12 +54,6 @@ function getSvgAvatar(text, size = 42) {
   const bg = stringToColor(text || 'User');
   return `<img src="https://api.dicebear.com/9.x/micah/svg?seed=${seed}&size=${size}&baseColor=ac6651,f9c9b6" alt="avatar" width="${size}" height="${size}" style="border-radius:50%;background:${bg};object-fit:cover;" />`;
 }
-
-// 在线用户列表数据结构
-let userList = [];
-let userMap = {};
-let myId = null;
-let currentRoom = '';
 
 // 获取用户名首字母（前2位大写）
 function getInitials(name) {
@@ -135,9 +123,6 @@ function handleClientLeft(idx, clientId) {
   delete rd.userMap[clientId];
   if (activeRoomIndex === idx) renderUserList();
 }
-
-let chat = null;
-let myName = '';
 
 function setStatus(text) {
   let statusBar = document.getElementById('status-bar');
@@ -210,7 +195,6 @@ function loginFormHandler(modal) {
     const room = document.getElementById('room').value.trim();
     const password = document.getElementById('password').value.trim();
     joinRoom(username, room, password, modal);
-    
   };
 }
 
@@ -245,10 +229,10 @@ function joinRoom(username, room, password, modal = null) {
       if (activeRoomIndex === idx) renderChatArea();
     }
   };
-  chat = new window.ChatCrypt(config, callbacks);
-  chat.setCredentials(username, room, password);
-  chat.connect();
-  roomsData[idx].chat = chat;
+  const chatInst = new window.ChatCrypt(config, callbacks);
+  chatInst.setCredentials(username, room, password);
+  chatInst.connect();
+  roomsData[idx].chat = chatInst;
 }
 
 // 打开新房间登录模态
@@ -292,7 +276,6 @@ function openLoginModal() {
     const room = document.getElementById('room-modal').value.trim();
     const password = document.getElementById('password-modal').value.trim();
     joinRoom(username, room, password, modal);
-    
   });
 }
 
@@ -505,8 +488,9 @@ window.addEventListener('DOMContentLoaded', () => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         const text = input.innerText.trim();
-        if (text && chat) {
-          chat.sendChannelMessage('text', text);
+        // 只用当前房间的 chat 实例
+        if (text && roomsData[activeRoomIndex]?.chat) {
+          roomsData[activeRoomIndex].chat.sendChannelMessage('text', text);
           addMsg(text);
           input.innerText = '';
           input.dispatchEvent(new Event('input'));
