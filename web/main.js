@@ -558,15 +558,7 @@ window.addEventListener('DOMContentLoaded', () => {
       if (!fileInput.files || !fileInput.files.length) return;
       const file = fileInput.files[0];
       if (!file.type.startsWith('image/')) return;
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const base64 = e.target.result;
-        if (roomsData[activeRoomIndex]?.chat) {
-          roomsData[activeRoomIndex].chat.sendChannelMessage('image', base64);
-          addMsg(base64, false, 'image');
-        }
-      };
-      reader.readAsDataURL(file);
+      compressAndSendImage(file);
       fileInput.value = '';
     };
   }
@@ -577,15 +569,7 @@ window.addEventListener('DOMContentLoaded', () => {
       for (const item of e.clipboardData.items) {
         if (item.type.startsWith('image/')) {
           const file = item.getAsFile();
-          const reader = new FileReader();
-          reader.onload = function(ev) {
-            const base64 = ev.target.result;
-            if (roomsData[activeRoomIndex]?.chat) {
-              roomsData[activeRoomIndex].chat.sendChannelMessage('image', base64);
-              addMsg(base64, false, 'image');
-            }
-          };
-          reader.readAsDataURL(file);
+          compressAndSendImage(file);
           e.preventDefault();
           break;
         }
@@ -600,3 +584,35 @@ window.addEventListener('DOMContentLoaded', () => {
   setupTabs();
   renderChatArea();
 });
+
+// 新增图片压缩和webp转换函数
+async function compressAndSendImage(file) {
+  const img = new Image();
+  img.onload = async function() {
+    // 限制最大宽高，防止超大图片
+    const maxW = 1280, maxH = 1280;
+    let w = img.naturalWidth, h = img.naturalHeight;
+    if (w > maxW || h > maxH) {
+      const scale = Math.min(maxW / w, maxH / h);
+      w = Math.round(w * scale);
+      h = Math.round(h * scale);
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, w, h);
+    // webp高质量导出
+    const webpDataUrl = canvas.toDataURL('image/webp', 0.95);
+    if (roomsData[activeRoomIndex]?.chat) {
+      roomsData[activeRoomIndex].chat.sendChannelMessage('image', webpDataUrl);
+      addMsg(webpDataUrl, false, 'image');
+    }
+  };
+  // 读取file为DataURL
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
