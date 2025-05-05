@@ -359,14 +359,44 @@ function setupMoreBtnMenu() {
   const menu = document.getElementById('more-menu');
   if (!btn || !menu) return;
   let menuRect = null;
-  let closeTimer = null;
   let animating = false;
+  let isMouseMoveBound = false;
+
+  function onMouseMove(ev) {
+    if (!menuRect) return;
+    const mx = ev.clientX, my = ev.clientY;
+    const btnRect = btn.getBoundingClientRect();
+    const safe = 100;
+    const inMenu =
+      mx >= menuRect.left - safe && mx <= menuRect.right + safe &&
+      my >= menuRect.top - safe && my <= menuRect.bottom + safe;
+    const inBtn =
+      mx >= btnRect.left - safe && mx <= btnRect.right + safe &&
+      my >= btnRect.top - safe && my <= btnRect.bottom + safe;
+    if (!inMenu && !inBtn) {
+      closeMenu();
+    }
+  }
+
+  function bindMouseMove() {
+    if (!isMouseMoveBound) {
+      window.addEventListener('mousemove', onMouseMove);
+      isMouseMoveBound = true;
+    }
+  }
+  function unbindMouseMove() {
+    if (isMouseMoveBound) {
+      window.removeEventListener('mousemove', onMouseMove);
+      isMouseMoveBound = false;
+    }
+  }
 
   function openMenu() {
     menu.classList.remove('close');
     menu.classList.add('open');
     menu.style.display = 'block';
     menuRect = menu.getBoundingClientRect();
+    bindMouseMove();
   }
   function closeMenu() {
     if (animating) return;
@@ -376,6 +406,7 @@ function setupMoreBtnMenu() {
     setTimeout(() => {
       if (menu.classList.contains('close')) menu.style.display = 'none';
       animating = false;
+      unbindMouseMove();
     }, 180);
     menuRect = null;
   }
@@ -418,38 +449,6 @@ function setupMoreBtnMenu() {
       closeMenu();
     }
   };
-
-  function onMouseMove(ev) {
-    if (!menuRect) return;
-    const mx = ev.clientX, my = ev.clientY;
-    const btnRect = btn.getBoundingClientRect();
-    const safe = 100;
-    const inMenu =
-      mx >= menuRect.left - safe && mx <= menuRect.right + safe &&
-      my >= menuRect.top - safe && my <= menuRect.bottom + safe;
-    const inBtn =
-      mx >= btnRect.left - safe && mx <= btnRect.right + safe &&
-      my >= btnRect.top - safe && my <= btnRect.bottom + safe;
-    if (!inMenu && !inBtn) {
-      closeMenu();
-      window.removeEventListener('mousemove', onMouseMove);
-    }
-  }
-
-  menu.addEventListener('mouseenter', function() {
-    window.addEventListener('mousemove', onMouseMove);
-  });
-  menu.addEventListener('mouseleave', function() {
-    window.addEventListener('mousemove', onMouseMove);
-  });
-  btn.addEventListener('mouseleave', function() {
-    window.addEventListener('mousemove', onMouseMove);
-  });
-  btn.addEventListener('click', function() {
-    if (menu.classList.contains('open')) {
-      window.addEventListener('mousemove', onMouseMove);
-    }
-  });
 
   document.addEventListener('click', function hideMenu(ev) {
     if (!menu.contains(ev.target) && ev.target !== btn) {
