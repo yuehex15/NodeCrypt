@@ -1,4 +1,5 @@
 import config from './config.js';
+import { processImage } from './util.image.js';
 
 // Dicebear Micah 头像生成依赖
 let dicebear = null;
@@ -509,6 +510,40 @@ function setupMoreBtnMenu() {
   });
 }
 
+// 图片气泡点击预览
+function setupImagePreview() {
+  document.getElementById('chat-area').addEventListener('click', function(e) {
+    const target = e.target;
+    if (target.tagName === 'IMG' && target.closest('.bubble-content')) {
+      showImageModal(target.src);
+    }
+  });
+}
+function showImageModal(src) {
+  let modal = document.createElement('div');
+  modal.className = 'img-modal-bg';
+  modal.innerHTML = `
+    <div class="img-modal-blur"></div>
+    <div class="img-modal-content">
+      <img src="${src}" style="max-width:90vw;max-height:90vh;" />
+      <span class="img-modal-close">&times;</span>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  // 关闭逻辑
+  modal.querySelector('.img-modal-close').onclick = () => modal.remove();
+  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+  // 支持缩放
+  const img = modal.querySelector('img');
+  let scale = 1;
+  img.onwheel = function(ev) {
+    ev.preventDefault();
+    scale += ev.deltaY < 0 ? 0.1 : -0.1;
+    scale = Math.max(0.2, Math.min(5, scale));
+    img.style.transform = `scale(${scale})`;
+  };
+}
+
 // 页面初始化
 window.addEventListener('DOMContentLoaded', () => {
   const loginContainer = document.getElementById('login-container');
@@ -528,6 +563,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   setupInputPlaceholder();
   setupMoreBtnMenu();
+  setupImagePreview();
 
   // 自动聚焦到输入框
   const input = document.querySelector('.input-message-input');
@@ -558,7 +594,16 @@ window.addEventListener('DOMContentLoaded', () => {
       if (!fileInput.files || !fileInput.files.length) return;
       const file = fileInput.files[0];
       if (!file.type.startsWith('image/')) return;
-      compressAndSendImage(file);
+      if (file.size > 5 * 1024 * 1024) {
+        alert('图片过大（超过5MB），请压缩后再发送。');
+        return;
+      }
+      processImage(file, (dataUrl) => {
+        if (roomsData[activeRoomIndex]?.chat) {
+          roomsData[activeRoomIndex].chat.sendChannelMessage('image', dataUrl);
+          addMsg(dataUrl, false, 'image');
+        }
+      });
       fileInput.value = '';
     };
   }
@@ -569,7 +614,16 @@ window.addEventListener('DOMContentLoaded', () => {
       for (const item of e.clipboardData.items) {
         if (item.type.startsWith('image/')) {
           const file = item.getAsFile();
-          compressAndSendImage(file);
+          if (file.size > 5 * 1024 * 1024) {
+            alert('图片过大（超过5MB），请压缩后再发送。');
+            return;
+          }
+          processImage(file, (dataUrl) => {
+            if (roomsData[activeRoomIndex]?.chat) {
+              roomsData[activeRoomIndex].chat.sendChannelMessage('image', dataUrl);
+              addMsg(dataUrl, false, 'image');
+            }
+          });
           e.preventDefault();
           break;
         }
@@ -584,35 +638,3 @@ window.addEventListener('DOMContentLoaded', () => {
   setupTabs();
   renderChatArea();
 });
-
-// 新增图片压缩和webp转换函数
-async function compressAndSendImage(file) {
-  const img = new Image();
-  img.onload = async function() {
-    // 限制最大宽高，防止超大图片
-    const maxW = 1280, maxH = 1280;
-    let w = img.naturalWidth, h = img.naturalHeight;
-    if (w > maxW || h > maxH) {
-      const scale = Math.min(maxW / w, maxH / h);
-      w = Math.round(w * scale);
-      h = Math.round(h * scale);
-    }
-    const canvas = document.createElement('canvas');
-    canvas.width = w;
-    canvas.height = h;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0, w, h);
-    // webp高质量导出
-    const webpDataUrl = canvas.toDataURL('image/webp', 0.95);
-    if (roomsData[activeRoomIndex]?.chat) {
-      roomsData[activeRoomIndex].chat.sendChannelMessage('image', webpDataUrl);
-      addMsg(webpDataUrl, false, 'image');
-    }
-  };
-  // 读取file为DataURL
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
-}

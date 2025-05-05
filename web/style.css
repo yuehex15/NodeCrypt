@@ -833,3 +833,68 @@ body {
   object-fit: cover !important;
   display: block !important;
 }
+
+/* 聊天图片全屏预览弹窗样式优化 */
+.img-modal-bg {
+  position: fixed;
+  left: 0; top: 0; right: 0; bottom: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(20,20,20,0.92); /* 深色蒙版，无模糊 */
+}
+.img-modal-blur {
+  display: none;
+}
+.img-modal-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  max-width: 100vw;
+  max-height: 100vh;
+}
+.img-modal-content img {
+  max-width: 100vw;
+  max-height: 100vh;
+  border-radius: 0;
+  box-shadow: none;
+  background: none;
+  margin: 0 auto;
+  display: block;
+  cursor: zoom-in;
+  border: none;
+}
+/* 聊天图片全屏预览弹窗删除按钮优化 */
+.img-modal-close {
+  position: fixed;
+  right: 15px;
+  top: 15px;
+  font-size: 2.6rem;
+  color: #bbb;
+  background: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10000;
+  transition: background 0.18s, color 0.18s;
+  line-height: 1;
+  box-shadow: none;
+}
+.img-modal-close:hover {
+  background: rgba(80,80,80,0.25);
+  color: #fff;
+}
