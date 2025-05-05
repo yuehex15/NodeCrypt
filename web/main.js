@@ -209,41 +209,46 @@ function loginFormHandler(modal) {
     const username = document.getElementById('username').value.trim();
     const room = document.getElementById('room').value.trim();
     const password = document.getElementById('password').value.trim();
-    // 生成房间数据并切换
-    const newRd = getNewRoomData();
-    newRd.room = room;
-    newRd.myName = username;
-    roomsData.push(newRd);
-    const idx = roomsData.length - 1;
-    switchRoom(idx);
-    // 更新侧边栏
-    const sidebarUsername = document.getElementById('sidebar-username');
-    if (sidebarUsername) sidebarUsername.textContent = username;
-    const avatarEl = document.getElementById('sidebar-user-avatar');
-    if (avatarEl) avatarEl.innerHTML = getSvgAvatar(username, 44);
-    // 隐藏登录界面
-    if (modal) modal.remove();
-    else document.getElementById('login-container').style.display = 'none';
-    document.getElementById('chat-container').style.display = '';
-    setStatus('Connecting...');
-    // 初始化 ChatCrypt
-    const callbacks = {
-      onServerClosed: () => setStatus('Node connection closed'),
-      onServerSecured: () => setStatus('Secure connection to node'),
-      onClientSecured: (user) => handleClientSecured(idx, user),
-      onClientList: (list, selfId) => handleClientList(idx, list, selfId),
-      onClientLeft: (clientId) => handleClientLeft(idx, clientId),
-      onClientMessage: (msg) => {
-        if (msg.username === newRd.myName) return;
-        roomsData[idx].messages.push({ type: 'other', text: msg.data, name: msg.username, avatar: msg.username });
-        if (activeRoomIndex === idx) renderChatArea();
-      }
-    };
-    chat = new window.ChatCrypt(config, callbacks);
-    chat.setCredentials(username, room, password);
-    chat.connect();
-    roomsData[idx].chat = chat;
+    joinRoom(username, room, password, modal);
+    
   };
+}
+
+function joinRoom(username, room, password, modal = null) {
+  // 生成房间数据并切换
+  const newRd = getNewRoomData();
+  newRd.room = room;
+  newRd.myName = username;
+  roomsData.push(newRd);
+  const idx = roomsData.length - 1;
+  switchRoom(idx);
+  // 更新侧边栏
+  const sidebarUsername = document.getElementById('sidebar-username');
+  if (sidebarUsername) sidebarUsername.textContent = username;
+  const avatarEl = document.getElementById('sidebar-user-avatar');
+  if (avatarEl) avatarEl.innerHTML = getSvgAvatar(username, 44);
+  // 隐藏登录界面或关闭modal
+  if (modal) modal.remove();
+  else document.getElementById('login-container').style.display = 'none';
+  document.getElementById('chat-container').style.display = '';
+  setStatus('Connecting...');
+  // 初始化 ChatCrypt
+  const callbacks = {
+    onServerClosed: () => setStatus('Node connection closed'),
+    onServerSecured: () => setStatus('Secure connection to node'),
+    onClientSecured: (user) => handleClientSecured(idx, user),
+    onClientList: (list, selfId) => handleClientList(idx, list, selfId),
+    onClientLeft: (clientId) => handleClientLeft(idx, clientId),
+    onClientMessage: (msg) => {
+      if (msg.username === newRd.myName) return;
+      roomsData[idx].messages.push({ type: 'other', text: msg.data, name: msg.username, avatar: msg.username });
+      if (activeRoomIndex === idx) renderChatArea();
+    }
+  };
+  chat = new window.ChatCrypt(config, callbacks);
+  chat.setCredentials(username, room, password);
+  chat.connect();
+  roomsData[idx].chat = chat;
 }
 
 // 打开新房间登录模态
@@ -286,39 +291,8 @@ function openLoginModal() {
     const username = document.getElementById('username-modal').value.trim();
     const room = document.getElementById('room-modal').value.trim();
     const password = document.getElementById('password-modal').value.trim();
-    // 生成房间数据并切换
-    const newRd = getNewRoomData();
-    newRd.room = room;
-    newRd.myName = username;
-    roomsData.push(newRd);
-    const idx = roomsData.length - 1;
-    switchRoom(idx);
-    // 更新侧边栏
-    const sidebarUsername = document.getElementById('sidebar-username');
-    if (sidebarUsername) sidebarUsername.textContent = username;
-    const avatarEl = document.getElementById('sidebar-user-avatar');
-    if (avatarEl) avatarEl.innerHTML = getSvgAvatar(username, 44);
-    // 关闭modal
-    modal.remove();
-    document.getElementById('chat-container').style.display = '';
-    setStatus('Connecting...');
-    // 初始化 ChatCrypt
-    const callbacks = {
-      onServerClosed: () => setStatus('Node connection closed'),
-      onServerSecured: () => setStatus('Secure connection to node'),
-      onClientSecured: (user) => handleClientSecured(idx, user),
-      onClientList: (list, selfId) => handleClientList(idx, list, selfId),
-      onClientLeft: (clientId) => handleClientLeft(idx, clientId),
-      onClientMessage: (msg) => {
-        if (msg.username === newRd.myName) return;
-        roomsData[idx].messages.push({ type: 'other', text: msg.data, name: msg.username, avatar: msg.username });
-        if (activeRoomIndex === idx) renderChatArea();
-      }
-    };
-    chat = new window.ChatCrypt(config, callbacks);
-    chat.setCredentials(username, room, password);
-    chat.connect();
-    roomsData[idx].chat = chat;
+    joinRoom(username, room, password, modal);
+    
   });
 }
 

@@ -1,6 +1,6 @@
 const config = {
-    rsaPublic: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzKsY85qZKPbpqclhaEYz9CXHUqTwXeyCYnyOVQfrDY2hao5kAqplU1NKp9wocg81e1ECFTMm75QFJhDL/Z/L6g76a1saFGd0flpZ2q55HtdIbeHmhVZd2C+CDfsfvoUtLiFSvKtlbxaE0hOn3pcurVFO6Re8QCB7PU7Rf4jdvylweFjQvf78oPG9rI1uzpPwZYfdh23HbYIp/U/PNilIjE9dNir7a4zfGvoFsXzpS3eL6M3ZpHBG7TqUZIexIJDH+CmnpUTs13j4ynLfCv2BqYcvrOlvGlS0fD8exJjmog7dCWgciWPtcI2G+S60EN6ouKs0lqUm9kDYltnIwWSGaQIDAQAB',
-    wsAddress: 'ws://127.0.0.1:8088',
+    rsaPublic: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqASvQa2s9i2UcVNynF45ULz3RrgGFjXUY6mQetqthkJZsBlzyRaJXQrM+jwWpACHfBCh1bX6yKeSHhU2zIMPgpoQFUwPDyQGsZabGxdAjump3zSeKld0GC9CQhh5t59tFaJ9AFeen4rumO1VYXcX4NuDjufcMH6zigYpHLFaUuOShtOZjg+yNLcOXm1IxLp3CAkJ3ltikWuW8J179hr9duJ3wZOSHjCFXnvIIStkccyTV8oWZhoVvCN6nMSankkwTVGEY9K12KkiEXCZCM3Z7k2NbpoGX48mg6ds5mkYHhPmti6OvPkpsHaPUbh6YH/Ay4WPrdrO/8euYz9/Y+CPNQIDAQAB',
+    wsAddress: 'wss://server.nodecrypt.tech/',
     debug: true
 };
 
