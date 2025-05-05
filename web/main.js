@@ -270,6 +270,19 @@ function joinRoom(username, room, password, modal = null) {
   roomsData[idx].chat = chatInst;
 }
 
+// 禁止输入框输入空格的工具函数
+function preventSpaceInput(input) {
+  if (!input) return;
+  input.addEventListener('keydown', function(e) {
+    if (e.key === ' ') e.preventDefault();
+  });
+  input.addEventListener('input', function(e) {
+    if (input.value && input.value.includes(' ')) {
+      input.value = input.value.replace(/\s+/g, '');
+    }
+  });
+}
+
 // 打开新房间登录模态
 function openLoginModal() {
   const loginContainer = document.getElementById('login-container');
@@ -302,6 +315,10 @@ function openLoginModal() {
   document.body.appendChild(modal);
   // 关闭按钮
   modal.querySelector('.login-modal-close').onclick = () => modal.remove();
+  // 禁止弹窗登录页输入框输入空格
+  preventSpaceInput(modal.querySelector('#username-modal'));
+  preventSpaceInput(modal.querySelector('#room-modal'));
+  preventSpaceInput(modal.querySelector('#password-modal'));
   // 表单提交逻辑，复用loginFormHandler但传入modal
   const form = modal.querySelector('#login-form-modal');
   form.addEventListener('submit', function(e) {
@@ -493,6 +510,11 @@ window.addEventListener('DOMContentLoaded', () => {
   // 绑定“进入新房间”按钮
   const joinBtn = document.querySelector('.join-room');
   if (joinBtn) joinBtn.onclick = openLoginModal;
+
+  // 禁止主登录页输入框输入空格
+  preventSpaceInput(document.getElementById('username'));
+  preventSpaceInput(document.getElementById('room'));
+  preventSpaceInput(document.getElementById('password'));
 
   setupInputPlaceholder();
   setupMoreBtnMenu();
