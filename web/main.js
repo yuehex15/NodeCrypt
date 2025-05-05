@@ -454,9 +454,7 @@ function setupMoreBtnMenu() {
             switchRoom(0);
           } else {
             // 没有房间了，回到登录
-            activeRoomIndex = -1;
-            document.getElementById('chat-container').style.display = 'none';
-            document.getElementById('login-container').style.display = '';
+            location.reload();
           }
         }
       }
