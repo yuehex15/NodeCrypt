@@ -507,8 +507,8 @@ function showImageModal(src) {
   modal.className = 'img-modal-bg';
   modal.innerHTML = `
     <div class="img-modal-blur"></div>
-    <div class="img-modal-content">
-      <img src="${src}" style="max-width:90vw;max-height:90vh;" />
+    <div class="img-modal-content" style="overflow:hidden;">
+      <img src="${src}" style="max-width:90vw;max-height:90vh;cursor:grab;user-select:none;" />
       <span class="img-modal-close">&times;</span>
     </div>
   `;
@@ -516,15 +516,73 @@ function showImageModal(src) {
   // 关闭逻辑
   modal.querySelector('.img-modal-close').onclick = () => modal.remove();
   modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
-  // 支持缩放
+  // 支持缩放和拖动
   const img = modal.querySelector('img');
   let scale = 1;
+  let isDragging = false;
+  let lastX = 0, lastY = 0;
+  let offsetX = 0, offsetY = 0;
+  img.ondragstart = function(e) { e.preventDefault(); };
   img.onwheel = function(ev) {
     ev.preventDefault();
+    const prevScale = scale;
     scale += ev.deltaY < 0 ? 0.1 : -0.1;
     scale = Math.max(0.2, Math.min(5, scale));
-    img.style.transform = `scale(${scale})`;
+    // 缩放以图片中心为基准
+    if (scale === 1) {
+      offsetX = 0;
+      offsetY = 0;
+    } else if (prevScale !== scale) {
+      // 缩放时保持当前偏移不变
+    }
+    updateTransform();
   };
+
+  function updateTransform() {
+    img.style.transform = `translate(${offsetX}px,${offsetY}px) scale(${scale})`;
+    img.style.cursor = scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'zoom-in';
+  }
+
+  img.onmousedown = function(ev) {
+    if (scale <= 1) return;
+    isDragging = true;
+    lastX = ev.clientX;
+    lastY = ev.clientY;
+    img.style.cursor = 'grabbing';
+    document.body.style.userSelect = 'none';
+  };
+  window.onmousemove = function(ev) {
+    if (!isDragging) return;
+    offsetX += ev.clientX - lastX;
+    offsetY += ev.clientY - lastY;
+    lastX = ev.clientX;
+    lastY = ev.clientY;
+    updateTransform();
+  };
+  window.onmouseup = function() {
+    if (isDragging) {
+      isDragging = false;
+      img.style.cursor = 'grab';
+      document.body.style.userSelect = '';
+    }
+  };
+  // 双击还原
+  img.ondblclick = function() {
+    scale = 1;
+    offsetX = 0;
+    offsetY = 0;
+    updateTransform();
+  };
+  // 关闭时清理事件
+  const cleanup = () => {
+    window.onmousemove = null;
+    window.onmouseup = null;
+    document.body.style.userSelect = '';
+  };
+  modal.addEventListener('remove', cleanup);
+  modal.querySelector('.img-modal-close').addEventListener('click', cleanup);
+  // 初始化
+  updateTransform();
 }
 
 // 页面初始化
