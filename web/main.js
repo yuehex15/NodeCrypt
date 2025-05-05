@@ -34,6 +34,7 @@ function switchRoom(index) {
   // 同步更新sidebar用户名和头像
   const sidebarUsername = document.getElementById('sidebar-username');
   if (sidebarUsername) sidebarUsername.textContent = rd.myName;
+  setSidebarAvatar(rd.myName);
   renderRooms(index);
   renderMainHeader();
   renderUserList();
