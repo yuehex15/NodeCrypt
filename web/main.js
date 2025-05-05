@@ -17,7 +17,7 @@ async function ensureDicebear() {
 // 根据用户名生成 SVG 头像
 async function createAvatarSVG(seed) {
   await ensureDicebear();
-  return dicebear.createAvatar(micah, { seed }).toString();
+  return dicebear.createAvatar(micah, { seed, baseColor: ["ac6651", "f9c9b6"] }).toString();
 }
 
 // 多房间状态管理
