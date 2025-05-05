@@ -51,8 +51,8 @@ function renderChatArea() {
   }
   chatArea.innerHTML = '';
   roomsData[activeRoomIndex].messages.forEach(m => {
-    if (m.type === 'me') addMsg(m.text, true);
-    else addOtherMsg(m.text, m.name, m.avatar, true);
+    if (m.type === 'me') addMsg(m.text, true, m.msgType || 'text');
+    else addOtherMsg(m.text, m.name, m.avatar, true, m.msgType || 'text');
   });
 }
 
@@ -153,38 +153,46 @@ function setStatus(text) {
   statusBar.innerText = text;
 }
 
-function addMsg(text, isHistory = false) {
-  // 只有新消息才记录
-  if (!isHistory && activeRoomIndex >= 0) roomsData[activeRoomIndex].messages.push({ type: 'me', text });
+function addMsg(text, isHistory = false, msgType = 'text') {
+    if (!isHistory && activeRoomIndex >= 0) roomsData[activeRoomIndex].messages.push({ type: 'me', text, msgType });
   const chatArea = document.getElementById('chat-area');
   if (!chatArea) return;
   const div = document.createElement('div');
   div.className = 'bubble me';
   const now = new Date();
   const time = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-  // 先escape再处理换行
+  let contentHtml = '';
+  if (msgType === 'image' && text.startsWith('data:image/')) {
+    contentHtml = `<img src="${text}" alt="image" style="max-width:220px;max-height:180px;border-radius:8px;">`;
+  } else {
   const safeText = escapeHTML(text).replace(/\n/g, '<br>');
-  div.innerHTML = `<span class="bubble-content">${safeText}</span><span class="bubble-meta">${time}</span>`;
+contentHtml = safeText;
+  }
+  div.innerHTML = `<span class="bubble-content">${contentHtml}</span><span class="bubble-meta">${time}</span>`;
   chatArea.appendChild(div);
   chatArea.scrollTop = chatArea.scrollHeight;
 }
 
-function addOtherMsg(msg, name = 'Anonymous', avatar = '', isHistory = false) {
-  // 只有新消息才记录
-  if (!isHistory && activeRoomIndex >= 0) roomsData[activeRoomIndex].messages.push({ type: 'other', text: msg, name, avatar });
+function addOtherMsg(msg, name = 'Anonymous', avatar = '', isHistory = false, msgType = 'text') {
+    if (!isHistory && activeRoomIndex >= 0) roomsData[activeRoomIndex].messages.push({ type: 'other', text: msg, name, avatar, msgType });
   const chatArea = document.getElementById('chat-area');
   if (!chatArea) return;
   const bubbleWrap = document.createElement('div');
   bubbleWrap.className = 'bubble-other-wrap';
-  // 先escape再处理换行
+  let contentHtml = '';
+  if (msgType === 'image' && msg.startsWith('data:image/')) {
+    contentHtml = `<img src="${msg}" alt="image" style="max-width:220px;max-height:180px;border-radius:8px;">`;
+  } else {
   const safeMsg = escapeHTML(msg).replace(/\n/g, '<br>');
+contentHtml = safeMsg;
+  }
   const safeName = escapeHTML(name);
   bubbleWrap.innerHTML = `
     <span class="avatar"></span>
     <div class="bubble-other-main">
       <div class="bubble other">
         <div class="bubble-other-name">${safeName}</div>
-        <span class="bubble-content">${safeMsg}</span>
+        <span class="bubble-content">${contentHtml}</span>
         <span class="bubble-meta">${(new Date()).getHours().toString().padStart(2, '0')}:${(new Date()).getMinutes().toString().padStart(2, '0')}</span>
       </div>
     </div>
@@ -260,7 +268,9 @@ function joinRoom(username, room, password, modal = null) {
     onClientLeft: (clientId) => handleClientLeft(idx, clientId),
     onClientMessage: (msg) => {
       if (msg.username === newRd.myName) return;
-      roomsData[idx].messages.push({ type: 'other', text: msg.data, name: msg.username, avatar: msg.username });
+// 判断消息类型
+      let msgType = msg.type || (msg.data && msg.data.startsWith('data:image/') ? 'image' : 'text');
+      roomsData[idx].messages.push({ type: 'other', text: msg.data, name: msg.username, avatar: msg.username, msgType });
       if (activeRoomIndex === idx) renderChatArea();
     }
   };
@@ -533,6 +543,51 @@ window.addEventListener('DOMContentLoaded', () => {
           addMsg(text);
           input.innerText = '';
           input.dispatchEvent(new Event('input'));
+        }
+      }
+    });
+  }
+
+  // 附件按钮和图片发送功能
+  const attachBtn = document.querySelector('.chat-attach-btn');
+  const fileInput = document.querySelector('.new-message-wrapper input[type="file"]');
+  if (fileInput) fileInput.setAttribute('accept', 'image/*');
+  if (attachBtn && fileInput) {
+    attachBtn.onclick = () => fileInput.click();
+    fileInput.onchange = async function() {
+      if (!fileInput.files || !fileInput.files.length) return;
+      const file = fileInput.files[0];
+      if (!file.type.startsWith('image/')) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64 = e.target.result;
+        if (roomsData[activeRoomIndex]?.chat) {
+          roomsData[activeRoomIndex].chat.sendChannelMessage('image', base64);
+          addMsg(base64, false, 'image');
+        }
+      };
+      reader.readAsDataURL(file);
+      fileInput.value = '';
+    };
+  }
+  // 粘贴图片支持
+  if (input) {
+    input.addEventListener('paste', function(e) {
+      if (!e.clipboardData) return;
+      for (const item of e.clipboardData.items) {
+        if (item.type.startsWith('image/')) {
+          const file = item.getAsFile();
+          const reader = new FileReader();
+          reader.onload = function(ev) {
+            const base64 = ev.target.result;
+            if (roomsData[activeRoomIndex]?.chat) {
+              roomsData[activeRoomIndex].chat.sendChannelMessage('image', base64);
+              addMsg(base64, false, 'image');
+            }
+          };
+          reader.readAsDataURL(file);
+          e.preventDefault();
+          break;
         }
       }
     });
