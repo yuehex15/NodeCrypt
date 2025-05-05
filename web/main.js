@@ -1,5 +1,25 @@
 import config from './config.js';
 
+// Dicebear Micah 头像生成依赖
+let dicebear = null;
+let micah = null;
+// 页面加载时立即加载依赖
+(async function preloadDicebear() {
+  dicebear = await import('https://cdn.jsdelivr.net/npm/@dicebear/core@9.2.2/+esm');
+  micah = (await import('https://cdn.jsdelivr.net/npm/@dicebear/collection@9.2.2/+esm')).micah;
+})();
+async function ensureDicebear() {
+  if (!dicebear || !micah) {
+    dicebear = await import('https://cdn.jsdelivr.net/npm/@dicebear/core@9.2.2/+esm');
+    micah = (await import('https://cdn.jsdelivr.net/npm/@dicebear/collection@9.2.2/+esm')).micah;
+  }
+}
+// 根据用户名生成 SVG 头像
+async function createAvatalrSVG(seed) {
+  await ensureDicebear();
+  return dicebear.createAvatar(micah, { seed }).toString();
+}
+
 // 多房间状态管理
 let roomsData = [];
 let activeRoomIndex = -1;
@@ -74,6 +94,10 @@ function createUserItem(user, isMe) {
   let div = document.createElement('div');
   div.className = 'member' + (isMe ? ' me' : '');
   const safeUsername = escapeHTML(user.username);
+  // 头像 SVG
+  createAvatarSVG(user.username).then(svg => {
+    div.querySelector('.avatar').innerHTML = svg;
+  });
   div.innerHTML = `
     <span class="avatar"></span>
     <div class="member-info">
@@ -164,6 +188,10 @@ function addOtherMsg(msg, name = 'Anonymous', avatar = '', isHistory = false) {
       </div>
     </div>
   `;
+  // 头像 SVG
+  createAvatarSVG(name).then(svg => {
+    bubbleWrap.querySelector('.avatar').innerHTML = svg;
+  });
   chatArea.appendChild(bubbleWrap);
   chatArea.scrollTop = chatArea.scrollHeight;
 }
@@ -197,6 +225,14 @@ function loginFormHandler(modal) {
   };
 }
 
+function setSidebarAvatar(username) {
+  if (!username) return;
+  createAvatarSVG(username).then(svg => {
+    const el = document.getElementById('sidebar-user-avatar');
+    if (el) el.innerHTML = svg;
+  });
+}
+
 function joinRoom(username, room, password, modal = null) {
   // 生成房间数据并切换
   const newRd = getNewRoomData();
@@ -208,6 +244,7 @@ function joinRoom(username, room, password, modal = null) {
   // 更新侧边栏
   const sidebarUsername = document.getElementById('sidebar-username');
   if (sidebarUsername) sidebarUsername.textContent = username;
+  setSidebarAvatar(username);
   // 隐藏登录界面或关闭modal
   if (modal) modal.remove();
   else document.getElementById('login-container').style.display = 'none';
