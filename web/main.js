@@ -469,14 +469,8 @@ function setupMoreBtnMenu() {
           if (roomsData.length > 0) {
             switchRoom(0);
           } else {
-            activeRoomIndex = -1;
-            document.getElementById('chat-container').style.display = 'none';
-            document.getElementById('login-container').style.display = '';
-            // 可选：清空 sidebar 用户名和头像
-            const sidebarUsername = document.getElementById('sidebar-username');
-            if (sidebarUsername) sidebarUsername.textContent = 'My Name';
-            const sidebarAvatar = document.getElementById('sidebar-user-avatar');
-            if (sidebarAvatar) sidebarAvatar.innerHTML = '';
+            // 没有房间了，刷新页面
+            location.reload();
           }
         }
         closeMenu();
