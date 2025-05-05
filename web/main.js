@@ -1,25 +1,6 @@
 import config from './config.js';
 import { processImage } from './util.image.js';
-
-// Dicebear Micah 头像生成依赖
-let dicebear = null;
-let micah = null;
-// 页面加载时立即加载依赖
-(async function preloadDicebear() {
-  dicebear = await import('https://cdn.jsdelivr.net/npm/@dicebear/core@9.2.2/+esm');
-  micah = (await import('https://cdn.jsdelivr.net/npm/@dicebear/collection@9.2.2/+esm')).micah;
-})();
-async function ensureDicebear() {
-  if (!dicebear || !micah) {
-    dicebear = await import('https://cdn.jsdelivr.net/npm/@dicebear/core@9.2.2/+esm');
-    micah = (await import('https://cdn.jsdelivr.net/npm/@dicebear/collection@9.2.2/+esm')).micah;
-  }
-}
-// 根据用户名生成 SVG 头像
-async function createAvatarSVG(seed) {
-  await ensureDicebear();
-  return dicebear.createAvatar(micah, { seed, baseColor: ["ac6651", "f9c9b6"] }).toString();
-}
+import { createAvatarSVG } from './util.avatar.js';
 
 // 多房间状态管理
 let roomsData = [];
@@ -57,22 +38,6 @@ function renderChatArea() {
   });
 }
 
-// 根据字符串生成固定颜色
-function stringToColor(str) {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  // 生成明亮的色相，避免太灰
-  const h = Math.abs(hash) % 360;
-  return `hsl(${h}, 70%, 75%)`;
-}
-
-// 获取用户名首字母（前2位大写）
-function getInitials(name) {
-  if (!name) return '?';
-  return name.slice(0, 2).toUpperCase();
-}
 // 简单转义，防止XSS
 function escapeHTML(str) {
   return str.replace(/[&<>"']/g, function (c) {
