@@ -20,21 +20,6 @@ body {
     background: #fff;
     border-bottom: 1px solid #e0e0e0;
 }
-.sidebar-user .avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    margin-right: 12px;
-    background: #30a8f7;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-weight: bold;
-    font-size: 22px;
-    user-select: none;
-    overflow: hidden;
-}
 .sidebar-username {
     font-weight: 600;
     font-size: 17px;
@@ -103,23 +88,6 @@ body {
     box-shadow: 0 2px 8px #b3d8f7a0;
 }
 
-.room .avatar {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    margin-right: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #30a8f7;
-    color: #fff;
-    font-weight: bold;
-    font-size: 18px;
-    user-select: none;
-    overflow: hidden;
-    flex-shrink: 0;
-}
-
 .room .info {
     flex: 1;
 }
@@ -171,22 +139,6 @@ body {
     min-height: 30px;
     border-radius: 0 0 0 0;
     box-shadow: 0 2px 8px #e0e0e040;
-}
-
-.main-header .avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: #30a8f7;
-    margin-right: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-weight: bold;
-    font-size: 20px;
-    user-select: none;
-    overflow: hidden;
 }
 
 .main-header .group-title {
@@ -307,21 +259,6 @@ body {
   display: flex;
   align-items: flex-end;
   margin-bottom: 12px;
-}
-.bubble-other-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: #30a8f7;
-  color: #fff;
-  font-weight: bold;
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 8px;
-  flex-shrink: 0;
-  user-select: none;
 }
 .bubble-other-main {
   display: flex;
@@ -657,22 +594,6 @@ body {
     justify-content: space-around;
 }
 
-.rightbar-group .avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: #30a8f7;
-    margin-right: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-weight: bold;
-    font-size: 22px;
-    user-select: none;
-    overflow: hidden;
-}
-
 .rightbar .group-info .title {
     font-size: 18px;
     font-weight: 600;
@@ -733,23 +654,6 @@ body {
 .member:hover {
     background: #d0e6fa;
     box-shadow: 0 2px 8px #b3d8f7a0;
-}
-
-.member .avatar {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    margin-right: 14px;
-    background: #30a8f7;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-weight: bold;
-    font-size: 18px;
-    user-select: none;
-    overflow: hidden;
-    flex-shrink: 0;
 }
 
 .member .member-info {
@@ -900,4 +804,32 @@ body {
 }
 .login-modal-close:hover {
   color: #30a8f7;
+}
+
+/* 统一所有头像样式为.avatar */
+.avatar {
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 50% !important;
+  background: #30a8f7 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #fff !important;
+  font-weight: bold !important;
+  font-size: 20px !important;
+  user-select: none !important;
+  overflow: hidden !important;
+  flex-shrink: 0 !important;
+  object-fit: cover !important;
+  margin-right: 12px !important;
+  box-sizing: border-box !important;
+}
+
+.avatar img {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  display: block !important;
 }

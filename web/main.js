@@ -1,15 +1,5 @@
 import config from './config.js';
 
-// 头像尺寸常量
-const AVATAR_SIZE_SIDEBAR = 44;
-const AVATAR_SIZE_MEMBER = 38;
-const AVATAR_SIZE_MSG = 32;
-
-// 统一头像渲染工具函数
-function renderAvatar(name, size) {
-  return getSvgAvatar(name, size);
-}
-
 // 多房间状态管理
 let roomsData = [];
 let activeRoomIndex = -1;
@@ -24,8 +14,6 @@ function switchRoom(index) {
   // 同步更新sidebar用户名和头像
   const sidebarUsername = document.getElementById('sidebar-username');
   if (sidebarUsername) sidebarUsername.textContent = rd.myName;
-  const avatarEl = document.getElementById('sidebar-user-avatar');
-  if (avatarEl) avatarEl.innerHTML = renderAvatar(rd.myName, AVATAR_SIZE_SIDEBAR);
   renderRooms(index);
   renderMainHeader();
   renderUserList();
@@ -58,13 +46,6 @@ function stringToColor(str) {
   return `hsl(${h}, 70%, 75%)`;
 }
 
-// 生成 Dicebear Micah 风格头像，背景色与用户名相关
-function getSvgAvatar(text, size = 42) {
-  const seed = encodeURIComponent(text || 'User');
-  const bg = stringToColor(text || 'User');
-  return `<img src="https://api.dicebear.com/9.x/micah/svg?seed=${seed}&size=${size}&baseColor=ac6651,f9c9b6" alt="avatar" width="${size}" height="${size}" style="border-radius:50%;background:${bg};object-fit:cover;" />`;
-}
-
 // 获取用户名首字母（前2位大写）
 function getInitials(name) {
   if (!name) return '?';
@@ -92,13 +73,13 @@ function renderUserList() {
 function createUserItem(user, isMe) {
   let div = document.createElement('div');
   div.className = 'member' + (isMe ? ' me' : '');
+  const safeUsername = escapeHTML(user.username);
   div.innerHTML = `
-    <span class="avatar">${renderAvatar(user.username, AVATAR_SIZE_MEMBER)}</span>
+    <span class="avatar"></span>
     <div class="member-info">
-      <div class="member-name">${escapeHTML(user.username)}${isMe ? ' (我)' : ''}</div>
+      <div class="member-name">${safeUsername}${isMe ? ' (我)' : ''}</div>
     </div>
   `;
-  // 不可点击
   return div;
 }
 
@@ -108,7 +89,9 @@ function handleClientList(idx, list, selfId) {
   if (!rd) return;
   rd.userList = list;
   rd.userMap = {};
-  list.forEach(u => { rd.userMap[u.clientId] = u; });
+  list.forEach(u => {
+    rd.userMap[u.clientId] = u;
+  });
   rd.myId = selfId;
   if (activeRoomIndex === idx) renderUserList();
 }
@@ -154,7 +137,9 @@ function addMsg(text, isHistory = false) {
   div.className = 'bubble me';
   const now = new Date();
   const time = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-  div.innerHTML = `<span class="bubble-content">${text}</span><span class="bubble-meta">${time}</span>`;
+  // 先escape再处理换行
+  const safeText = escapeHTML(text).replace(/\n/g, '<br>');
+  div.innerHTML = `<span class="bubble-content">${safeText}</span><span class="bubble-meta">${time}</span>`;
   chatArea.appendChild(div);
   chatArea.scrollTop = chatArea.scrollHeight;
 }
@@ -166,12 +151,15 @@ function addOtherMsg(msg, name = 'Anonymous', avatar = '', isHistory = false) {
   if (!chatArea) return;
   const bubbleWrap = document.createElement('div');
   bubbleWrap.className = 'bubble-other-wrap';
+  // 先escape再处理换行
+  const safeMsg = escapeHTML(msg).replace(/\n/g, '<br>');
+  const safeName = escapeHTML(name);
   bubbleWrap.innerHTML = `
-    <span class="bubble-other-avatar">${renderAvatar(avatar || name, AVATAR_SIZE_MSG)}</span>
+    <span class="avatar"></span>
     <div class="bubble-other-main">
       <div class="bubble other">
-        <div class="bubble-other-name">${name}</div>
-        <span class="bubble-content">${msg.replace(/\n/g, '<br>')}</span>
+        <div class="bubble-other-name">${safeName}</div>
+        <span class="bubble-content">${safeMsg}</span>
         <span class="bubble-meta">${(new Date()).getHours().toString().padStart(2, '0')}:${(new Date()).getMinutes().toString().padStart(2, '0')}</span>
       </div>
     </div>
@@ -187,9 +175,10 @@ function renderRooms(activeId = 0) {
   roomsData.forEach((rd, i) => {
     const div = document.createElement('div');
     div.className = 'room' + (i === activeId ? ' active' : '');
+    const safeRoom = escapeHTML(rd.room);
     div.innerHTML = `
       <div class="info">
-        <div class="title">#${escapeHTML(rd.room)}</div>
+        <div class="title">#${safeRoom}</div>
       </div>
     `;
     div.onclick = () => switchRoom(i);
@@ -219,8 +208,6 @@ function joinRoom(username, room, password, modal = null) {
   // 更新侧边栏
   const sidebarUsername = document.getElementById('sidebar-username');
   if (sidebarUsername) sidebarUsername.textContent = username;
-  const avatarEl = document.getElementById('sidebar-user-avatar');
-  if (avatarEl) avatarEl.innerHTML = renderAvatar(username, AVATAR_SIZE_SIDEBAR);
   // 隐藏登录界面或关闭modal
   if (modal) modal.remove();
   else document.getElementById('login-container').style.display = 'none';
@@ -297,9 +284,10 @@ function renderMainHeader() {
   if (rd && !rd.userList.some(u => u.clientId === rd.myId)) {
     onlineCount += 1;
   }
+  const safeRoomName = escapeHTML(roomName);
   document.getElementById("main-header").innerHTML = `
     <div style="display: flex; align-items: center;">
-      <div class="group-title" style="font-size: 1.22em; font-weight: bold;">#${escapeHTML(roomName)}</div>
+      <div class="group-title" style="font-size: 1.22em; font-weight: bold;">#${safeRoomName}</div>
       <span style="margin-left:10px;font-size:13px;color:#888;">${onlineCount} members</span>
     </div>
     <div class="main-header-actions">
@@ -395,7 +383,7 @@ function setupMoreBtnMenu() {
     }
   }
   function unbindMouseMove() {
-    if (isMouseMoveBound) {
+    if (!isMouseMoveBound) {
       window.removeEventListener('mousemove', onMouseMove);
       isMouseMoveBound = false;
     }
@@ -435,26 +423,7 @@ function setupMoreBtnMenu() {
       if (e.target.dataset.action === 'share') {
         alert('分享功能待实现');
       } else if (e.target.dataset.action === 'exit') {
-        // 退出当前房间
-        if (activeRoomIndex >= 0 && roomsData[activeRoomIndex]) {
-          // 优先彻底销毁连接
-          const chatInst = roomsData[activeRoomIndex].chat;
-          if (chatInst && typeof chatInst.destruct === 'function') {
-            chatInst.destruct();
-          } else if (chatInst && typeof chatInst.disconnect === 'function') {
-            chatInst.disconnect();
-          }
-          roomsData[activeRoomIndex].chat = null;
-          // 移除房间
-          roomsData.splice(activeRoomIndex, 1);
-          if (roomsData.length > 0) {
-            // 切换到第一个房间
-            switchRoom(0);
-          } else {
-            // 没有房间了，回到登录
-            location.reload();
-          }
-        }
+        // 退出功能待实现
       }
       closeMenu();
     }
@@ -475,6 +444,7 @@ function setupMoreBtnMenu() {
   });
 }
 
+// 页面初始化
 window.addEventListener('DOMContentLoaded', () => {
   const loginContainer = document.getElementById('login-container');
   const chatContainer = document.getElementById('chat-container');
@@ -507,11 +477,11 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-});
 
-// 初始化
-renderRooms(activeRoomIndex);
-renderMainHeader();
-renderUserList();
-setupTabs();
-renderChatArea();
+  // 初始化
+  renderRooms(activeRoomIndex);
+  renderMainHeader();
+  renderUserList();
+  setupTabs();
+  renderChatArea();
+});
