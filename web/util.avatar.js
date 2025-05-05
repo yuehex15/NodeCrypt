@@ -9,6 +9,8 @@ async function ensureDicebear() {
   }
 }
 
+ensureDicebear();
+
 export async function createAvatarSVG(userName) {
   await ensureDicebear();
   return dicebear.createAvatar(micah, { seed: userName, baseColor: ["f7e1c3", "f9c9b6", "f2d6cb", "f8ce8e", "eac393"],backgroundColor: ["b6e3f4","c0aede","d1d4f9"],backgroundType: ["gradientLinear","solid"] }).toString();
