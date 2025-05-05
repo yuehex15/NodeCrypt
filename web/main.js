@@ -58,7 +58,7 @@ function stringToColor(str) {
 function getSvgAvatar(text, size = 42) {
   const seed = encodeURIComponent(text || 'User');
   const bg = stringToColor(text || 'User');
-  return `<img src="https://api.dicebear.com/9.x/micah/svg?seed=${seed}&size=${size}" alt="avatar" width="${size}" height="${size}" style="border-radius:50%;background:${bg};object-fit:cover;" />`;
+  return `<img src="https://api.dicebear.com/9.x/micah/svg?seed=${seed}&size=${size}&baseColor=ac6651,f9c9b6" alt="avatar" width="${size}" height="${size}" style="border-radius:50%;background:${bg};object-fit:cover;" />`;
 }
 
 // 在线用户列表数据结构
