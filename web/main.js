@@ -1,5 +1,15 @@
 import config from './config.js';
 
+// 头像尺寸常量
+const AVATAR_SIZE_SIDEBAR = 44;
+const AVATAR_SIZE_MEMBER = 38;
+const AVATAR_SIZE_MSG = 32;
+
+// 统一头像渲染工具函数
+function renderAvatar(name, size) {
+  return getSvgAvatar(name, size);
+}
+
 // 多房间状态管理
 let roomsData = [];
 let activeRoomIndex = -1;
@@ -15,7 +25,7 @@ function switchRoom(index) {
   const sidebarUsername = document.getElementById('sidebar-username');
   if (sidebarUsername) sidebarUsername.textContent = rd.myName;
   const avatarEl = document.getElementById('sidebar-user-avatar');
-  if (avatarEl) avatarEl.innerHTML = getSvgAvatar(rd.myName, 44);
+  if (avatarEl) avatarEl.innerHTML = renderAvatar(rd.myName, AVATAR_SIZE_SIDEBAR);
   renderRooms(index);
   renderMainHeader();
   renderUserList();
@@ -83,7 +93,7 @@ function createUserItem(user, isMe) {
   let div = document.createElement('div');
   div.className = 'member' + (isMe ? ' me' : '');
   div.innerHTML = `
-    <span class="avatar">${getSvgAvatar(user.username, 38)}</span>
+    <span class="avatar">${renderAvatar(user.username, AVATAR_SIZE_MEMBER)}</span>
     <div class="member-info">
       <div class="member-name">${escapeHTML(user.username)}${isMe ? ' (我)' : ''}</div>
     </div>
@@ -157,7 +167,7 @@ function addOtherMsg(msg, name = 'Anonymous', avatar = '', isHistory = false) {
   const bubbleWrap = document.createElement('div');
   bubbleWrap.className = 'bubble-other-wrap';
   bubbleWrap.innerHTML = `
-    <span class="bubble-other-avatar">${getSvgAvatar(avatar || name, 32)}</span>
+    <span class="bubble-other-avatar">${renderAvatar(avatar || name, AVATAR_SIZE_MSG)}</span>
     <div class="bubble-other-main">
       <div class="bubble other">
         <div class="bubble-other-name">${name}</div>
@@ -210,7 +220,7 @@ function joinRoom(username, room, password, modal = null) {
   const sidebarUsername = document.getElementById('sidebar-username');
   if (sidebarUsername) sidebarUsername.textContent = username;
   const avatarEl = document.getElementById('sidebar-user-avatar');
-  if (avatarEl) avatarEl.innerHTML = getSvgAvatar(username, 44);
+  if (avatarEl) avatarEl.innerHTML = renderAvatar(username, AVATAR_SIZE_SIDEBAR);
   // 隐藏登录界面或关闭modal
   if (modal) modal.remove();
   else document.getElementById('login-container').style.display = 'none';
