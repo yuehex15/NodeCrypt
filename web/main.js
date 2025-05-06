@@ -195,10 +195,28 @@ function renderRooms(activeId = 0) {
 function loginFormHandler(modal) {
   return function(e) {
     e.preventDefault();
-    const userName = document.getElementById('userName').value.trim();
-    const roomName = document.getElementById('roomName').value.trim();
-    const password = document.getElementById('password').value.trim();
-    joinRoom(userName, roomName, password, modal);
+    let userName, roomName, password, btn;
+    if (modal) {
+      userName = document.getElementById('userName-modal').value.trim();
+      roomName = document.getElementById('roomName-modal').value.trim();
+      password = document.getElementById('password-modal').value.trim();
+      btn = modal.querySelector('.login-btn');
+    } else {
+      userName = document.getElementById('userName').value.trim();
+      roomName = document.getElementById('roomName').value.trim();
+      password = document.getElementById('password').value.trim();
+      btn = document.querySelector('#login-form .login-btn');
+    }
+    if (btn) {
+      btn.disabled = true;
+      btn.innerText = 'Connecting...';
+    }
+    joinRoom(userName, roomName, password, modal, function(success) {
+      if (!success && btn) {
+        btn.disabled = false;
+        btn.innerText = 'ENTER';
+      }
+    });
   };
 }
 
@@ -210,7 +228,7 @@ function setSidebarAvatar(userName) {
   });
 }
 
-function joinRoom(userName, roomName, password, modal = null) {
+function joinRoom(userName, roomName, password, modal = null, onResult) {
   // 生成房间数据并切换
   const newRd = getNewRoomData();
   newRd.roomName = roomName;
@@ -222,21 +240,27 @@ function joinRoom(userName, roomName, password, modal = null) {
   const sidebarUsername = document.getElementById('sidebar-username');
   if (sidebarUsername) sidebarUsername.textContent = userName;
   setSidebarAvatar(userName);
-  // 隐藏登录界面或关闭modal
-  if (modal) modal.remove();
-  else document.getElementById('login-container').style.display = 'none';
-  document.getElementById('chat-container').style.display = '';
-  setStatus('Connecting...');
   // 初始化 ChatCrypt
+  let closed = false;
   const callbacks = {
-    onServerClosed: () => setStatus('Node connection closed'),
-    onServerSecured: () => setStatus('Secure connection to node'),
+    onServerClosed: () => {
+      setStatus('Node connection closed');
+      if (onResult && !closed) { closed = true; onResult(false); }
+    },
+    onServerSecured: () => {
+      setStatus('Secure connection to node');
+      // 连接成功，隐藏登录界面或关闭modal
+      if (modal) modal.remove();
+      else document.getElementById('login-container').style.display = 'none';
+      document.getElementById('chat-container').style.display = '';
+      if (onResult && !closed) { closed = true; onResult(true); }
+    },
     onClientSecured: (user) => handleClientSecured(idx, user),
     onClientList: (list, selfId) => handleClientList(idx, list, selfId),
     onClientLeft: (clientId) => handleClientLeft(idx, clientId),
     onClientMessage: (msg) => {
       if (msg.userName === newRd.myUserName) return;
-// 判断消息类型
+      // 判断消息类型
       let msgType = msg.type || (msg.data && msg.data.startsWith('data:image/') ? 'image' : 'text');
       roomsData[idx].messages.push({ type: 'other', text: msg.data, userName: msg.userName, avatar: msg.userName, msgType });
       if (activeRoomIndex === idx) renderChatArea();
@@ -299,14 +323,7 @@ function openLoginModal() {
   preventSpaceInput(modal.querySelector('#password-modal'));
   // 表单提交逻辑，复用loginFormHandler但传入modal
   const form = modal.querySelector('#login-form-modal');
-  form.addEventListener('submit', function(e) {
-    e.preventDefault();
-    // 获取输入
-    const userName = document.getElementById('userName-modal').value.trim();
-    const roomName = document.getElementById('roomName-modal').value.trim();
-    const password = document.getElementById('password-modal').value.trim();
-    joinRoom(userName, roomName, password, modal);
-  });
+  form.addEventListener('submit', loginFormHandler(modal));
 }
 
 // 渲染主面板房间头部（UI占位）
