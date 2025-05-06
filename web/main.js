@@ -6,7 +6,7 @@ import { createAvatarSVG } from './util.avatar.js';
 let roomsData = [];
 let activeRoomIndex = -1;
 function getNewRoomData() {
-  return { roomName: '', userList: [], userMap: {}, myId: null, myUserName: '', chat: null, messages: [] };
+  return { roomName: '', userList: [], userMap: {}, myId: null, myUserName: '', chat: null, messages: [], prevUserList: [] };
 }
 // 切换房间并恢复上下文，更新 UI
 function switchRoom(index) {
@@ -80,6 +80,7 @@ function createUserItem(user, isMe) {
 function handleClientList(idx, list, selfId) {
   const rd = roomsData[idx];
   if (!rd) return;
+  
   rd.userList = list;
   rd.userMap = {};
   list.forEach(u => {
@@ -87,6 +88,7 @@ function handleClientList(idx, list, selfId) {
   });
   rd.myId = selfId;
   if (activeRoomIndex === idx) renderUserList();
+  
 }
 // 新用户上线或资料变更
 function handleClientSecured(idx, user) {
@@ -141,8 +143,16 @@ contentHtml = safeText;
   chatArea.scrollTop = chatArea.scrollHeight;
 }
 
-function addOtherMsg(msg, userName = 'Anonymous', avatar = '', isHistory = false, msgType = 'text') {
-    if (!isHistory && activeRoomIndex >= 0) roomsData[activeRoomIndex].messages.push({ type: 'other', text: msg, userName, avatar, msgType });
+function addOtherMsg(msg, userName = '', avatar = '', isHistory = false, msgType = 'text') {
+    // 修正：优先从userMap查找用户名，避免Anonymous
+    if (!userName && activeRoomIndex >= 0) {
+      const rd = roomsData[activeRoomIndex];
+      if (rd && msg && msg.clientId && rd.userMap[msg.clientId]) {
+        userName = rd.userMap[msg.clientId].userName || rd.userMap[msg.clientId].username || rd.userMap[msg.clientId].name || 'Anonymous';
+      }
+    }
+    if (!userName) userName = 'Anonymous';
+  if (!isHistory && activeRoomIndex >= 0) roomsData[activeRoomIndex].messages.push({ type: 'other', text: msg, userName, avatar, msgType });
   const chatArea = document.getElementById('chat-area');
   if (!chatArea) return;
   const bubbleWrap = document.createElement('div');
@@ -262,7 +272,12 @@ function joinRoom(userName, roomName, password, modal = null, onResult) {
       if (msg.userName === newRd.myUserName) return;
       // 判断消息类型
       let msgType = msg.type || (msg.data && msg.data.startsWith('data:image/') ? 'image' : 'text');
-      roomsData[idx].messages.push({ type: 'other', text: msg.data, userName: msg.userName, avatar: msg.userName, msgType });
+      // 修正：如果msg.userName缺失，尝试从userMap查找
+      let realUserName = msg.userName;
+      if (!realUserName && msg.clientId && newRd.userMap[msg.clientId]) {
+        realUserName = newRd.userMap[msg.clientId].userName || newRd.userMap[msg.clientId].username || newRd.userMap[msg.clientId].name;
+      }
+      roomsData[idx].messages.push({ type: 'other', text: msg.data, userName: realUserName, avatar: realUserName, msgType });
       if (activeRoomIndex === idx) renderChatArea();
     }
   };
