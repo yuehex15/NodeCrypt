@@ -34,6 +34,7 @@ function renderChatArea() {
   chatArea.innerHTML = '';
   roomsData[activeRoomIndex].messages.forEach(m => {
     if (m.type === 'me') addMsg(m.text, true, m.msgType || 'text');
+    else if (m.type === 'system') addSystemMsg(m.text, true); // 这里加 true
     else addOtherMsg(m.text, m.userName, m.avatar, true, m.msgType || 'text');
   });
 }
@@ -182,6 +183,27 @@ contentHtml = safeMsg;
   chatArea.appendChild(bubbleWrap);
   chatArea.scrollTop = chatArea.scrollHeight;
 }
+
+// 添加系统信息消息
+function addSystemMsg(text, isHistory = false) {
+  if (!isHistory && activeRoomIndex >= 0) {
+    roomsData[activeRoomIndex].messages.push({ type: 'system', text });
+  }
+  const chatArea = document.getElementById('chat-area');
+  if (!chatArea) return;
+  const div = document.createElement('div');
+  div.className = 'bubble system';
+  const safeText = escapeHTML(text).replace(/\n/g, '<br>');
+  div.innerHTML = `<span class="bubble-content">${safeText}</span>`;
+  chatArea.appendChild(div);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+// 在控制台中添加全局方法
+window.sendSystemMsg = function(message) {
+  addSystemMsg(message);
+};
+
 
 // 渲染房间列表（动态多房间）
 function renderRooms(activeId = 0) {

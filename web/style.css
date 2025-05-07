@@ -898,3 +898,21 @@ body {
   background: rgba(80,80,80,0.25);
   color: #fff;
 }
+
+
+/* 系统消息气泡样式 */
+.bubble.system {
+  max-width: 70%;
+  padding: 5px 14px;
+  border-radius: 12px;
+  margin: 5px auto;
+  font-size: 13px;
+  line-height: 1.4;
+  position: relative;
+  box-shadow: 1px 0px 20px 0px #d5d5d580;
+  word-break: break-word;
+  background: #f0f4f8;
+  color: #555;
+  display: inline-block;
+  text-align: center;
+}
