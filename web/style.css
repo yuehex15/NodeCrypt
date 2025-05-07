@@ -154,7 +154,7 @@ body {
     justify-content: space-between;
     min-height: 30px;
     position: relative;
-    z-index: 1;
+    z-index: 3;
 }
 
 .main-header .group-title {
@@ -196,7 +196,6 @@ body {
     display: flex;
     flex-direction: column;
     background: none;
-    z-index: 2;
 }
 
 .bubble {
@@ -236,16 +235,19 @@ body {
   color: #222;
   margin-left: auto;
   border-bottom-right-radius: 0px;
-  padding: 10px 39px 7px 10px;
 }
 
 .bubble.other {
   background: #fff;
   color: #222;
   border-bottom-left-radius: 0px;
-  margin-bottom: 0;
+  margin-right: 0;
   margin-left: 0px;
   padding: 1px 40px 5px 10px;
+}
+
+.bubble.other .bubble-meta {
+    right: 8px;
 }
 
 .bubble .bubble-meta {
@@ -266,9 +268,6 @@ body {
 .bubble-other-wrap {
   display: flex;
   align-items: flex-end;
-  position: relative;
-  z-index: 2;
-  margin-bottom: .375rem;
 }
 .bubble-other-main {
   display: flex;
@@ -290,11 +289,12 @@ body {
 }
 
 .chat-input-area {
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    padding: 3px 30px 17px 30px;
-    background: none;
+  width: 80%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding: 0 0 17px 30px;
+  background: none;
 }
 
 .rows-wrapper {
@@ -816,6 +816,7 @@ body {
   width: 42px !important;
   height: 42px !important;
   border-radius: 50% !important;
+  background: #30a8f7 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -826,10 +827,8 @@ body {
   overflow: hidden !important;
   flex-shrink: 0 !important;
   object-fit: cover !important;
-  margin-right: 8px !important;
+  margin-right: 12px !important;
   box-sizing: border-box !important;
-  z-index: 2 !important;
-  position: relative !important;
 }
 
 .avatar img {
@@ -838,8 +837,6 @@ body {
   border-radius: 50% !important;
   object-fit: cover !important;
   display: block !important;
-  z-index: 2 !important;
-  position: relative !important;
 }
 
 /* 聊天图片全屏预览弹窗样式优化 */
