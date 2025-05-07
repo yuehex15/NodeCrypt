@@ -341,15 +341,15 @@ function openLoginModal() {
       <form id="login-form-modal">
         <div class="input-group">
           <label for="userName-modal">Username</label>
-          <input id="userName-modal" type="text" autocomplete="username" required minlength="1" maxlength="10">
+          <input id="userName-modal" type="text" autocomplete="username" required minlength="1" maxlength="15">
         </div>
         <div class="input-group">
           <label for="roomName-modal">Node Name</label>
-          <input id="roomName-modal" type="text" required minlength="1" maxlength="10">
+          <input id="roomName-modal" type="text" required minlength="1" maxlength="15">
         </div>
         <div class="input-group">
           <label for="password-modal">Node Password <span class="optional">(optional)</span></label>
-          <input id="password-modal" type="password" autocomplete="off" minlength="1" maxlength="10">
+          <input id="password-modal" type="password" autocomplete="off" minlength="1" maxlength="15">
         </div>
         <button type="submit" class="login-btn">ENTER</button>
       </form>
