@@ -196,6 +196,7 @@ body {
     display: flex;
     flex-direction: column;
     background: none;
+    z-index: 1;
 }
 
 .bubble {
@@ -235,6 +236,7 @@ body {
   color: #222;
   margin-left: auto;
   border-bottom-right-radius: 0px;
+  padding: 10px 39px 7px 10px;
 }
 
 .bubble.other {
@@ -247,7 +249,7 @@ body {
 }
 
 .bubble.other .bubble-meta {
-    right: 8px;
+    right: 4px;
 }
 
 .bubble .bubble-meta {
@@ -278,6 +280,8 @@ body {
   font-size: 13px;
   color: #30a8f7;
   font-weight: 500;
+  margin-left: -5px;
+
 }
 
 /* Telegram风格输入区样式 */
@@ -289,11 +293,10 @@ body {
 }
 
 .chat-input-area {
-  width: 80%;
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  padding: 0 0 17px 30px;
+  padding: 3px 30px 17px 30px;
   background: none;
 }
 
