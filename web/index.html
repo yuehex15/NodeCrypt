@@ -12,15 +12,15 @@
     <form id="login-form">
       <div class="input-group">
         <label for="userName">Username</label>
-        <input id="userName" type="text" autocomplete="username" required="">
+        <input id="userName" type="text" autocomplete="username" required minlength="1" maxlength="10">
       </div>
       <div class="input-group">
         <label for="roomName">Node Name</label>
-        <input id="roomName" type="text" required="">
+        <input id="roomName" type="text" required minlength="1" maxlength="10">
       </div>
       <div class="input-group">
         <label for="password">Node Password <span class="optional">(optional)</span></label>
-        <input id="password" type="password" autocomplete="off">
+        <input id="password" type="password" autocomplete="off" minlength="1" maxlength="10">
       </div>
       <button type="submit" class="login-btn">ENTER</button>
     </form>

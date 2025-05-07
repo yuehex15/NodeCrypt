@@ -313,14 +313,16 @@ function joinRoom(userName, roomName, password, modal = null, onResult) {
 function preventSpaceInput(input) {
   if (!input) return;
   input.addEventListener('keydown', function(e) {
-    // 禁止空格和所有标点符号
-    if (e.key === ' ' || /[\p{P}\p{S}]/u.test(e.key)) {
+    // 禁止空格和所有标点符号，允许英文单引号
+    if (e.key === ' ' || (/[\u0000-\u007f]/.test(e.key) && /[\p{P}\p{S}]/u.test(e.key) && e.key !== "'")) {
       e.preventDefault();
     }
   });
   input.addEventListener('input', function(e) {
-    // 替换所有空白和标点符号
-    input.value = input.value.replace(/[\s\p{P}\p{S}]+/gu, '');
+    // 替换所有空白和标点符号，允许英文单引号
+    input.value = input.value.replace(/[\s\p{P}\p{S}]/gu, function(match) {
+      return match === "'" ? "'" : '';
+    });
   });
 }
 
@@ -339,15 +341,15 @@ function openLoginModal() {
       <form id="login-form-modal">
         <div class="input-group">
           <label for="userName-modal">Username</label>
-          <input id="userName-modal" type="text" autocomplete="username" required="">
+          <input id="userName-modal" type="text" autocomplete="username" required minlength="1" maxlength="10">
         </div>
         <div class="input-group">
           <label for="roomName-modal">Node Name</label>
-          <input id="roomName-modal" type="text" required="">
+          <input id="roomName-modal" type="text" required minlength="1" maxlength="10">
         </div>
         <div class="input-group">
           <label for="password-modal">Node Password <span class="optional">(optional)</span></label>
-          <input id="password-modal" type="password" autocomplete="off">
+          <input id="password-modal" type="password" autocomplete="off" minlength="1" maxlength="10">
         </div>
         <button type="submit" class="login-btn">ENTER</button>
       </form>
