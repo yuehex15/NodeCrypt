@@ -519,7 +519,7 @@ function setupMoreBtnMenu() {
           const room = encodeURIComponent(rd.roomName || '');
           // 密码需要在 joinRoom 时存一份到 roomsData
           const pwd = encodeURIComponent(rd.password || '');
-          const url = `${location.origin}${location.pathname}?room=${room}&pwd=${pwd}`;
+          const url = `${location.origin}${location.pathname}?node=${room}&pwd=${pwd}`;
           // 复制到剪贴板
           if (navigator.clipboard) {
             navigator.clipboard.writeText(url).then(() => {
@@ -665,7 +665,7 @@ function showImageModal(src) {
 // 自动填充房间号和密码（支持分享链接）
 function autofillRoomPwd(formPrefix = '') {
   const params = new URLSearchParams(window.location.search);
-  const room = params.get('room');
+  const room = params.get('node');
   const pwd = params.get('pwd');
   if (room) {
     const roomInput = document.getElementById(formPrefix + 'roomName');
@@ -682,6 +682,9 @@ function autofillRoomPwd(formPrefix = '') {
       pwdInput.readOnly = true;
       pwdInput.style.background = '#f5f5f5';
     }
+  }
+  if (room || pwd) {
+    window.history.replaceState({}, '', location.pathname);
   }
 }
 
