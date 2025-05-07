@@ -313,12 +313,14 @@ function joinRoom(userName, roomName, password, modal = null, onResult) {
 function preventSpaceInput(input) {
   if (!input) return;
   input.addEventListener('keydown', function(e) {
-    if (e.key === ' ') e.preventDefault();
+    // 禁止空格和所有标点符号
+    if (e.key === ' ' || /[\p{P}\p{S}]/u.test(e.key)) {
+      e.preventDefault();
+    }
   });
   input.addEventListener('input', function(e) {
-    if (input.value && input.value.includes(' ')) {
-      input.value = input.value.replace(/\s+/g, '');
-    }
+    // 替换所有空白和标点符号
+    input.value = input.value.replace(/[\s\p{P}\p{S}]+/gu, '');
   });
 }
 
