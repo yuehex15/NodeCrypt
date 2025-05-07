@@ -265,6 +265,7 @@ function joinRoom(userName, roomName, password, modal = null, onResult) {
   const newRd = getNewRoomData();
   newRd.roomName = roomName;
   newRd.myUserName = userName;
+  newRd.password = password; // 保存密码
   roomsData.push(newRd);
   const idx = roomsData.length - 1;
   switchRoom(idx);
@@ -512,7 +513,25 @@ function setupMoreBtnMenu() {
   menu.onclick = function(e) {
     if (e.target.classList.contains('more-menu-item')) {
       if (e.target.dataset.action === 'share') {
-        alert('分享功能待实现');
+        // 分享功能：生成带房间号和密码的链接
+        if (activeRoomIndex >= 0 && roomsData[activeRoomIndex]) {
+          const rd = roomsData[activeRoomIndex];
+          const room = encodeURIComponent(rd.roomName || '');
+          // 密码需要在 joinRoom 时存一份到 roomsData
+          const pwd = encodeURIComponent(rd.password || '');
+          const url = `${location.origin}${location.pathname}?room=${room}&pwd=${pwd}`;
+          // 复制到剪贴板
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(url).then(() => {
+              addSystemMsg('已复制分享链接，可直接发送给好友！');
+            }, () => {
+              prompt('复制失败，请手动复制：', url);
+            });
+          } else {
+            prompt('请手动复制链接：', url);
+          }
+        }
+        closeMenu();
       } else if (e.target.dataset.action === 'exit') {
         // 更彻底的退出/销毁逻辑
         if (activeRoomIndex >= 0 && roomsData[activeRoomIndex]) {
@@ -643,6 +662,29 @@ function showImageModal(src) {
   updateTransform();
 }
 
+// 自动填充房间号和密码（支持分享链接）
+function autofillRoomPwd(formPrefix = '') {
+  const params = new URLSearchParams(window.location.search);
+  const room = params.get('room');
+  const pwd = params.get('pwd');
+  if (room) {
+    const roomInput = document.getElementById(formPrefix + 'roomName');
+    if (roomInput) {
+      roomInput.value = decodeURIComponent(room);
+      roomInput.readOnly = true;
+      roomInput.style.background = '#f5f5f5';
+    }
+  }
+  if (pwd) {
+    const pwdInput = document.getElementById(formPrefix + 'password');
+    if (pwdInput) {
+      pwdInput.value = decodeURIComponent(pwd);
+      pwdInput.readOnly = true;
+      pwdInput.style.background = '#f5f5f5';
+    }
+  }
+}
+
 // 页面初始化
 window.addEventListener('DOMContentLoaded', () => {
   const loginContainer = document.getElementById('login-container');
@@ -659,6 +701,8 @@ window.addEventListener('DOMContentLoaded', () => {
   preventSpaceInput(document.getElementById('userName'));
   preventSpaceInput(document.getElementById('roomName'));
   preventSpaceInput(document.getElementById('password'));
+
+  autofillRoomPwd(); // 主登录页
 
   setupInputPlaceholder();
   setupMoreBtnMenu();
