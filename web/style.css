@@ -829,6 +829,7 @@ body {
   object-fit: cover !important;
   margin-right: 12px !important;
   box-sizing: border-box !important;
+  z-index: 3;
 }
 
 .avatar img {

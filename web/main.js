@@ -523,12 +523,12 @@ function setupMoreBtnMenu() {
           // 复制到剪贴板
           if (navigator.clipboard) {
             navigator.clipboard.writeText(url).then(() => {
-              addSystemMsg('已复制分享链接，可直接发送给好友！');
+              addSystemMsg('Share link copied!');
             }, () => {
-              prompt('复制失败，请手动复制：', url);
+              prompt('Copy failed, url:', url);
             });
           } else {
-            prompt('请手动复制链接：', url);
+            prompt('Copy failed, url:', url);
           }
         }
         closeMenu();
