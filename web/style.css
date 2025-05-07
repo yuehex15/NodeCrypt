@@ -270,6 +270,10 @@ body {
 .bubble-other-wrap {
   display: flex;
   align-items: flex-end;
+  position: relative;
+  z-index: 2;
+  margin-bottom: .375rem;
+
 }
 .bubble-other-main {
   display: flex;
@@ -830,9 +834,10 @@ body {
   overflow: hidden !important;
   flex-shrink: 0 !important;
   object-fit: cover !important;
-  margin-right: 12px !important;
+  margin-right: 8px !important;
   box-sizing: border-box !important;
-  z-index: 3;
+  z-index: 2 !important;
+  position: relative !important;
 }
 
 .avatar img {
@@ -841,6 +846,8 @@ body {
   border-radius: 50% !important;
   object-fit: cover !important;
   display: block !important;
+  z-index: 2 !important;
+  position: relative !important;
 }
 
 /* 聊天图片全屏预览弹窗样式优化 */
