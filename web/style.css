@@ -196,6 +196,7 @@ body {
     display: flex;
     flex-direction: column;
     background: none;
+    z-index: 2;
 }
 
 .bubble {
@@ -267,6 +268,7 @@ body {
   align-items: flex-end;
   position: relative;
   z-index: 2;
+  margin-bottom: .375rem;
 }
 .bubble-other-main {
   display: flex;
@@ -288,12 +290,11 @@ body {
 }
 
 .chat-input-area {
-  width: 80%;
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
-  padding: 0 0 17px 30px;
-  background: none;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    padding: 3px 30px 17px 30px;
+    background: none;
 }
 
 .rows-wrapper {
