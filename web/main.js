@@ -147,19 +147,9 @@ function handleClientSecured(idx, user) {
 function handleClientLeft(idx, clientId) {
   const rd = roomsData[idx];
   if (!rd) return;
-  const user = rd.userMap[clientId];
-  const userName = user ? (user.userName || user.username || user.name || 'Anonymous') : 'Anonymous';
   rd.userList = rd.userList.filter(u => u.clientId !== clientId);
   delete rd.userMap[clientId];
-  // 从已知集合中移除
-  if (rd.knownUserIds) rd.knownUserIds.delete(clientId);
-  const exitMsg = `${userName}已退出`;
-  // 保存系统消息到对应房间历史
-  rd.messages.push({ type: 'system', text: exitMsg });
-  if (activeRoomIndex === idx) {
-    addSystemMsg(exitMsg, true);
-    renderUserList();
-  }
+  if (activeRoomIndex === idx) renderUserList();
 }
 
 function setStatus(text) {
