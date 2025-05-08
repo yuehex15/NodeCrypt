@@ -81,6 +81,15 @@ function createUserItem(user, isMe) {
 function handleClientList(idx, list, selfId) {
   const rd = roomsData[idx];
   if (!rd) return;
+ // 更新在线用户列表和映射
+  rd.userList = list;
+  rd.userMap = {};
+  list.forEach(u => { rd.userMap[u.clientId] = u; });
+  rd.myId = selfId;
+  if (activeRoomIndex === idx) {
+    renderUserList();
+    renderMainHeader(); // 刷新顶部信息栏
+  }
   // 初始化计数
   rd.initCount = (rd.initCount || 0) + 1;
   // 收到 2 次列表后标记初始化完成，并填充已知用户集合
@@ -89,29 +98,41 @@ function handleClientList(idx, list, selfId) {
     // 基准用户集合
     rd.knownUserIds = new Set(list.map(u => u.clientId));
   }
-  // 更新在线用户列表和映射
-  rd.userList = list;
-  rd.userMap = {};
-  list.forEach(u => { rd.userMap[u.clientId] = u; });
-  rd.myId = selfId;
-  // 渲染用户列表
-  if (activeRoomIndex === idx) renderUserList();
+
 }
 
-// 调整 handleClientSecured: 仅在初始化完成后才处理，并避免重复提示
+// 调整 handleClientSecured: 立即更新UI，仅在初始化完成后才处理加入提示
 function handleClientSecured(idx, user) {
   const rd = roomsData[idx];
   if (!rd) return;
-  // 仅在初始列表加载完成后才处理加入提示
+  
+  // 无论初始化状态如何，始终更新用户映射
+  rd.userMap[user.clientId] = user;
+  
+  // 检查用户是否已在列表中
+  const existingUserIndex = rd.userList.findIndex(u => u.clientId === user.clientId);
+  if (existingUserIndex === -1) {
+    // 用户不在列表中，添加它
+    rd.userList.push(user);
+  } else {
+    // 用户已在列表中，更新它
+    rd.userList[existingUserIndex] = user;
+  }
+  
+  // 无论初始化状态如何，始终刷新当前房间UI
+  if (activeRoomIndex === idx) {
+    renderUserList();
+    renderMainHeader(); // 也刷新顶部信息栏
+  }
+  
+  // 仅在初始化完成后才处理加入提示
   if (!rd.isInitialized) {
-    rd.userMap[user.clientId] = user;
     return;
   }
+  
   // 检测是否为已知用户集合中不存在的用户
   const isNew = !rd.knownUserIds.has(user.clientId);
-  // 更新列表和映射
-  rd.userMap[user.clientId] = user;
-  if (isNew) rd.userList.push(user);
+  
   // 提示新用户加入
   if (isNew) {
     rd.knownUserIds.add(user.clientId);
@@ -120,7 +141,6 @@ function handleClientSecured(idx, user) {
     rd.messages.push({ type: 'system', text: msg });
     if (activeRoomIndex === idx) addSystemMsg(msg, true);
   }
-  if (activeRoomIndex === idx) renderUserList();
 }
 
 // 用户下线
