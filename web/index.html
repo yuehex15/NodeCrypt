@@ -28,7 +28,7 @@
   <!-- 聊天主界面，初始隐藏 -->
   <div class="container" id="chat-container" style="display:none;">
     <!-- 左侧房间栏 -->
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
       <div class="sidebar-user">
         <span class="avatar" id="sidebar-user-avatar"></span>
         <span class="sidebar-username" id="sidebar-username">My Name</span>
@@ -41,6 +41,7 @@
         <!-- JS填充房间项 -->
       </div>
     </div>
+    <div class="sidebar-resizer" id="sidebar-resizer"></div>
     <!-- 中间聊天区 -->
     <div class="main">
       <div class="main-header" id="main-header">
@@ -78,8 +79,9 @@
         </div>
       </div>
     </div>
+    <div class="rightbar-resizer" id="rightbar-resizer"></div>
     <!-- 右侧在线用户栏 -->
-    <div class="rightbar">
+    <div class="rightbar" id="rightbar">
       <div class="rightbar-header">
         <div class="rightbar-group">
           <div class="group-info">

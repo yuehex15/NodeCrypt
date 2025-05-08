@@ -12,6 +12,31 @@ body {
     background: #fff;
 }
 
+.sidebar {
+    width: 300px;
+    min-width: 200px;
+    max-width: 400px;
+    background: #fff;
+    border-right: 1px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 2px 0 8px #e0e0e0a0;
+    transition: width 0.15s;
+}
+
+.sidebar-resizer {
+    width: 6px;
+    cursor: ew-resize;
+    background: #ffffff;
+    height: 100vh;
+    position: relative;
+    z-index: 10;
+    transition: background 0.18s;
+}
+.sidebar-resizer:hover {
+    background: #b0b0b0;
+}
+
 /* 左侧用户信息区 */
 .sidebar-user {
     display: flex;
@@ -24,15 +49,6 @@ body {
     font-weight: 600;
     font-size: 17px;
     color: #222;
-}
-
-.sidebar {
-    width: 300px;
-    background: #fff;
-    border-right: 1px solid #e0e0e0;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 2px 0 8px #e0e0e0a0;
 }
 
 .sidebar .join-room {
@@ -587,11 +603,28 @@ body {
 
 .rightbar {
     width: 250px;
+    min-width: 200px;
+    max-width: 400px;
     background: #fff;
     border-left: 1px solid #e0e0e0;
     display: flex;
     flex-direction: column;
     box-shadow: -2px 0 8px #e0e0e0a0;
+    transition: width 0.15s;
+}
+
+.rightbar-resizer {
+    width: 6px;
+    cursor: ew-resize;
+    background: #ffffff;
+    height: 100vh;
+    position: relative;
+    z-index: 10;
+    user-select: none;
+    transition: background 0.18s;
+}
+.rightbar-resizer:hover {
+    background: #b0b0b0;
 }
 
 .rightbar-header {

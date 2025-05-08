@@ -81,23 +81,7 @@ function createUserItem(user, isMe) {
 function handleClientList(idx, list, selfId) {
   const rd = roomsData[idx];
   if (!rd) return;
-  // 记录旧用户ID集合
-  const oldUserIds = new Set((rd.userList || []).map(u => u.clientId));
-  // 新用户ID集合
-  const newUserIds = new Set(list.map(u => u.clientId));
-  // 检查退出用户（旧有，新没有）
-  if (rd.isInitialized) {
-    for (const oldId of oldUserIds) {
-      if (!newUserIds.has(oldId)) {
-        const user = rd.userMap[oldId];
-        const name = user ? (user.userName || user.username || user.name || 'Anonymous') : 'Anonymous';
-        const msg = `${name}已退出`;
-        rd.messages.push({ type: 'system', text: msg });
-        if (activeRoomIndex === idx) addSystemMsg(msg, true);
-      }
-    }
-  }
-  // 更新在线用户列表和映射
+ // 更新在线用户列表和映射
   rd.userList = list;
   rd.userMap = {};
   list.forEach(u => { rd.userMap[u.clientId] = u; });
@@ -114,15 +98,15 @@ function handleClientList(idx, list, selfId) {
     // 基准用户集合
     rd.knownUserIds = new Set(list.map(u => u.clientId));
   }
+
 }
+
 // 调整 handleClientSecured: 立即更新UI，仅在初始化完成后才处理加入提示
 function handleClientSecured(idx, user) {
   const rd = roomsData[idx];
   if (!rd) return;
-  
   // 无论初始化状态如何，始终更新用户映射
   rd.userMap[user.clientId] = user;
-  
   // 检查用户是否已在列表中
   const existingUserIndex = rd.userList.findIndex(u => u.clientId === user.clientId);
   if (existingUserIndex === -1) {
@@ -132,21 +116,17 @@ function handleClientSecured(idx, user) {
     // 用户已在列表中，更新它
     rd.userList[existingUserIndex] = user;
   }
-  
   // 无论初始化状态如何，始终刷新当前房间UI
   if (activeRoomIndex === idx) {
     renderUserList();
     renderMainHeader(); // 也刷新顶部信息栏
   }
-  
   // 仅在初始化完成后才处理加入提示
   if (!rd.isInitialized) {
     return;
   }
-  
   // 检测是否为已知用户集合中不存在的用户
   const isNew = !rd.knownUserIds.has(user.clientId);
-  
   // 提示新用户加入
   if (isNew) {
     rd.knownUserIds.add(user.clientId);
@@ -161,9 +141,14 @@ function handleClientSecured(idx, user) {
 function handleClientLeft(idx, clientId) {
   const rd = roomsData[idx];
   if (!rd) return;
+  const user = rd.userMap[clientId];
+
   rd.userList = rd.userList.filter(u => u.clientId !== clientId);
   delete rd.userMap[clientId];
-  if (activeRoomIndex === idx) renderUserList();
+  rd.messages.push({ type: 'system', text: exitMsg });
+  if (activeRoomIndex === idx) {
+    renderUserList();
+  }
 }
 
 function setStatus(text) {
@@ -763,6 +748,64 @@ window.addEventListener('DOMContentLoaded', () => {
   setupInputPlaceholder();
   setupMoreBtnMenu();
   setupImagePreview();
+
+  // sidebar 拖拽宽度调整
+  const sidebar = document.getElementById('sidebar');
+  const resizer = document.getElementById('sidebar-resizer');
+  let isResizing = false;
+  let startX = 0;
+  let startWidth = 0;
+  if (sidebar && resizer) {
+    resizer.addEventListener('mousedown', function(e) {
+      isResizing = true;
+      startX = e.clientX;
+      startWidth = sidebar.offsetWidth;
+      document.body.style.cursor = 'ew-resize';
+      document.body.style.userSelect = 'none';
+    });
+    window.addEventListener('mousemove', function(e) {
+      if (!isResizing) return;
+      let newWidth = startWidth + (e.clientX - startX);
+      newWidth = Math.max(200, Math.min(400, newWidth));
+      sidebar.style.width = newWidth + 'px';
+    });
+    window.addEventListener('mouseup', function() {
+      if (isResizing) {
+        isResizing = false;
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      }
+    });
+  }
+
+  // rightbar 拖拽宽度调整
+  const rightbar = document.getElementById('rightbar');
+  const rightResizer = document.getElementById('rightbar-resizer');
+  let isRightResizing = false;
+  let rightStartX = 0;
+  let rightStartWidth = 0;
+  if (rightbar && rightResizer) {
+    rightResizer.addEventListener('mousedown', function(e) {
+      isRightResizing = true;
+      rightStartX = e.clientX;
+      rightStartWidth = rightbar.offsetWidth;
+      document.body.style.cursor = 'ew-resize';
+      document.body.style.userSelect = 'none';
+    });
+    window.addEventListener('mousemove', function(e) {
+      if (!isRightResizing) return;
+      let newWidth = rightStartWidth - (e.clientX - rightStartX);
+      newWidth = Math.max(200, Math.min(400, newWidth));
+      rightbar.style.width = newWidth + 'px';
+    });
+    window.addEventListener('mouseup', function() {
+      if (isRightResizing) {
+        isRightResizing = false;
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      }
+    });
+  }
 
   // 自动聚焦到输入框
   const input = document.querySelector('.input-message-input');
