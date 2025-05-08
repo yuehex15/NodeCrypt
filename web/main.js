@@ -81,7 +81,21 @@ function createUserItem(user, isMe) {
 function handleClientList(idx, list, selfId) {
   const rd = roomsData[idx];
   if (!rd) return;
-  
+  // 检测退出用户：对比旧列表和新列表
+  const oldList = rd.userList || [];
+  const oldIds = oldList.map(u => u.clientId);
+  const newIds = list.map(u => u.clientId);
+  const exitedIds = oldIds.filter(id => !newIds.includes(id));
+  exitedIds.forEach(clientId => {
+    const user = rd.userMap[clientId] || oldList.find(u=>u.clientId===clientId);
+    const userName = user ? (user.userName||user.username||user.name) : 'Anonymous';
+    const exitMsg = `${userName}已退出`;
+    // 推送系统消息到历史记录
+    rd.messages.push({ type: 'system', text: exitMsg });
+    // 仅在当前房间下渲染，不重复添加到历史记录
+    if (activeRoomIndex === idx) addSystemMsg(exitMsg, true);
+  });
+  // 更新列表
   rd.userList = list;
   rd.userMap = {};
   list.forEach(u => {
@@ -89,7 +103,6 @@ function handleClientList(idx, list, selfId) {
   });
   rd.myId = selfId;
   if (activeRoomIndex === idx) renderUserList();
-  
 }
 // 新用户上线或资料变更
 function handleClientSecured(idx, user) {
@@ -108,9 +121,17 @@ function handleClientSecured(idx, user) {
 function handleClientLeft(idx, clientId) {
   const rd = roomsData[idx];
   if (!rd) return;
+  const user = rd.userMap[clientId];
+  const userName = user ? (user.userName || user.username || user.name || 'Anonymous') : 'Anonymous';
   rd.userList = rd.userList.filter(u => u.clientId !== clientId);
   delete rd.userMap[clientId];
-  if (activeRoomIndex === idx) renderUserList();
+  const exitMsg = `${userName}已退出`;
+  // 保存系统消息到对应房间历史
+  rd.messages.push({ type: 'system', text: exitMsg });
+  if (activeRoomIndex === idx) {
+    addSystemMsg(exitMsg, true);
+    renderUserList();
+  }
 }
 
 function setStatus(text) {
