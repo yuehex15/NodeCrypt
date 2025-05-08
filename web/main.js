@@ -6,7 +6,7 @@ import { createAvatarSVG } from './util.avatar.js';
 let roomsData = [];
 let activeRoomIndex = -1;
 function getNewRoomData() {
-  return { roomName: '', userList: [], userMap: {}, myId: null, myUserName: '', chat: null, messages: [], prevUserList: [] };
+  return { roomName: '', userList: [], userMap: {}, myId: null, myUserName: '', chat: null, messages: [], prevUserList: [], knownUserIds: new Set() };
 }
 // 切换房间并恢复上下文，更新 UI
 function switchRoom(index) {
@@ -81,42 +81,48 @@ function createUserItem(user, isMe) {
 function handleClientList(idx, list, selfId) {
   const rd = roomsData[idx];
   if (!rd) return;
-  // 检测退出用户：对比旧列表和新列表
-  const oldList = rd.userList || [];
-  const oldIds = oldList.map(u => u.clientId);
-  const newIds = list.map(u => u.clientId);
-  const exitedIds = oldIds.filter(id => !newIds.includes(id));
-  exitedIds.forEach(clientId => {
-    const user = rd.userMap[clientId] || oldList.find(u=>u.clientId===clientId);
-    const userName = user ? (user.userName||user.username||user.name) : 'Anonymous';
-    const exitMsg = `${userName}已退出`;
-    // 推送系统消息到历史记录
-    rd.messages.push({ type: 'system', text: exitMsg });
-    // 仅在当前房间下渲染，不重复添加到历史记录
-    if (activeRoomIndex === idx) addSystemMsg(exitMsg, true);
-  });
-  // 更新列表
+  // 初始化计数
+  rd.initCount = (rd.initCount || 0) + 1;
+  // 收到 2 次列表后标记初始化完成，并填充已知用户集合
+  if (rd.initCount === 2) {
+    rd.isInitialized = true;
+    // 基准用户集合
+    rd.knownUserIds = new Set(list.map(u => u.clientId));
+  }
+  // 更新在线用户列表和映射
   rd.userList = list;
   rd.userMap = {};
-  list.forEach(u => {
-    rd.userMap[u.clientId] = u;
-  });
+  list.forEach(u => { rd.userMap[u.clientId] = u; });
   rd.myId = selfId;
+  // 渲染用户列表
   if (activeRoomIndex === idx) renderUserList();
 }
-// 新用户上线或资料变更
+
+// 调整 handleClientSecured: 仅在初始化完成后才处理，并避免重复提示
 function handleClientSecured(idx, user) {
   const rd = roomsData[idx];
   if (!rd) return;
-  let uidx = rd.userList.findIndex(u => u.clientId === user.clientId);
-  if (uidx === -1) {
-    rd.userList.push(user);
-  } else {
-    rd.userList[uidx] = user;
+  // 仅在初始列表加载完成后才处理加入提示
+  if (!rd.isInitialized) {
+    rd.userMap[user.clientId] = user;
+    return;
   }
+  // 检测是否为已知用户集合中不存在的用户
+  const isNew = !rd.knownUserIds.has(user.clientId);
+  // 更新列表和映射
   rd.userMap[user.clientId] = user;
+  if (isNew) rd.userList.push(user);
+  // 提示新用户加入
+  if (isNew) {
+    rd.knownUserIds.add(user.clientId);
+    const name = user.userName || user.username || user.name || 'Anonymous';
+    const msg = `${name}已加入`;
+    rd.messages.push({ type: 'system', text: msg });
+    if (activeRoomIndex === idx) addSystemMsg(msg, true);
+  }
   if (activeRoomIndex === idx) renderUserList();
 }
+
 // 用户下线
 function handleClientLeft(idx, clientId) {
   const rd = roomsData[idx];
@@ -125,6 +131,8 @@ function handleClientLeft(idx, clientId) {
   const userName = user ? (user.userName || user.username || user.name || 'Anonymous') : 'Anonymous';
   rd.userList = rd.userList.filter(u => u.clientId !== clientId);
   delete rd.userMap[clientId];
+  // 从已知集合中移除
+  if (rd.knownUserIds) rd.knownUserIds.delete(clientId);
   const exitMsg = `${userName}已退出`;
   // 保存系统消息到对应房间历史
   rd.messages.push({ type: 'system', text: exitMsg });
