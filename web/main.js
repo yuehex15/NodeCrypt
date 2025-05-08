@@ -81,6 +81,22 @@ function createUserItem(user, isMe) {
 function handleClientList(idx, list, selfId) {
   const rd = roomsData[idx];
   if (!rd) return;
+    // 记录旧用户ID集合
+    const oldUserIds = new Set((rd.userList || []).map(u => u.clientId));
+    // 新用户ID集合
+    const newUserIds = new Set(list.map(u => u.clientId));
+    // 检查退出用户（旧有，新没有）
+    if (rd.isInitialized) {
+      for (const oldId of oldUserIds) {
+        if (!newUserIds.has(oldId)) {
+          const user = rd.userMap[oldId];
+          const name = user ? (user.userName || user.username || user.name || 'Anonymous') : 'Anonymous';
+          const msg = `${name}已退出`;
+          rd.messages.push({ type: 'system', text: msg });
+          if (activeRoomIndex === idx) addSystemMsg(msg, true);
+        }
+      }
+    }  
  // 更新在线用户列表和映射
   rd.userList = list;
   rd.userMap = {};
