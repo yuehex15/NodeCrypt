@@ -1,5 +1,5 @@
 import config from './config.js';
-import { processImage } from './util.image.js';
+import { processImage, setupImageSend } from './util.image.js';
 import { createAvatarSVG } from './util.avatar.js';
 
 // 多房间状态管理
@@ -842,52 +842,18 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 附件按钮和图片发送功能
-  const attachBtn = document.querySelector('.chat-attach-btn');
-  const fileInput = document.querySelector('.new-message-wrapper input[type="file"]');
-  if (fileInput) fileInput.setAttribute('accept', 'image/*');
-  if (attachBtn && fileInput) {
-    attachBtn.onclick = () => fileInput.click();
-    fileInput.onchange = async function() {
-      if (!fileInput.files || !fileInput.files.length) return;
-      const file = fileInput.files[0];
-      if (!file.type.startsWith('image/')) return;
-      if (file.size > 5 * 1024 * 1024) {
-        alert('图片过大（超过5MB），请压缩后再发送。');
-        return;
+  // 附件按钮和图片发送、粘贴图片功能统一交给 util.image.js
+  setupImageSend({
+    inputSelector: '.input-message-input',
+    attachBtnSelector: '.chat-attach-btn',
+    fileInputSelector: '.new-message-wrapper input[type="file"]',
+    onSend: (dataUrl) => {
+      if (roomsData[activeRoomIndex]?.chat) {
+        roomsData[activeRoomIndex].chat.sendChannelMessage('image', dataUrl);
+        addMsg(dataUrl, false, 'image');
       }
-      processImage(file, (dataUrl) => {
-        if (roomsData[activeRoomIndex]?.chat) {
-          roomsData[activeRoomIndex].chat.sendChannelMessage('image', dataUrl);
-          addMsg(dataUrl, false, 'image');
-        }
-      });
-      fileInput.value = '';
-    };
-  }
-  // 粘贴图片支持
-  if (input) {
-    input.addEventListener('paste', function(e) {
-      if (!e.clipboardData) return;
-      for (const item of e.clipboardData.items) {
-        if (item.type.startsWith('image/')) {
-          const file = item.getAsFile();
-          if (file.size > 5 * 1024 * 1024) {
-            alert('图片过大（超过5MB），请压缩后再发送。');
-            return;
-          }
-          processImage(file, (dataUrl) => {
-            if (roomsData[activeRoomIndex]?.chat) {
-              roomsData[activeRoomIndex].chat.sendChannelMessage('image', dataUrl);
-              addMsg(dataUrl, false, 'image');
-            }
-          });
-          e.preventDefault();
-          break;
-        }
-      }
-    });
-  }
+    }
+  });
 
   // 初始化
   renderRooms(activeRoomIndex);

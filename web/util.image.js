@@ -18,11 +18,7 @@ export async function processImage(file, callback) {
     const ctx = canvas.getContext('2d');
     ctx.drawImage(img, 0, 0, w, h);
     let dataUrl;
-    if (webpSupported) {
-      dataUrl = canvas.toDataURL('image/webp', 0.95);
-    } else {
-      dataUrl = canvas.toDataURL('image/jpeg', 0.95);
-    }
+    dataUrl = canvas.toDataURL('image/webp', 0.95);
     callback(dataUrl);
   };
   const reader = new FileReader();
@@ -43,4 +39,75 @@ function checkWebpSupport() {
     };
     img.src = 'data:image/webp;base64,UklGRiIAAABXRUJQVlA4TAYAAAAvAAAAAAfQ//73v/+BiOh/AAA=';
   });
+}
+
+// 国际化提示
+const i18n = {
+  zh: {
+    tooLarge: '图片过大（超过5MB）',
+  },
+  en: {
+    tooLarge: 'Image is too large (over 5MB)',
+  }
+};
+function getLang() {
+  const lang = navigator.language || navigator.userLanguage;
+  if (lang && lang.toLowerCase().startsWith('zh')) return 'zh';
+  return 'en';
+}
+function t(key) {
+  const lang = getLang();
+  return (i18n[lang] && i18n[lang][key]) || i18n['en'][key] || key;
+}
+
+/**
+ * 统一图片发送与粘贴处理
+ * @param {Object} opts
+ * @param {string} opts.inputSelector 聊天输入框选择器
+ * @param {string} opts.attachBtnSelector 附件按钮选择器
+ * @param {string} opts.fileInputSelector 文件input选择器
+ * @param {function} opts.onSend 发送图片回调(dataUrl)
+ */
+export function setupImageSend({ inputSelector, attachBtnSelector, fileInputSelector, onSend }) {
+  const input = document.querySelector(inputSelector);
+  const attachBtn = document.querySelector(attachBtnSelector);
+  const fileInput = document.querySelector(fileInputSelector);
+  if (fileInput) fileInput.setAttribute('accept', 'image/*');
+  if (attachBtn && fileInput) {
+    attachBtn.onclick = () => fileInput.click();
+    fileInput.onchange = async function() {
+      if (!fileInput.files || !fileInput.files.length) return;
+      const file = fileInput.files[0];
+      if (!file.type.startsWith('image/')) return;
+      if (file.size > 5 * 1024 * 1024) {
+        alert(t('tooLarge'));
+        return;
+      }
+      processImage(file, (dataUrl) => {
+        if (typeof onSend === 'function') onSend(dataUrl);
+      });
+      fileInput.value = '';
+    };
+  }
+  // 粘贴图片支持
+  if (input) {
+    input.addEventListener('paste', function(e) {
+      if (!e.clipboardData) return;
+      for (const item of e.clipboardData.items) {
+        if (item.type.startsWith('image/')) {
+          const file = item.getAsFile();
+          if (!file) continue;
+          if (file.size > 5 * 1024 * 1024) {
+            alert(t('tooLarge'));
+            continue;
+          }
+          processImage(file, (dataUrl) => {
+            if (typeof onSend === 'function') onSend(dataUrl);
+          });
+          e.preventDefault();
+          break;
+        }
+      }
+    });
+  }
 }
