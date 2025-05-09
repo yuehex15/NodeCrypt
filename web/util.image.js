@@ -18,7 +18,7 @@ export async function processImage(file, callback) {
     const ctx = canvas.getContext('2d');
     ctx.drawImage(img, 0, 0, w, h);
     let dataUrl;
-    dataUrl = canvas.toDataURL('image/webp', 0.95);
+    dataUrl = canvas.toDataURL('image/webp', 0.90);
     callback(dataUrl);
   };
   const reader = new FileReader();
