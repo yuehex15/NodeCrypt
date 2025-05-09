@@ -300,17 +300,50 @@ function renderRooms(activeId = 0) {
 function loginFormHandler(modal) {
   return function(e) {
     e.preventDefault();
-    let userName, roomName, password, btn;
+    let userName, roomName, password, btn, roomInput, warnTip;
     if (modal) {
       userName = document.getElementById('userName-modal').value.trim();
       roomName = document.getElementById('roomName-modal').value.trim();
       password = document.getElementById('password-modal').value.trim();
       btn = modal.querySelector('.login-btn');
+      roomInput = document.getElementById('roomName-modal');
     } else {
       userName = document.getElementById('userName').value.trim();
       roomName = document.getElementById('roomName').value.trim();
       password = document.getElementById('password').value.trim();
       btn = document.querySelector('#login-form .login-btn');
+      roomInput = document.getElementById('roomName');
+    }
+    // 检查房间是否已存在（忽略大小写）
+    const exists = roomsData.some(rd => rd.roomName && rd.roomName.toLowerCase() === roomName.toLowerCase());
+    // 先移除旧的警告样式和提示
+    if (roomInput) {
+      roomInput.style.border = '';
+      roomInput.style.background = '';
+      if (roomInput._warnTip) {
+        roomInput.parentNode.removeChild(roomInput._warnTip);
+        roomInput._warnTip = null;
+      }
+    }
+    if (exists) {
+      // 添加红色警告样式和提示
+      if (roomInput) {
+        roomInput.style.border = '1.5px solid #e74c3c';
+        roomInput.style.background = '#fff6f6';
+        warnTip = document.createElement('div');
+        warnTip.style.color = '#e74c3c';
+        warnTip.style.fontSize = '13px';
+        warnTip.style.marginTop = '4px';
+        warnTip.textContent = 'Node already exists';
+        roomInput.parentNode.appendChild(warnTip);
+        roomInput._warnTip = warnTip;
+        roomInput.focus();
+      }
+      if (btn) {
+        btn.disabled = false;
+        btn.innerText = 'ENTER';
+      }
+      return;
     }
     if (btn) {
       btn.disabled = true;
