@@ -1,6 +1,7 @@
 import config from './config.js';
 import { processImage, setupImageSend } from './util.image.js';
 import { createAvatarSVG } from './util.avatar.js';
+import { setupEmojiPicker } from './util.emoji.js';
 
 // 多房间状态管理
 let roomsData = [];
@@ -37,6 +38,8 @@ function renderChatArea() {
     else if (m.type === 'system') addSystemMsg(m.text, true); // 这里加 true
     else addOtherMsg(m.text, m.userName, m.avatar, true, m.msgType || 'text');
   });
+  // 保证表情选择器挂载
+  if (window.setupEmojiPicker) window.setupEmojiPicker();
 }
 
 // 简单转义，防止XSS
@@ -764,6 +767,7 @@ window.addEventListener('DOMContentLoaded', () => {
   setupInputPlaceholder();
   setupMoreBtnMenu();
   setupImagePreview();
+  setupEmojiPicker(); // 集成表情选择器
 
   // sidebar 拖拽宽度调整
   const sidebar = document.getElementById('sidebar');
