@@ -34,9 +34,9 @@ function renderChatArea() {
   }
   chatArea.innerHTML = '';
   roomsData[activeRoomIndex].messages.forEach(m => {
-    if (m.type === 'me') addMsg(m.text, true, m.msgType || 'text');
-    else if (m.type === 'system') addSystemMsg(m.text, true); // 这里加 true
-    else addOtherMsg(m.text, m.userName, m.avatar, true, m.msgType || 'text');
+    if (m.type === 'me') addMsg(m.text, true, m.msgType || 'text', m.timestamp);
+    else if (m.type === 'system') addSystemMsg(m.text, true, m.timestamp);
+    else addOtherMsg(m.text, m.userName, m.avatar, true, m.msgType || 'text', m.timestamp);
   });
   // 保证表情选择器挂载
   if (window.setupEmojiPicker) window.setupEmojiPicker();
@@ -181,36 +181,54 @@ function setStatus(text) {
   statusBar.innerText = text;
 }
 
-function addMsg(text, isHistory = false, msgType = 'text') {
-    if (!isHistory && activeRoomIndex >= 0) roomsData[activeRoomIndex].messages.push({ type: 'me', text, msgType });
+function addMsg(text, isHistory = false, msgType = 'text', timestamp = null) {
+  let ts;
+  if (isHistory) {
+    ts = timestamp;
+  } else {
+    ts = timestamp || Date.now();
+    if (activeRoomIndex >= 0) {
+      roomsData[activeRoomIndex].messages.push({ type: 'me', text, msgType, timestamp: ts });
+    }
+  }
+  // 只用传入的 timestamp，不再 fallback 到 Date.now()，避免多余逻辑
+  if (!ts) return;
   const chatArea = document.getElementById('chat-area');
   if (!chatArea) return;
   const div = document.createElement('div');
   div.className = 'bubble me';
-  const now = new Date();
-  const time = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+  const date = new Date(ts);
+  const time = date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
   let contentHtml = '';
   if (msgType === 'image' && text.startsWith('data:image/')) {
     contentHtml = `<img src="${text}" alt="image" style="max-width:220px;max-height:180px;border-radius:8px;">`;
   } else {
-  const safeText = escapeHTML(text).replace(/\n/g, '<br>');
-contentHtml = safeText;
+    const safeText = escapeHTML(text).replace(/\n/g, '<br>');
+    contentHtml = safeText;
   }
   div.innerHTML = `<span class="bubble-content">${contentHtml}</span><span class="bubble-meta">${time}</span>`;
   chatArea.appendChild(div);
   chatArea.scrollTop = chatArea.scrollHeight;
 }
 
-function addOtherMsg(msg, userName = '', avatar = '', isHistory = false, msgType = 'text') {
-    // 修正：优先从userMap查找用户名，避免Anonymous
-    if (!userName && activeRoomIndex >= 0) {
-      const rd = roomsData[activeRoomIndex];
-      if (rd && msg && msg.clientId && rd.userMap[msg.clientId]) {
-        userName = rd.userMap[msg.clientId].userName || rd.userMap[msg.clientId].username || rd.userMap[msg.clientId].name || 'Anonymous';
-      }
+function addOtherMsg(msg, userName = '', avatar = '', isHistory = false, msgType = 'text', timestamp = null) {
+  if (!userName && activeRoomIndex >= 0) {
+    const rd = roomsData[activeRoomIndex];
+    if (rd && msg && msg.clientId && rd.userMap[msg.clientId]) {
+      userName = rd.userMap[msg.clientId].userName || rd.userMap[msg.clientId].username || rd.userMap[msg.clientId].name || 'Anonymous';
     }
-    if (!userName) userName = 'Anonymous';
-  if (!isHistory && activeRoomIndex >= 0) roomsData[activeRoomIndex].messages.push({ type: 'other', text: msg, userName, avatar, msgType });
+  }
+  if (!userName) userName = 'Anonymous';
+  let ts;
+  if (isHistory) {
+    ts = timestamp;
+  } else {
+    ts = timestamp || Date.now();
+    if (activeRoomIndex >= 0) {
+      roomsData[activeRoomIndex].messages.push({ type: 'other', text: msg, userName, avatar, msgType, timestamp: ts });
+    }
+  }
+  if (!ts) return;
   const chatArea = document.getElementById('chat-area');
   if (!chatArea) return;
   const bubbleWrap = document.createElement('div');
@@ -219,21 +237,22 @@ function addOtherMsg(msg, userName = '', avatar = '', isHistory = false, msgType
   if (msgType === 'image' && msg.startsWith('data:image/')) {
     contentHtml = `<img src="${msg}" alt="image" style="max-width:220px;max-height:180px;border-radius:8px;">`;
   } else {
-  const safeMsg = escapeHTML(msg).replace(/\n/g, '<br>');
-contentHtml = safeMsg;
+    const safeMsg = escapeHTML(msg).replace(/\n/g, '<br>');
+    contentHtml = safeMsg;
   }
   const safeUserName = escapeHTML(userName);
+  const date = new Date(ts);
+  const time = date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
   bubbleWrap.innerHTML = `
     <span class="avatar"></span>
     <div class="bubble-other-main">
       <div class="bubble other">
         <div class="bubble-other-name">${safeUserName}</div>
         <span class="bubble-content">${contentHtml}</span>
-        <span class="bubble-meta">${(new Date()).getHours().toString().padStart(2, '0')}:${(new Date()).getMinutes().toString().padStart(2, '0')}</span>
+        <span class="bubble-meta">${time}</span>
       </div>
     </div>
   `;
-  // 头像 SVG
   createAvatarSVG(userName).then(svg => {
     bubbleWrap.querySelector('.avatar').innerHTML = svg;
   });
@@ -242,15 +261,16 @@ contentHtml = safeMsg;
 }
 
 // 添加系统信息消息
-function addSystemMsg(text, isHistory = false) {
+function addSystemMsg(text, isHistory = false, timestamp = null) {
   if (!isHistory && activeRoomIndex >= 0) {
-    roomsData[activeRoomIndex].messages.push({ type: 'system', text });
+    const ts = timestamp || Date.now();
+    roomsData[activeRoomIndex].messages.push({ type: 'system', text, timestamp: ts });
   }
   const chatArea = document.getElementById('chat-area');
   if (!chatArea) return;
+  const safeText = escapeHTML(text).replace(/\n/g, '<br>');
   const div = document.createElement('div');
   div.className = 'bubble system';
-  const safeText = escapeHTML(text).replace(/\n/g, '<br>');
   div.innerHTML = `<span class="bubble-content">${safeText}</span>`;
   chatArea.appendChild(div);
   chatArea.scrollTop = chatArea.scrollHeight;
@@ -357,7 +377,14 @@ function joinRoom(userName, roomName, password, modal = null, onResult) {
       if (!realUserName && msg.clientId && newRd.userMap[msg.clientId]) {
         realUserName = newRd.userMap[msg.clientId].userName || newRd.userMap[msg.clientId].username || newRd.userMap[msg.clientId].name;
       }
-      roomsData[idx].messages.push({ type: 'other', text: msg.data, userName: realUserName, avatar: realUserName, msgType });
+      roomsData[idx].messages.push({
+        type: 'other',
+        text: msg.data,
+        userName: realUserName,
+        avatar: realUserName,
+        msgType,
+        timestamp: Date.now()
+      });
       if (activeRoomIndex === idx) renderChatArea();
     }
   };
