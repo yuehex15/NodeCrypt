@@ -2,7 +2,7 @@ import config from './config.js';
 import { processImage, setupImageSend } from './util.image.js';
 import { createAvatarSVG } from './util.avatar.js';
 import { setupEmojiPicker } from './util.emoji.js';
-import { openSettingsPanel, closeSettingsPanel, initSettings } from './util.settings.js';
+import { openSettingsPanel, closeSettingsPanel, initSettings, notifyMessage } from './util.settings.js';
 
 // 多房间状态管理
 let roomsData = [];
@@ -415,6 +415,8 @@ function joinRoom(userName, roomName, password, modal = null, onResult) {
         msgType,
         timestamp: Date.now()
       });
+      // 通知消息，无论当前房间是否激活
+      notifyMessage(newRd.roomName, msgType, msg.data);
       if (activeRoomIndex === idx) renderChatArea();
     }
   };
