@@ -8,13 +8,15 @@ import { openSettingsPanel, closeSettingsPanel, initSettings, notifyMessage } fr
 let roomsData = [];
 let activeRoomIndex = -1;
 function getNewRoomData() {
-  return { roomName: '', userList: [], userMap: {}, myId: null, myUserName: '', chat: null, messages: [], prevUserList: [], knownUserIds: new Set() };
+  return { roomName: '', userList: [], userMap: {}, myId: null, myUserName: '', chat: null, messages: [], prevUserList: [], knownUserIds: new Set(), unreadCount: 0 };
 }
 // 切换房间并恢复上下文，更新 UI
 function switchRoom(index) {
   if (index < 0 || index >= roomsData.length) return;
   activeRoomIndex = index;
   const rd = roomsData[index];
+  // 清零未读数
+  if (typeof rd.unreadCount === 'number') rd.unreadCount = 0;
   // 恢复 sidebar-username、sidebar-user-avatar id
   const sidebarUsername = document.getElementById('sidebar-username');
   if (sidebarUsername) sidebarUsername.textContent = rd.myUserName;
@@ -287,10 +289,15 @@ function renderRooms(activeId = 0) {
     const div = document.createElement('div');
     div.className = 'room' + (i === activeId ? ' active' : '');
     const safeRoomName = escapeHTML(rd.roomName);
+    let unreadHtml = '';
+    if (rd.unreadCount && i !== activeId) {
+      unreadHtml = `<span class="room-unread-badge">${rd.unreadCount > 99 ? '99+' : rd.unreadCount}</span>`;
+    }
     div.innerHTML = `
       <div class="info">
         <div class="title">#${safeRoomName}</div>
       </div>
+      ${unreadHtml}
     `;
     div.onclick = () => switchRoom(i);
     roomList.appendChild(div);
@@ -417,7 +424,13 @@ function joinRoom(userName, roomName, password, modal = null, onResult) {
       });
       // 通知消息，无论当前房间是否激活
       notifyMessage(newRd.roomName, msgType, msg.data, realUserName);
-      if (activeRoomIndex === idx) renderChatArea();
+      // 未读数逻辑
+      if (activeRoomIndex !== idx) {
+        roomsData[idx].unreadCount = (roomsData[idx].unreadCount || 0) + 1;
+        renderRooms(activeRoomIndex);
+      } else {
+        renderChatArea();
+      }
     }
   };
   const chatInst = new window.ChatCrypt(config, callbacks);
