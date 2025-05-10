@@ -1144,3 +1144,81 @@ body {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* 图标尺寸和对齐 */
+.icon-22-middle {
+  width: 22px;
+  height: 22px;
+  vertical-align: middle;
+  margin-right: 25px;
+  margin-left: 25px;
+}
+.icon-22 {
+  width: 22px;
+  height: 22px;
+}
+/* 隐藏 input */
+.input-hidden {
+  display: none;
+}
+/* 聊天输入区附件按钮绝对定位样式 */
+.chat-attach-btn-abs {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  right: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+/* 聊天输入区初始高度 */
+.input-message-input-init {
+  transition-duration: 0ms;
+  height: 37px;
+}
+
+/* 聊天图片气泡样式 */
+.bubble-img {
+  max-width: 220px;
+  max-height: 180px;
+  border-radius: 8px;
+}
+/* 登录弹窗关闭按钮绝对定位样式 */
+.login-modal-close-abs {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  font-size: 22px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+/* 主面板房间头部布局 */
+.main-header-flex {
+  display: flex;
+  align-items: center;
+}
+.group-title-bold {
+  font-size: 1.22em;
+  font-weight: bold;
+}
+.main-header-members {
+  margin-left: 10px;
+  font-size: 13px;
+  color: #888;
+}
+/* 图片预览modal内容溢出隐藏 */
+.img-modal-content-overflow {
+  overflow: hidden;
+}
+/* 图片预览modal图片样式 */
+.img-modal-img {
+  max-width: 90vw;
+  max-height: 90vh;
+  cursor: grab;
+  user-select: none;
+}

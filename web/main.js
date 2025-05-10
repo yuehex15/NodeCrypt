@@ -198,7 +198,7 @@ function addMsg(text, isHistory = false, msgType = 'text', timestamp = null) {
   const time = date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
   let contentHtml = '';
   if (msgType === 'image' && text.startsWith('data:image/')) {
-    contentHtml = `<img src="${text}" alt="image" style="max-width:220px;max-height:180px;border-radius:8px;">`;
+    contentHtml = `<img src="${text}" alt="image" class="bubble-img">`;
   } else {
     const safeText = escapeHTML(text).replace(/\n/g, '<br>');
     contentHtml = safeText;
@@ -232,7 +232,7 @@ function addOtherMsg(msg, userName = '', avatar = '', isHistory = false, msgType
   bubbleWrap.className = 'bubble-other-wrap';
   let contentHtml = '';
   if (msgType === 'image' && msg.startsWith('data:image/')) {
-    contentHtml = `<img src="${msg}" alt="image" style="max-width:220px;max-height:180px;border-radius:8px;">`;
+    contentHtml = `<img src="${msg}" alt="image" class="bubble-img">`;
   } else {
     const safeMsg = escapeHTML(msg).replace(/\n/g, '<br>');
     contentHtml = safeMsg;
@@ -453,7 +453,7 @@ function openLoginModal() {
   modal.innerHTML = `
     <div class="login-modal-bg"></div>
     <div class="login-modal-card">
-      <button class="login-modal-close" style="position:absolute;right:10px;top:10px;font-size:22px;background:none;border:none;cursor:pointer;">&times;</button>
+      <button class="login-modal-close login-modal-close-abs">&times;</button>
       <h1>Enter a Node</h1>
       <form id="login-form-modal">
         <div class="input-group">
@@ -494,9 +494,9 @@ function renderMainHeader() {
   }
   const safeRoomName = escapeHTML(roomName);
   document.getElementById("main-header").innerHTML = `
-    <div style="display: flex; align-items: center;">
-      <div class="group-title" style="font-size: 1.22em; font-weight: bold;">#${safeRoomName}</div>
-      <span style="margin-left:10px;font-size:13px;color:#888;">${onlineCount} members</span>
+    <div class="main-header-flex">
+      <div class="group-title group-title-bold">#${safeRoomName}</div>
+      <span class="main-header-members">${onlineCount} members</span>
     </div>
     <div class="main-header-actions">
       <button class="more-btn" id="more-btn" aria-label="More">
@@ -700,8 +700,8 @@ function showImageModal(src) {
   modal.className = 'img-modal-bg';
   modal.innerHTML = `
     <div class="img-modal-blur"></div>
-    <div class="img-modal-content" style="overflow:hidden;">
-      <img src="${src}" style="max-width:90vw;max-height:90vh;cursor:grab;user-select:none;" />
+    <div class="img-modal-content img-modal-content-overflow">
+      <img src="${src}" class="img-modal-img" />
       <span class="img-modal-close">&times;</span>
     </div>
   `;
