@@ -2,7 +2,7 @@
 // 设置面板逻辑（仅UI和本地存储，功能待实现）
 
 const DEFAULT_SETTINGS = {
-  lang: 'zh',     // 'zh' | 'en'
+  lang: 'en',     // 'zh' | 'en'
   notify: false,  // 桌面通知
   sound: false    // 声音通知
 };
@@ -23,9 +23,16 @@ function applySettings(settings) {
   // 主题切换逻辑已移除
   // 语言切换（仅UI，功能待实现）
   document.documentElement.lang = settings.lang;
-  // 请求通知权限（若启用浏览器通知）
-  if (settings.notify && "Notification" in window && Notification.permission !== 'granted') {
-    Notification.requestPermission();
+}
+
+// 兼容各浏览器的 requestPermission 调用
+function askNotificationPermission(callback) {
+  if (Notification.requestPermission.length === 0) {
+    // 返回 promise
+    Notification.requestPermission().then(callback);
+  } else {
+    // 接受 callback
+    Notification.requestPermission(callback);
   }
 }
 
@@ -37,23 +44,23 @@ function setupSettingsPanel() {
     panel.className = 'settings-panel';
     panel.innerHTML = `
       <div class="settings-panel-card">
-        <div class="settings-title">设置</div>
+        <div class="settings-title">Settings</div>
         <div class="settings-item">
-          <span>语言</span>
+          <span>Language</span>
           <select id="settings-lang">
-            <option value="zh">中文</option>
+            <option value="zh">Chinese</option>
             <option value="en">English</option>
           </select>
         </div>
         <div class="settings-item">
-          <span>桌面通知</span>
+          <span>Desktop Notification</span>
           <label class="switch">
             <input type="checkbox" id="settings-notify">
             <span class="slider"></span>
           </label>
         </div>
         <div class="settings-item">
-          <span>声音通知</span>
+          <span>Sound Notification</span>
           <label class="switch">
             <input type="checkbox" id="settings-sound">
             <span class="slider"></span>
@@ -74,13 +81,36 @@ function setupSettingsPanel() {
     saveSettings(settings); applySettings(settings);
   };
   panel.querySelector('#settings-notify').onchange = e => {
-    settings.notify = e.target.checked;
-    // 互斥：启用通知时关闭声音
-    if (settings.notify) {
-      settings.sound = false;
-      panel.querySelector('#settings-sound').checked = false;
+    const checked = e.target.checked;
+    if (checked) {
+      // 浏览器不支持时回退
+      if (!('Notification' in window)) {
+        alert('Notifications are not supported by your browser.');
+        e.target.checked = false;
+        return;
+      }
+      // 申请权限
+      askNotificationPermission(permission => {
+        if (permission === 'granted') {
+          settings.notify = true;
+          // 互斥：关闭声音
+          settings.sound = false;
+          panel.querySelector('#settings-sound').checked = false;
+          saveSettings(settings); applySettings(settings);
+          // 测试推送
+          new Notification('Notifications enabled', { body: 'You will receive alerts here.' });
+        } else {
+          // 用户拒绝或未做选择时回退并提示
+          settings.notify = false;
+          e.target.checked = false;
+          saveSettings(settings); applySettings(settings);
+          alert('Please allow notifications in your browser settings.');
+        }
+      });
+    } else {
+      settings.notify = false;
+      saveSettings(settings); applySettings(settings);
     }
-    saveSettings(settings); applySettings(settings);
   };
   panel.querySelector('#settings-sound').onchange = e => {
     settings.sound = e.target.checked;
@@ -175,9 +205,14 @@ function playSoundNotification() {
     console.error('Sound notification failed', e);
   }
 }
-function showDesktopNotification(roomName, text, msgType) {
+function showDesktopNotification(roomName, text, msgType, sender) {
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
-  const body = msgType === 'image' ? '[image]' : truncateText(text);
+  let body;
+  if (msgType === 'image') {
+    body = sender ? `${sender}: [image]` : '[image]';
+  } else {
+    body = sender ? `${sender}: ${truncateText(text)}` : truncateText(text);
+  }
   new Notification(`#${roomName}`, { body });
 }
 /**
@@ -185,11 +220,12 @@ function showDesktopNotification(roomName, text, msgType) {
  * @param {string} roomName 房间名
  * @param {string} msgType 消息类型 'text' | 'image'
  * @param {string} text 消息文本
+ * @param {string} sender 发消息人
  */
-export function notifyMessage(roomName, msgType, text) {
+export function notifyMessage(roomName, msgType, text, sender) {
   const settings = loadSettings();
   if (settings.notify) {
-    showDesktopNotification(roomName, text, msgType);
+    showDesktopNotification(roomName, text, msgType, sender);
   } else if (settings.sound) {
     playSoundNotification();
   }

@@ -416,7 +416,7 @@ function joinRoom(userName, roomName, password, modal = null, onResult) {
         timestamp: Date.now()
       });
       // 通知消息，无论当前房间是否激活
-      notifyMessage(newRd.roomName, msgType, msg.data);
+      notifyMessage(newRd.roomName, msgType, msg.data, realUserName);
       if (activeRoomIndex === idx) renderChatArea();
     }
   };
