@@ -41,23 +41,12 @@ function checkWebpSupport() {
   });
 }
 
-// 国际化提示
-const i18n = {
-  zh: {
-    tooLarge: '图片过大（超过5MB）',
-  },
-  en: {
-    tooLarge: 'Image is too large (over 5MB)',
-  }
-};
-function getLang() {
-  const lang = navigator.language || navigator.userLanguage;
-  if (lang && lang.toLowerCase().startsWith('zh')) return 'zh';
-  return 'en';
-}
+// 国际化提示已移除，默认英文提示
 function t(key) {
-  const lang = getLang();
-  return (i18n[lang] && i18n[lang][key]) || i18n['en'][key] || key;
+  const messages = {
+    tooLarge: 'Image is too large (over 5MB)',
+  };
+  return messages[key] || key;
 }
 
 /**
