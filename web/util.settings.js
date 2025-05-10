@@ -2,7 +2,6 @@
 // 设置面板逻辑（仅UI和本地存储，功能待实现）
 
 const DEFAULT_SETTINGS = {
-  lang: 'en',     // 'zh' | 'en'
   notify: false,  // 桌面通知
   sound: false    // 声音通知
 };
@@ -16,13 +15,14 @@ function loadSettings() {
 }
 
 function saveSettings(settings) {
-  localStorage.setItem('settings', JSON.stringify(settings));
+  const { notify, sound } = settings;
+  localStorage.setItem('settings', JSON.stringify({ notify, sound }));
 }
 
 function applySettings(settings) {
   // 主题切换逻辑已移除
-  // 语言切换（仅UI，功能待实现）
-  document.documentElement.lang = settings.lang;
+  // 强制英文
+  document.documentElement.lang = 'en';
 }
 
 // 兼容各浏览器的 requestPermission 调用
@@ -46,13 +46,6 @@ function setupSettingsPanel() {
       <div class="settings-panel-card">
         <div class="settings-title">Settings</div>
         <div class="settings-item">
-          <span>Language</span>
-          <select id="settings-lang">
-            <option value="zh">Chinese</option>
-            <option value="en">English</option>
-          </select>
-        </div>
-        <div class="settings-item">
           <span>Desktop Notification</span>
           <label class="switch">
             <input type="checkbox" id="settings-notify">
@@ -72,14 +65,9 @@ function setupSettingsPanel() {
   }
   const settings = loadSettings();
   // 初始化UI
-  panel.querySelector('#settings-lang').value = settings.lang;
   panel.querySelector('#settings-notify').checked = !!settings.notify;
   panel.querySelector('#settings-sound').checked = !!settings.sound;
   // 事件
-  panel.querySelector('#settings-lang').onchange = e => {
-    settings.lang = e.target.value;
-    saveSettings(settings); applySettings(settings);
-  };
   panel.querySelector('#settings-notify').onchange = e => {
     const checked = e.target.checked;
     if (checked) {
