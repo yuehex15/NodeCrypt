@@ -144,7 +144,7 @@ function handleClientSecured(idx, user) {
   if (isNew) {
     rd.knownUserIds.add(user.clientId);
     const name = user.userName || user.username || user.name || 'Anonymous';
-    const msg = `${name}已加入`;
+    const msg = `${name} joined`;
     rd.messages.push({ type: 'system', text: msg });
     if (activeRoomIndex === idx) addSystemMsg(msg, true);
   }
@@ -157,7 +157,7 @@ function handleClientLeft(idx, clientId) {
   const user = rd.userMap[clientId];
   // 退出提示逻辑：不再依赖 isInitialized，任何时候都提示
   const name = user ? (user.userName || user.username || user.name || 'Anonymous') : 'Anonymous';
-  const msg = `${name}已退出`;
+  const msg = `${name} left`;
   rd.messages.push({ type: 'system', text: msg });
   if (activeRoomIndex === idx) addSystemMsg(msg, true);
   rd.userList = rd.userList.filter(u => u.clientId !== clientId);
