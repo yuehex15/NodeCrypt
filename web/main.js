@@ -2,6 +2,7 @@ import config from './config.js';
 import { processImage, setupImageSend } from './util.image.js';
 import { createAvatarSVG } from './util.avatar.js';
 import { setupEmojiPicker } from './util.emoji.js';
+import { openSettingsPanel, closeSettingsPanel, initSettings } from './util.settings.js';
 
 // 多房间状态管理
 let roomsData = [];
@@ -824,6 +825,27 @@ window.addEventListener('DOMContentLoaded', () => {
   setupMoreBtnMenu();
   setupImagePreview();
   setupEmojiPicker(); // 集成表情选择器
+
+  initSettings();
+
+  let settingsBtn = document.getElementById('settings-btn');
+  if (settingsBtn) {
+    settingsBtn.onclick = (e) => {
+      e.stopPropagation();
+      openSettingsPanel();
+    };
+  }
+
+  // 点击其它区域关闭设置面板
+  document.addEventListener('click', function(ev) {
+    const panel = document.getElementById('settings-panel');
+    if (panel && panel.style.display === 'block') {
+      const card = panel.querySelector('.settings-panel-card');
+      if (card && !card.contains(ev.target) && ev.target.id !== 'settings-btn') {
+        closeSettingsPanel();
+      }
+    }
+  });
 
   // sidebar 拖拽宽度调整
   const sidebar = document.getElementById('sidebar');
