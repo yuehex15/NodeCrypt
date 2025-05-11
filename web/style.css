@@ -314,7 +314,7 @@ body {
   position: relative;
 }
 
-    .main::before {
+  .main::before {
       content: "";
       position: absolute;
       inset: 0;

@@ -2,6 +2,7 @@ import { processImage, setupImageSend } from './util.image.js';
 import { createAvatarSVG } from './util.avatar.js';
 import { setupEmojiPicker } from './util.emoji.js';
 import { openSettingsPanel, closeSettingsPanel, initSettings, notifyMessage } from './util.settings.js';
+import './NodeCrypt.js';
 
 /*const config = {
   rsaPublic: 'CHATCRYPT_PUBLIC_KEY', 
