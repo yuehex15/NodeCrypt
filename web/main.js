@@ -1,8 +1,13 @@
-import config from './config.js';
 import { processImage, setupImageSend } from './util.image.js';
 import { createAvatarSVG } from './util.avatar.js';
 import { setupEmojiPicker } from './util.emoji.js';
 import { openSettingsPanel, closeSettingsPanel, initSettings, notifyMessage } from './util.settings.js';
+
+const config = {
+  rsaPublic: 'CHATCRYPT_PUBLIC_KEY', 
+  wsAddress: '/ws',
+  debug: true
+};
 
 // 多房间状态管理
 let roomsData = [];
