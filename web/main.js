@@ -3,9 +3,15 @@ import { createAvatarSVG } from './util.avatar.js';
 import { setupEmojiPicker } from './util.emoji.js';
 import { openSettingsPanel, closeSettingsPanel, initSettings, notifyMessage } from './util.settings.js';
 
-const config = {
+/*const config = {
   rsaPublic: 'CHATCRYPT_PUBLIC_KEY', 
   wsAddress: '/ws',
+  debug: true
+};
+*/
+const config = {
+  rsaPublic: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqdizNGtbEQh7WYJDDjzNPMgoGByUXEM3DHNEgstFp83xAPfEGRB6IsoEOwE2ulmL3LXwu7951Tu7qo2iM+4onAMazgg1H9EDrg4FFRv+X8jeTH1u/97Uhze1+WN54Kq3sp9EtZ5nQkBG1AjQjs5HCKzbL2KLevKXhkNZ5iuhmyoC5uCeAEeHGWDaLct3yovP5j6TG9+9/MlRZBlLQUWxvkxYAXBvAgnVpQAscXqIHI5qfPufuG7ecEkjv5At5KpJCGCqxrc54DDS9iOaQDWLBM/wIOIAq5zVTXaeYpxcK8u/OjYiD2qY7RtQAes46PoQjGOJyhY8Ln/R8wKsgR3VXwIDAQAB', 
+  wsAddress: 'wss://nodecrypt.tech/ws',
   debug: true
 };
 
@@ -154,6 +160,8 @@ function handleClientSecured(idx, user) {
     const msg = `${name} joined`;
     rd.messages.push({ type: 'system', text: msg });
     if (activeRoomIndex === idx) addSystemMsg(msg, true);
+    // 新增：系统/声音通知
+    notifyMessage(rd.roomName, 'system', msg);
   }
 }
 
