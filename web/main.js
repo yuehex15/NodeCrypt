@@ -877,64 +877,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // sidebar 拖拽宽度调整
-  const sidebar = document.getElementById('sidebar');
-  const resizer = document.getElementById('sidebar-resizer');
-  let isResizing = false;
-  let startX = 0;
-  let startWidth = 0;
-  if (sidebar && resizer) {
-    resizer.addEventListener('mousedown', function(e) {
-      isResizing = true;
-      startX = e.clientX;
-      startWidth = sidebar.offsetWidth;
-      document.body.style.cursor = 'ew-resize';
-      document.body.style.userSelect = 'none';
-    });
-    window.addEventListener('mousemove', function(e) {
-      if (!isResizing) return;
-      let newWidth = startWidth + (e.clientX - startX);
-      newWidth = Math.max(200, Math.min(400, newWidth));
-      sidebar.style.width = newWidth + 'px';
-    });
-    window.addEventListener('mouseup', function() {
-      if (isResizing) {
-        isResizing = false;
-        document.body.style.cursor = '';
-        document.body.style.userSelect = '';
-      }
-    });
-  }
-
-  // rightbar 拖拽宽度调整
-  const rightbar = document.getElementById('rightbar');
-  const rightResizer = document.getElementById('rightbar-resizer');
-  let isRightResizing = false;
-  let rightStartX = 0;
-  let rightStartWidth = 0;
-  if (rightbar && rightResizer) {
-    rightResizer.addEventListener('mousedown', function(e) {
-      isRightResizing = true;
-      rightStartX = e.clientX;
-      rightStartWidth = rightbar.offsetWidth;
-      document.body.style.cursor = 'ew-resize';
-      document.body.style.userSelect = 'none';
-    });
-    window.addEventListener('mousemove', function(e) {
-      if (!isRightResizing) return;
-      let newWidth = rightStartWidth - (e.clientX - rightStartX);
-      newWidth = Math.max(200, Math.min(400, newWidth));
-      rightbar.style.width = newWidth + 'px';
-    });
-    window.addEventListener('mouseup', function() {
-      if (isRightResizing) {
-        isRightResizing = false;
-        document.body.style.cursor = '';
-        document.body.style.userSelect = '';
-      }
-    });
-  }
-
   // 自动聚焦到输入框
   const input = document.querySelector('.input-message-input');
   if (input) {
