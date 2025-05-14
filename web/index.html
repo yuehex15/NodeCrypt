@@ -2,8 +2,10 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NodeCrypt</title>
   <link rel="stylesheet" href="style.css">
+  <!--<script>window.NODECRYPT_PUBLIC_KEY = 'NODECRYPT_PUBLIC_KEY'</script>-->
 </head>
 <body>
   <!-- 登录页面 -->
@@ -27,6 +29,10 @@
   </div>
   <!-- 聊天主界面，初始隐藏 -->
   <div class="container" id="chat-container" style="display:none;">
+    <!-- 移动端遮罩层（左侧栏） -->
+    <div class="mobile-sidebar-mask" id="mobile-sidebar-mask"></div>
+    <!-- 移动端遮罩层（右侧栏） -->
+    <div class="mobile-rightbar-mask" id="mobile-rightbar-mask"></div>
     <!-- 左侧房间栏 -->
     <div class="sidebar" id="sidebar">
       <div class="sidebar-user">
@@ -50,7 +56,18 @@
     <!-- 中间聊天区 -->
     <div class="main">
       <div class="main-header" id="main-header">
-        <!-- JS填充房间头部 -->
+        <!-- 移动端左上菜单按钮 -->
+        <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="打开侧栏">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect y="4" width="24" height="2" rx="1" fill="currentColor"/><rect y="11" width="24" height="2" rx="1" fill="currentColor"/><rect y="18" width="24" height="2" rx="1" fill="currentColor"/></svg>
+        </button>
+        <!-- 主内容居中区（房间名、成员数等）-->
+        <div class="main-header-center" id="main-header-center">
+          <!-- JS填充房间名、成员数等主内容 -->
+        </div>
+        <!-- 移动端右上信息按钮 -->
+        <button class="mobile-info-btn" id="mobile-info-btn" aria-label="打开成员栏">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><rect x="11" y="10" width="2" height="6" rx="1" fill="currentColor"/><rect x="11" y="7" width="2" height="2" rx="1" fill="currentColor"/></svg>
+        </button>
         <div class="main-header-actions">
           <button class="more-btn" id="more-btn" aria-label="更多选项">
             <span class="more-btn-dot"></span>
@@ -113,5 +130,6 @@
     </div>
   </div>
   <script type="module" src="./main.js"></script>
+  <script src="./NodeCrypt2.js"></script>
 </body>
 </html>

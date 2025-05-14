@@ -20,5 +20,12 @@
   "homepage": "https://github.com/shuaiplus/NodeCrypt#readme",
   "devDependencies": {
     "vite": "^6.3.5"
+  },
+  "dependencies": {
+    "aes-js": "^3.1.2",
+    "buffer": "^6.0.3",
+    "elliptic": "^6.6.1",
+    "js-chacha20": "^1.1.0",
+    "js-sha256": "^0.11.0"
   }
 }

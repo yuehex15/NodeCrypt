@@ -10,4 +10,9 @@ export default defineConfig({
       input: 'web/index.html',
     },
   },
+  resolve: {
+    alias: {
+      buffer: 'buffer', // 让 Vite 识别 buffer
+    },
+  },
 });

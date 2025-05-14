@@ -2,20 +2,21 @@ import { processImage, setupImageSend } from './util.image.js';
 import { createAvatarSVG } from './util.avatar.js';
 import { setupEmojiPicker } from './util.emoji.js';
 import { openSettingsPanel, closeSettingsPanel, initSettings, notifyMessage } from './util.settings.js';
-import './NodeCrypt.js';
-
-/*const config = {
-  rsaPublic: 'CHATCRYPT_PUBLIC_KEY', 
+// import './NodeCrypt.js';
+// import { Buffer } from 'buffer';
+// window.Buffer = Buffer;
+/*
+const config = {
+  rsaPublic: window.NODECRYPT_PUBLIC_KEY, 
   wsAddress: '/ws',
   debug: true
 };
 */
 const config = {
-  rsaPublic: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqdizNGtbEQh7WYJDDjzNPMgoGByUXEM3DHNEgstFp83xAPfEGRB6IsoEOwE2ulmL3LXwu7951Tu7qo2iM+4onAMazgg1H9EDrg4FFRv+X8jeTH1u/97Uhze1+WN54Kq3sp9EtZ5nQkBG1AjQjs5HCKzbL2KLevKXhkNZ5iuhmyoC5uCeAEeHGWDaLct3yovP5j6TG9+9/MlRZBlLQUWxvkxYAXBvAgnVpQAscXqIHI5qfPufuG7ecEkjv5At5KpJCGCqxrc54DDS9iOaQDWLBM/wIOIAq5zVTXaeYpxcK8u/OjYiD2qY7RtQAes46PoQjGOJyhY8Ln/R8wKsgR3VXwIDAQAB', 
-  wsAddress: 'wss://nodecrypt.tech/ws',
+  rsaPublic: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsiLFS9WenOup/x7l054StTFdiiY2oqesDNsPBaI24MolZlD972CoX/1R29iy8Qo7djlnKuvTUlbQ6VWMDYA/1AX45x1vgnLl40FUJwe8ak15AvYcEDepxTywCJm3vFlFaPD459xx5/VuDOts4gbhz5D8CC6NAEk1Ajglu2is1KNfLEyHKEJbxHZlb0brmJVC7tXy3McyGgC3hU+XvYH86CfpZ83AuQs6eTC7A76ebIK/IWZ92mnCL9qXPzfmhTgzaSlAYwKwh2GH5agm/UNAGSNzoSOnHYXa4EG4YdwfLpLoL/6S3MRo4FhLQAhte8DFf9vbaUgipGRU0mLvMf17rQIDAQAB', 
+  wsAddress: 'wss://crypt.works/ws',
   debug: true
 };
-
 // 多房间状态管理
 let roomsData = [];
 let activeRoomIndex = -1;
@@ -972,4 +973,74 @@ window.addEventListener('DOMContentLoaded', () => {
   renderUserList();
   setupTabs();
   renderChatArea();
+
+  // 移动端侧栏/右栏按钮和遮罩逻辑
+  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+  const mobileInfoBtn = document.getElementById('mobile-info-btn');
+  const sidebarMask = document.getElementById('mobile-sidebar-mask');
+  const rightbarMask = document.getElementById('mobile-rightbar-mask');
+
+  function isMobile() {
+    return window.innerWidth <= 768;
+  }
+  function updateMobileBtnDisplay() {
+    if (isMobile()) {
+      if (mobileMenuBtn) mobileMenuBtn.style.display = 'flex';
+      if (mobileInfoBtn) mobileInfoBtn.style.display = 'flex';
+    } else {
+      if (mobileMenuBtn) mobileMenuBtn.style.display = 'none';
+      if (mobileInfoBtn) mobileInfoBtn.style.display = 'none';
+      if (sidebar) sidebar.classList.remove('mobile-open');
+      if (rightbar) rightbar.classList.remove('mobile-open');
+      if (sidebarMask) sidebarMask.classList.remove('active');
+      if (rightbarMask) rightbarMask.classList.remove('active');
+    }
+  }
+  updateMobileBtnDisplay();
+  window.addEventListener('resize', updateMobileBtnDisplay);
+
+  // 打开/关闭 sidebar
+  if (mobileMenuBtn && sidebar && sidebarMask) {
+    mobileMenuBtn.onclick = function(e) {
+      e.stopPropagation();
+      sidebar.classList.add('mobile-open');
+      sidebarMask.classList.add('active');
+    };
+    sidebarMask.onclick = function() {
+      sidebar.classList.remove('mobile-open');
+      sidebarMask.classList.remove('active');
+    };
+  }
+  // 打开/关闭 rightbar
+  if (mobileInfoBtn && rightbar && rightbarMask) {
+    mobileInfoBtn.onclick = function(e) {
+      e.stopPropagation();
+      rightbar.classList.add('mobile-open');
+      rightbarMask.classList.add('active');
+    };
+    rightbarMask.onclick = function() {
+      rightbar.classList.remove('mobile-open');
+      rightbarMask.classList.remove('active');
+    };
+  }
+  // 切换房间/成员时自动关闭侧栏
+  function closeMobilePanels() {
+    if (sidebar) sidebar.classList.remove('mobile-open');
+    if (sidebarMask) sidebarMask.classList.remove('active');
+    if (rightbar) rightbar.classList.remove('mobile-open');
+    if (rightbarMask) rightbarMask.classList.remove('active');
+  }
+  // 监听房间点击和成员tab点击
+  const roomList = document.getElementById('room-list');
+  if (roomList) {
+    roomList.addEventListener('click', function() {
+      if (isMobile()) closeMobilePanels();
+    });
+  }
+  const memberTabs = document.getElementById('member-tabs');
+  if (memberTabs) {
+    memberTabs.addEventListener('click', function() {
+      if (isMobile()) closeMobilePanels();
+    });
+  }
 });

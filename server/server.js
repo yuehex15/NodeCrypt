@@ -7,7 +7,7 @@ const ws = require('ws');
 
 const config = {
   rsaPrivate: crypto.createPrivateKey({
-    key: Buffer.from(process.env.CHATCRYPT_PRIVATE_KEY, 'base64'),
+    key: Buffer.from(process.env.NODECRYPT_PRIVATE_KEY, 'base64'),
     format: 'der',
     type: 'pkcs8'
   }),

@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY server/ ./server/
 RUN cd server && npm install
-COPY web/ ./web/
+COPY dist/ ./web/
 
 COPY start.sh /start.sh
 
