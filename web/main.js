@@ -521,16 +521,25 @@ function renderMainHeader() {
     onlineCount += 1;
   }
   const safeRoomName = escapeHTML(roomName);
+  // 头部结构：更多按钮和右侧栏按钮互换位置，右侧栏按钮在最右侧
   document.getElementById("main-header").innerHTML = `
-    <div class="main-header-flex">
-      <div class="group-title group-title-bold">#${safeRoomName}</div>
-      <span class="main-header-members">${onlineCount} members</span>
+    <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="打开侧栏">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect y="4" width="24" height="2" rx="1" fill="currentColor"/><rect y="11" width="24" height="2" rx="1" fill="currentColor"/><rect y="18" width="24" height="2" rx="1" fill="currentColor"/></svg>
+    </button>
+    <div class="main-header-center" id="main-header-center">
+      <div class="main-header-flex">
+        <div class="group-title group-title-bold">#${safeRoomName}</div>
+        <span class="main-header-members">${onlineCount} members</span>
+      </div>
     </div>
     <div class="main-header-actions">
-      <button class="more-btn" id="more-btn" aria-label="More">
+      <button class="more-btn" id="more-btn" aria-label="更多选项">
         <span class="more-btn-dot"></span>
         <span class="more-btn-dot"></span>
         <span class="more-btn-dot"></span>
+      </button>
+      <button class="mobile-info-btn" id="mobile-info-btn" aria-label="打开成员栏">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><rect x="11" y="10" width="2" height="6" rx="1" fill="currentColor"/><rect x="11" y="7" width="2" height="2" rx="1" fill="currentColor"/></svg>
       </button>
       <div class="more-menu" id="more-menu">
         <div class="more-menu-item" data-action="share">Share</div>
@@ -539,6 +548,53 @@ function renderMainHeader() {
     </div>
   `;
   setupMoreBtnMenu();
+  // 重新绑定移动端按钮事件
+  const sidebar = document.getElementById('sidebar');
+  const rightbar = document.getElementById('rightbar');
+  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+  const mobileInfoBtn = document.getElementById('mobile-info-btn');
+  const sidebarMask = document.getElementById('mobile-sidebar-mask');
+  const rightbarMask = document.getElementById('mobile-rightbar-mask');
+  function isMobile() {
+    return window.innerWidth <= 768;
+  }
+  function updateMobileBtnDisplay() {
+    if (isMobile()) {
+      if (mobileMenuBtn) mobileMenuBtn.style.display = 'flex';
+      if (mobileInfoBtn) mobileInfoBtn.style.display = 'flex';
+    } else {
+      if (mobileMenuBtn) mobileMenuBtn.style.display = 'none';
+      if (mobileInfoBtn) mobileInfoBtn.style.display = 'none';
+      if (sidebar) sidebar.classList.remove('mobile-open');
+      if (rightbar) rightbar.classList.remove('mobile-open');
+      if (sidebarMask) sidebarMask.classList.remove('active');
+      if (rightbarMask) rightbarMask.classList.remove('active');
+    }
+  }
+  updateMobileBtnDisplay();
+  window.addEventListener('resize', updateMobileBtnDisplay);
+  if (mobileMenuBtn && sidebar && sidebarMask) {
+    mobileMenuBtn.onclick = function(e) {
+      e.stopPropagation();
+      sidebar.classList.add('mobile-open');
+      sidebarMask.classList.add('active');
+    };
+    sidebarMask.onclick = function() {
+      sidebar.classList.remove('mobile-open');
+      sidebarMask.classList.remove('active');
+    };
+  }
+  if (mobileInfoBtn && rightbar && rightbarMask) {
+    mobileInfoBtn.onclick = function(e) {
+      e.stopPropagation();
+      rightbar.classList.add('mobile-open');
+      rightbarMask.classList.add('active');
+    };
+    rightbarMask.onclick = function() {
+      rightbar.classList.remove('mobile-open');
+      rightbarMask.classList.remove('active');
+    };
+  }
 }
 
 // 清空消息区（UI占位）
@@ -837,6 +893,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const loginContainer = document.getElementById('login-container');
   const chatContainer = document.getElementById('chat-container');
   const loginForm = document.getElementById('login-form');
+
   if (loginForm) {
     loginForm.addEventListener('submit', loginFormHandler(null));
   }
@@ -916,7 +973,8 @@ window.addEventListener('DOMContentLoaded', () => {
   setupTabs();
   renderChatArea();
 
-  // 移动端侧栏/右栏按钮和遮罩逻辑
+  const sidebar = document.getElementById('sidebar');
+  const rightbar = document.getElementById('rightbar');
   const mobileMenuBtn = document.getElementById('mobile-menu-btn');
   const mobileInfoBtn = document.getElementById('mobile-info-btn');
   const sidebarMask = document.getElementById('mobile-sidebar-mask');
@@ -965,24 +1023,40 @@ window.addEventListener('DOMContentLoaded', () => {
       rightbarMask.classList.remove('active');
     };
   }
-  // 切换房间/成员时自动关闭侧栏
-  function closeMobilePanels() {
-    if (sidebar) sidebar.classList.remove('mobile-open');
-    if (sidebarMask) sidebarMask.classList.remove('active');
-    if (rightbar) rightbar.classList.remove('mobile-open');
-    if (rightbarMask) rightbarMask.classList.remove('active');
-  }
+  // 点击其它区域关闭侧栏/右栏
+  document.addEventListener('click', function(ev) {
+    if (!isMobile()) return;
+    if (sidebar && sidebar.classList.contains('mobile-open')) {
+      if (!sidebar.contains(ev.target) && ev.target !== mobileMenuBtn) {
+        sidebar.classList.remove('mobile-open');
+        sidebarMask.classList.remove('active');
+      }
+    }
+    if (rightbar && rightbar.classList.contains('mobile-open')) {
+      if (!rightbar.contains(ev.target) && ev.target !== mobileInfoBtn) {
+        rightbar.classList.remove('mobile-open');
+        rightbarMask.classList.remove('active');
+      }
+    }
+  });
+
   // 监听房间点击和成员tab点击
   const roomList = document.getElementById('room-list');
   if (roomList) {
     roomList.addEventListener('click', function() {
-      if (isMobile()) closeMobilePanels();
+      if (isMobile()) {
+        if (sidebar) sidebar.classList.remove('mobile-open');
+        if (sidebarMask) sidebarMask.classList.remove('active');
+      }
     });
   }
   const memberTabs = document.getElementById('member-tabs');
   if (memberTabs) {
     memberTabs.addEventListener('click', function() {
-      if (isMobile()) closeMobilePanels();
+      if (isMobile()) {
+        if (rightbar) rightbar.classList.remove('mobile-open');
+        if (rightbarMask) rightbarMask.classList.remove('active');
+      }
     });
   }
 });
