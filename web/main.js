@@ -2,22 +2,22 @@ import { processImage, setupImageSend } from './util.image.js';
 import { createAvatarSVG } from './util.avatar.js';
 import { setupEmojiPicker } from './util.emoji.js';
 import { openSettingsPanel, closeSettingsPanel, initSettings, notifyMessage } from './util.settings.js';
-import './NodeCrypt.js';
-import { Buffer } from 'buffer';
-window.Buffer = Buffer;
-
+//import './NodeCrypt.js';
+//import { Buffer } from 'buffer';
+//window.Buffer = Buffer;
+/*
 const config = {
   rsaPublic: window.NODECRYPT_PUBLIC_KEY, 
   wsAddress: '/ws',
   debug: true
 };
-/*
+*/
 const config = {
-  rsaPublic: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAj3zSLmom4GXlwxvqeJrCSf59aBa716+GpVAmMX/Qx5zwyZ/x0NEnuMkmkh4FxI4BzSstjvHYT+B+i0ItnG7dmqsfJ2/X+hrgX1q2I5q+gy/5dcDnqi9gRRbGCCMtjErd3eJ6scMxJmv8mXred2SKzoAG4nn1jgjc0Sny1C+Ai3p7MakW3EK4YkGjU742Ex+cvhjc03GVHTl6U2mKrGrVieT0/LW+C/3IHiXSvRCe5S0tciYzSErC4rTJDXFsOgrdFQ8c9+Tyng72Yxz3MkC6hXfCSFzj7CwgcraTDoWKiCza00MXl+lYMSBaiKdXyxr2nNtA94ZwNbSh7SxE7NUrXwIDAQAB', 
+  rsaPublic: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxiWbtwnGGGzfSGkaoJKuDMjarsrOwEzLhGpT5Ld85QTfZm0qWDHZHirxw2uBsKEBfAOj8Efdh0P9ccA3fa8NUmIUZa6evhMvNSH92G0Y5tCVK6zwUJq/v3OJP+MxlJ7YPYLbJxo8zlyM9sEE7ec51AWu0RcPiT5yN1g2fJAzDjjea3u0SiH2gjJCWS3cqk7KthDO7dW8/dancsaDAoKqo56TUMKORl/eWAPwJAXkRshNmzBdNatqqDSSC49U8i7MgV68Owfxa+t37A45i4OSinoJp+tXyyMvuonHzhh3BT0rb0/j21q+gVNtFlytkQQRQrbBSoUcU6IVQLVpHLyC2wIDAQAB', 
   wsAddress: 'wss://crypt.works/ws',
   debug: true
 };
-*/
+
 // 多房间状态管理
 let roomsData = [];
 let activeRoomIndex = -1;
