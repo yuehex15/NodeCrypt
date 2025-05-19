@@ -196,10 +196,20 @@ function playSoundNotification() {
 function showDesktopNotification(roomName, text, msgType, sender) {
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
   let body;
-  if (msgType === 'image') {
-    body = sender ? `${sender}: [image]` : '[image]';
-  } else {
-    body = sender ? `${sender}: ${truncateText(text)}` : truncateText(text);
+  const senderPrefix = sender ? `${sender}: ` : '';
+
+  if (msgType === 'image' || msgType === 'private image') {
+    body = `${senderPrefix}[image]`;
+    if (msgType === 'private image') {
+      body = `(Private) ${body}`;
+    }
+  } else if (msgType === 'text' || msgType === 'private text') {
+    body = `${senderPrefix}${truncateText(text)}`;
+    if (msgType === 'private text') {
+      body = `(Private) ${body}`;
+    }
+  } else { // Fallback for other types, e.g., 'system'
+    body = truncateText(text);
   }
   new Notification(`#${roomName}`, { body });
 }

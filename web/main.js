@@ -22,7 +22,7 @@ const config = {
 let roomsData = [];
 let activeRoomIndex = -1;
 function getNewRoomData() {
-  return { roomName: '', userList: [], userMap: {}, myId: null, myUserName: '', chat: null, messages: [], prevUserList: [], knownUserIds: new Set(), unreadCount: 0 };
+  return { roomName: '', userList: [], userMap: {}, myId: null, myUserName: '', chat: null, messages: [], prevUserList: [], knownUserIds: new Set(), unreadCount: 0, privateChatTargetId: null, privateChatTargetName: null };
 }
 // 切换房间并恢复上下文，更新 UI
 function switchRoom(index) {
@@ -37,8 +37,9 @@ function switchRoom(index) {
   setSidebarAvatar(rd.myUserName);
   renderRooms(index);
   renderMainHeader();
-  renderUserList();
+  renderUserList(); // Ensure user list reflects private chat state
   renderChatArea();
+  updateChatInputStyle(); // Update input style for the new room
 }
 
 // 渲染当前房间消息区
@@ -80,7 +81,9 @@ function renderUserList() {
 }
 function createUserItem(user, isMe) {
   let div = document.createElement('div');
-  div.className = 'member' + (isMe ? ' me' : '');
+  const rd = roomsData[activeRoomIndex];
+  const isPrivateTarget = rd && user.clientId === rd.privateChatTargetId;
+  div.className = 'member' + (isMe ? ' me' : '') + (isPrivateTarget ? ' private-chat-active' : '');
   // 兼容 userName/username/name
   const rawName = user.userName || user.username || user.name || '';
   const safeUserName = escapeHTML(rawName);
@@ -94,6 +97,9 @@ function createUserItem(user, isMe) {
       <div class="member-name">${safeUserName}${isMe ? ' (我)' : ''}</div>
     </div>
   `;
+  if (!isMe) {
+    div.onclick = () => togglePrivateChat(user.clientId, safeUserName);
+  }
   return div;
 }
 
@@ -172,6 +178,16 @@ function handleClientSecured(idx, user) {
 function handleClientLeft(idx, clientId) {
   const rd = roomsData[idx];
   if (!rd) return;
+
+  // If the user leaving was the private chat target, exit private chat mode
+  if (rd.privateChatTargetId === clientId) {
+    rd.privateChatTargetId = null;
+    rd.privateChatTargetName = null;
+    if (activeRoomIndex === idx) {
+      updateChatInputStyle();
+    }
+  }
+
   const user = rd.userMap[clientId];
   // 退出提示逻辑：不再依赖 isInitialized，任何时候都提示
   const name = user ? (user.userName || user.username || user.name || 'Anonymous') : 'Anonymous';
@@ -211,11 +227,11 @@ function addMsg(text, isHistory = false, msgType = 'text', timestamp = null) {
   const chatArea = document.getElementById('chat-area');
   if (!chatArea) return;
   const div = document.createElement('div');
-  div.className = 'bubble me';
+  div.className = 'bubble me' + (msgType.includes('_private') ? ' private-message' : '');
   const date = new Date(ts);
   const time = date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
   let contentHtml = '';
-  if (msgType === 'image' && text.startsWith('data:image/')) {
+  if (msgType === 'image' || msgType === 'image_private') {
     contentHtml = `<img src="${text}" alt="image" class="bubble-img">`;
   } else {
     const safeText = escapeHTML(text).replace(/\n/g, '<br>');
@@ -249,7 +265,7 @@ function addOtherMsg(msg, userName = '', avatar = '', isHistory = false, msgType
   const bubbleWrap = document.createElement('div');
   bubbleWrap.className = 'bubble-other-wrap';
   let contentHtml = '';
-  if (msgType === 'image' && msg.startsWith('data:image/')) {
+  if (msgType === 'image' || msgType === 'image_private') {
     contentHtml = `<img src="${msg}" alt="image" class="bubble-img">`;
   } else {
     const safeMsg = escapeHTML(msg).replace(/\n/g, '<br>');
@@ -258,10 +274,17 @@ function addOtherMsg(msg, userName = '', avatar = '', isHistory = false, msgType
   const safeUserName = escapeHTML(userName);
   const date = new Date(ts);
   const time = date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
+
+  // Determine bubble classes, explicitly adding 'private-message' for private types
+  let bubbleClasses = 'bubble other';
+  if (msgType && msgType.includes('_private')) {
+    bubbleClasses += ' private-message';
+  }
+
   bubbleWrap.innerHTML = `
     <span class="avatar"></span>
     <div class="bubble-other-main">
-      <div class="bubble other">
+      <div class="${bubbleClasses}">
         <div class="bubble-other-name">${safeUserName}</div>
         <span class="bubble-content">${contentHtml}</span>
         <span class="bubble-meta">${time}</span>
@@ -420,11 +443,23 @@ function joinRoom(userName, roomName, password, modal = null, onResult) {
     },
     onClientSecured: (user) => handleClientSecured(idx, user),
     onClientList: (list, selfId) => handleClientList(idx, list, selfId),
-    onClientLeft: (clientId) => handleClientLeft(idx, clientId),
+    onClientLeft: (clientId) => handleClientLeft(idx, clientId), // Ensure this is correctly handled
     onClientMessage: (msg) => {
-      if (msg.userName === newRd.myUserName) return;
+      if (msg.userName === newRd.myUserName && !msg.type.includes('_private')) { // Allow receiving own private messages if server echoes them
+         // Or, more robustly, check msg.clientId against myId if server sends back my own private messages
+        const currentRd = roomsData[idx];
+        if (currentRd && msg.clientId === currentRd.myId && msg.type.includes('_private')) {
+            // This is an echo of my own private message, do nothing here as addMsg handles it
+        } else if (msg.clientId === newRd.myId) { // Standard self-message, ignore
+            return;
+        }
+      }
       // 判断消息类型
-      let msgType = msg.type || (msg.data && msg.data.startsWith('data:image/') ? 'image' : 'text');
+      let msgType = msg.type || 'text'; // msg.type from NodeCrypt is already the 't' field
+      if (!msgType.includes('_private') && msg.data && msg.data.startsWith('data:image/')) {
+        msgType = 'image';
+      }
+
       // 修正：如果msg.userName缺失，尝试从userMap查找
       let realUserName = msg.userName;
       if (!realUserName && msg.clientId && newRd.userMap[msg.clientId]) {
@@ -434,12 +469,13 @@ function joinRoom(userName, roomName, password, modal = null, onResult) {
         type: 'other',
         text: msg.data,
         userName: realUserName,
-        avatar: realUserName,
+        avatar: realUserName, // Consider if avatar needs specific handling for private
         msgType,
         timestamp: Date.now()
       });
       // 通知消息，无论当前房间是否激活
-      notifyMessage(newRd.roomName, msgType, msg.data, realUserName);
+      const notificationMsgType = msgType.includes('_private') ? `private ${msgType.split('_')[0]}` : msgType;
+      notifyMessage(newRd.roomName, notificationMsgType, msg.data, realUserName);
       // 未读数逻辑
       if (activeRoomIndex !== idx) {
         roomsData[idx].unreadCount = (roomsData[idx].unreadCount || 0) + 1;
@@ -640,8 +676,9 @@ function setupInputPlaceholder() {
   input.addEventListener('blur', checkEmpty);
   input.addEventListener('focus', checkEmpty);
   // 初始化
-  checkEmpty();
+  checkEmpty(); // Call checkEmpty which now calls updateChatInputStyle indirectly via updateChatInputStyle
   autoGrowInput();
+  updateChatInputStyle(); // Initial call
 }
 
 // 更多按钮菜单交互
@@ -889,6 +926,47 @@ function autofillRoomPwd(formPrefix = '') {
   }
 }
 
+// --- NEW FUNCTIONS FOR PRIVATE CHAT ---
+function togglePrivateChat(targetId, targetName) {
+  const rd = roomsData[activeRoomIndex];
+  if (!rd) return;
+
+  if (rd.privateChatTargetId === targetId) {
+    // Clicking the same user again, exit private chat
+    rd.privateChatTargetId = null;
+    rd.privateChatTargetName = null;
+  } else {
+    // Switching to a new user or entering private chat
+    rd.privateChatTargetId = targetId;
+    rd.privateChatTargetName = targetName;
+  }
+  renderUserList(); // Re-render to update active card style
+  updateChatInputStyle(); // Update input placeholder and style
+}
+
+function updateChatInputStyle() {
+  const rd = roomsData[activeRoomIndex];
+  const chatInputArea = document.querySelector('.chat-input-area');
+  const placeholder = document.querySelector('.input-field-placeholder');
+  const inputMessageInput = document.querySelector('.input-message-input');
+
+  if (!chatInputArea || !placeholder || !inputMessageInput) return;
+
+  if (rd && rd.privateChatTargetId) {
+    chatInputArea.classList.add('private-mode');
+    inputMessageInput.classList.add('private-mode'); // For more specific styling if needed
+    placeholder.textContent = `Private Message to ${escapeHTML(rd.privateChatTargetName)}`;
+  } else {
+    chatInputArea.classList.remove('private-mode');
+    inputMessageInput.classList.remove('private-mode');
+    placeholder.textContent = 'Message';
+  }
+  // Ensure placeholder visibility is correctly updated after text change
+  const html = inputMessageInput.innerHTML.replace(/<br\s*\/?>(\s*)?/gi, '').replace(/&nbsp;/g, '').replace(/\u200B/g, '').trim();
+  placeholder.style.opacity = (html === '') ? '1' : '0';
+}
+// --- END NEW FUNCTIONS ---
+
 // 页面初始化
 window.addEventListener('DOMContentLoaded', () => {
   const loginContainer = document.getElementById('login-container');
@@ -943,12 +1021,26 @@ window.addEventListener('DOMContentLoaded', () => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         const text = input.innerText.trim();
-        // 只用当前房间的 chat 实例
-        if (text && roomsData[activeRoomIndex]?.chat) {
-          roomsData[activeRoomIndex].chat.sendChannelMessage('text', text);
-          addMsg(text);
+        const rd = roomsData[activeRoomIndex];
+        if (text && rd && rd.chat) {
+          if (rd.privateChatTargetId) {
+            const targetClient = rd.chat.channel[rd.privateChatTargetId];
+            if (targetClient && targetClient.shared) {
+              const clientMessagePayload = { a: 'm', t: 'text_private', d: text };
+              const encryptedClientMessage = rd.chat.encryptClientMessage(clientMessagePayload, targetClient.shared);
+              const serverRelayPayload = { a: 'c', p: encryptedClientMessage, c: rd.privateChatTargetId };
+              const encryptedMessageForServer = rd.chat.encryptServerMessage(serverRelayPayload, rd.chat.serverShared);
+              rd.chat.sendMessage(encryptedMessageForServer);
+              addMsg(text, false, 'text_private');
+            } else {
+              addSystemMsg(`Cannot send private message to ${rd.privateChatTargetName}. User might not be fully connected.`);
+            }
+          } else {
+            rd.chat.sendChannelMessage('text', text);
+            addMsg(text);
+          }
           input.innerText = '';
-          input.dispatchEvent(new Event('input'));
+          input.dispatchEvent(new Event('input')); // To update placeholder
         }
       }
     });
@@ -960,9 +1052,24 @@ window.addEventListener('DOMContentLoaded', () => {
     attachBtnSelector: '.chat-attach-btn',
     fileInputSelector: '.new-message-wrapper input[type="file"]',
     onSend: (dataUrl) => {
-      if (roomsData[activeRoomIndex]?.chat) {
-        roomsData[activeRoomIndex].chat.sendChannelMessage('image', dataUrl);
-        addMsg(dataUrl, false, 'image');
+      const rd = roomsData[activeRoomIndex];
+      if (rd && rd.chat) {
+        if (rd.privateChatTargetId) {
+          const targetClient = rd.chat.channel[rd.privateChatTargetId];
+          if (targetClient && targetClient.shared) {
+            const clientMessagePayload = { a: 'm', t: 'image_private', d: dataUrl };
+            const encryptedClientMessage = rd.chat.encryptClientMessage(clientMessagePayload, targetClient.shared);
+            const serverRelayPayload = { a: 'c', p: encryptedClientMessage, c: rd.privateChatTargetId };
+            const encryptedMessageForServer = rd.chat.encryptServerMessage(serverRelayPayload, rd.chat.serverShared);
+            rd.chat.sendMessage(encryptedMessageForServer);
+            addMsg(dataUrl, false, 'image_private');
+          } else {
+            addSystemMsg(`Cannot send private image to ${rd.privateChatTargetName}. User might not be fully connected.`);
+          }
+        } else {
+          rd.chat.sendChannelMessage('image', dataUrl);
+          addMsg(dataUrl, false, 'image');
+        }
       }
     }
   });
@@ -973,6 +1080,7 @@ window.addEventListener('DOMContentLoaded', () => {
   renderUserList();
   setupTabs();
   renderChatArea();
+  updateChatInputStyle(); // Initial call after everything is set up
 
   const sidebar = document.getElementById('sidebar');
   const rightbar = document.getElementById('rightbar');

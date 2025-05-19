@@ -1357,3 +1357,50 @@ body {
     left: 2vw !important;
   }
 }
+
+/* Private chat user card style */
+.member.private-chat-active {
+  background-color: #e0d0ff !important; /* Light purple for active private chat user card */
+}
+.member.private-chat-active:hover {
+  background-color: #d8c8f8 !important; /* Slightly darker on hover */
+}
+
+/* Private chat input area style */
+.chat-input-area.private-mode .chat-input-wrapper::before {
+  background-color: #f0e8ff !important; /* Lighter purple for the input area background itself */
+}
+.chat-input-area.private-mode .input-message-input {
+  /* Input field itself can remain transparent or match wrapper if needed */
+  /* background-color: #f8f0ff; */ /* Example: Even lighter purple for input field itself */
+}
+
+
+/* Private message bubble styles for OTHERS' private messages */
+.bubble.other.private-message { /* Target 'other' private bubbles specifically */
+  background-color: #9370db !important; /* Purple for other's private message */
+  color: white !important;
+}
+.bubble.other.private-message .bubble-other-name { /* Ensure name is visible on purple */
+  color: #f0e8ff !important;
+}
+.bubble.other.private-message .bubble-meta { /* Ensure timestamp is visible */
+  color: #e0d0ff !important;
+}
+.bubble.other.private-message .bubble-content { /* Ensure content text is white */
+  color: white !important;
+  background-color: transparent !important; /* Content background should be transparent */
+}
+
+/* Private message bubble styles for MY private messages */
+.bubble.me.private-message { /* Target 'me' private bubbles specifically */
+  background-color: #9370db !important; /* Slightly different purple for "me" private */
+  color: white !important;
+}
+.bubble.me.private-message .bubble-meta { /* Ensure timestamp is visible */
+  color: #e0d0ff !important;
+}
+.bubble.me.private-message .bubble-content { /* Ensure content text is white */
+  color: white !important;
+  background-color: transparent !important; /* Content background should be transparent */
+}
