@@ -303,8 +303,8 @@ body {
       content: "";
       position: absolute;
       inset: 0;
-      background: url(./wallpaper.png) left top / auto 100% no-repeat;
-      opacity: 0.22; /* 可根据实际效果调整 */
+      background: url(./wallpaper.png) left top / auto 130% no-repeat;
+      opacity: 0.15; /* 可根据实际效果调整 */
       mix-blend-mode: multiply;
       pointer-events: none;
       z-index: 0;
@@ -548,11 +548,12 @@ body {
     border: none;
     cursor: pointer;
     color: #808080;
-    padding: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0px 10px 4px 10px;
+    margin: 0px 10px 3px 10px;
+    padding-left: unset;
+    padding-right: unset;
 }
 .chat-emoji-btn:hover {
   color: #007bff;
@@ -1338,8 +1339,8 @@ body {
     background: rgba(255, 255, 255, 0.85);
     border: none;
     align-items: center;
-    width: 38px;
-    height: 38px;
+    width: 45px;
+    height: 45px;
     z-index: 1100;
     cursor: pointer;
     border-radius: 50%;
