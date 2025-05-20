@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/shuaiplus/NodeCrypt#readme",
   "devDependencies": {
+    "terser": "^5.39.2",
     "vite": "^6.3.5"
   },
   "dependencies": {

@@ -39,6 +39,8 @@ import {
   autofillRoomPwd
 } from './ui.js';
 
+import './NodeCrypt.js';
+
 // === 全局配置 ===
 
 /**
@@ -47,6 +49,13 @@ import {
  * wsAddress: WebSocket服务器地址
  * debug: 是否开启调试模式
  */
+/*
+const config = {
+  rsaPublic: window.NODECRYPT_PUBLIC_KEY, 
+  wsAddress: '/ws',
+  debug: true
+};
+*/
 window.config = {
   rsaPublic: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7+gGYn7Wavs/WpcubvlJX9IBhv4eQtOdcedmquodYVQl5l2Jd64cNj/okIxMpQqtvJW/zvN6BNHAgBKyB5D6Yf9qHN0FwdXnAsSVxlAHA2guMOpXQFjyYj01BRrRAGMOyYkYlhQ+cvgoJzaE2skO/aYqYzrqOnexaUFLYN+1xEITqrTwpKnCPdlhGArrXYFTmloBOJy18CYlNyJkdbsUN/Q7Lxyq3bkLsPx2Gr80wh4rUQltc+VY5CYqjxuRwV65o04hspfS9VHXnT5OSAElDDNBys1u3hr3j1WDXSB9+v9ksA8NCi8j+iN7ADaqMGPA82EaSbYcFpd9alLHBGa9GwIDAQAB', 
   wsAddress: 'wss://crypt.works/ws',
