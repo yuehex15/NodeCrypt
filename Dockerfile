@@ -9,6 +9,7 @@ COPY dist/ ./web/
 COPY start.sh /start.sh
 
 RUN chmod +x /start.sh && \
+    dos2unix /start.sh && \
     apk add --no-cache nginx dos2unix && \
     mkdir -p /etc/nginx
 

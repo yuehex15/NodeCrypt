@@ -10,6 +10,8 @@ import { openSettingsPanel, closeSettingsPanel, initSettings, notifyMessage } fr
 import { escapeHTML, textToHTML } from './util.string.js';
 import { $, $$, $id, on, off, addClass, removeClass } from './util.dom.js';
 
+//import './NodeCrypt.js';
+
 // === 核心功能模块导入 ===
 import { 
   roomsData, 
@@ -39,8 +41,6 @@ import {
   autofillRoomPwd
 } from './ui.js';
 
-//import './NodeCrypt.js';
-
 // === 全局配置 ===
 
 /**
@@ -57,11 +57,12 @@ const config = {
 };
 */
 window.config = {
-  rsaPublic: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7+gGYn7Wavs/WpcubvlJX9IBhv4eQtOdcedmquodYVQl5l2Jd64cNj/okIxMpQqtvJW/zvN6BNHAgBKyB5D6Yf9qHN0FwdXnAsSVxlAHA2guMOpXQFjyYj01BRrRAGMOyYkYlhQ+cvgoJzaE2skO/aYqYzrqOnexaUFLYN+1xEITqrTwpKnCPdlhGArrXYFTmloBOJy18CYlNyJkdbsUN/Q7Lxyq3bkLsPx2Gr80wh4rUQltc+VY5CYqjxuRwV65o04hspfS9VHXnT5OSAElDDNBys1u3hr3j1WDXSB9+v9ksA8NCi8j+iN7ADaqMGPA82EaSbYcFpd9alLHBGa9GwIDAQAB', 
+  rsaPublic: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxNhKL8OwnBw4ib1Kz5xAmqlR6gITfos9GLz4meUR7Aso3pjB2J3XB9dmNoifD2mPVngpVKjgnC3cQvayKWeX926r1xOzG/k7B5pAl2r8ZjDe2Ju0wwBSzD5by2n7eApThEOVVkJaU72ubG4GvRogyGKbP+IbgkowGhrVlipVro4mv+u7qo4RUcAZ6bjdVLctVtdjiclOiCYhTRtEdsTPGu9ag6TRvLtyaZA2hdWx/7sVsDOKntQv6IVdZ7DPGWRC5Eoxqe+VPSa1KsKpGOaY7TLNcorXrFgMaWBnoOwlv9HyTGro0JFCvt+dExgvEhpISjQnaXhUPl6//NCWmCOAmQIDAQAB', 
   wsAddress: 'wss://crypt.works/ws',
   debug: true
 };
 
+window.config = config;
 // === 全局函数导出 ===
 
 /**
