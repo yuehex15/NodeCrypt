@@ -1,968 +1,46 @@
 import { processImage, setupImageSend } from './util.image.js';
-import { createAvatarSVG } from './util.avatar.js';
 import { setupEmojiPicker } from './util.emoji.js';
 import { openSettingsPanel, closeSettingsPanel, initSettings, notifyMessage } from './util.settings.js';
-//import './NodeCrypt.js';
-//import { Buffer } from 'buffer';
-//window.Buffer = Buffer;
-/*
-const config = {
-  rsaPublic: window.NODECRYPT_PUBLIC_KEY, 
-  wsAddress: '/ws',
-  debug: true
-};
-*/
-const config = {
-  rsaPublic: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxiWbtwnGGGzfSGkaoJKuDMjarsrOwEzLhGpT5Ld85QTfZm0qWDHZHirxw2uBsKEBfAOj8Efdh0P9ccA3fa8NUmIUZa6evhMvNSH92G0Y5tCVK6zwUJq/v3OJP+MxlJ7YPYLbJxo8zlyM9sEE7ec51AWu0RcPiT5yN1g2fJAzDjjea3u0SiH2gjJCWS3cqk7KthDO7dW8/dancsaDAoKqo56TUMKORl/eWAPwJAXkRshNmzBdNatqqDSSC49U8i7MgV68Owfxa+t37A45i4OSinoJp+tXyyMvuonHzhh3BT0rb0/j21q+gVNtFlytkQQRQrbBSoUcU6IVQLVpHLyC2wIDAQAB', 
+import { 
+  roomsData, 
+  activeRoomIndex, 
+  getNewRoomData, 
+  joinRoom, 
+  togglePrivateChat, 
+  setStatus 
+} from './room.js';
+import { 
+  renderChatArea, 
+  addMsg, 
+  addSystemMsg, 
+  setupImagePreview, 
+  updateChatInputStyle, 
+  setupInputPlaceholder 
+} from './chat.js';
+import { 
+  escapeHTML,
+  renderUserList, 
+  renderMainHeader, 
+  setupMoreBtnMenu,
+  preventSpaceInput, 
+  loginFormHandler,
+  openLoginModal,
+  setupTabs,
+  autofillRoomPwd
+} from './ui.js';
+
+// 全局配置
+window.config = {
+  rsaPublic: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7+gGYn7Wavs/WpcubvlJX9IBhv4eQtOdcedmquodYVQl5l2Jd64cNj/okIxMpQqtvJW/zvN6BNHAgBKyB5D6Yf9qHN0FwdXnAsSVxlAHA2guMOpXQFjyYj01BRrRAGMOyYkYlhQ+cvgoJzaE2skO/aYqYzrqOnexaUFLYN+1xEITqrTwpKnCPdlhGArrXYFTmloBOJy18CYlNyJkdbsUN/Q7Lxyq3bkLsPx2Gr80wh4rUQltc+VY5CYqjxuRwV65o04hspfS9VHXnT5OSAElDDNBys1u3hr3j1WDXSB9+v9ksA8NCi8j+iN7ADaqMGPA82EaSbYcFpd9alLHBGa9GwIDAQAB', 
   wsAddress: 'wss://crypt.works/ws',
   debug: true
 };
 
-// 多房间状态管理
-let roomsData = [];
-let activeRoomIndex = -1;
-function getNewRoomData() {
-  return { roomName: '', userList: [], userMap: {}, myId: null, myUserName: '', chat: null, messages: [], prevUserList: [], knownUserIds: new Set(), unreadCount: 0, privateChatTargetId: null, privateChatTargetName: null };
-}
-// 切换房间并恢复上下文，更新 UI
-function switchRoom(index) {
-  if (index < 0 || index >= roomsData.length) return;
-  activeRoomIndex = index;
-  const rd = roomsData[index];
-  // 清零未读数
-  if (typeof rd.unreadCount === 'number') rd.unreadCount = 0;
-  // 恢复 sidebar-username、sidebar-user-avatar id
-  const sidebarUsername = document.getElementById('sidebar-username');
-  if (sidebarUsername) sidebarUsername.textContent = rd.myUserName;
-  setSidebarAvatar(rd.myUserName);
-  renderRooms(index);
-  renderMainHeader();
-  renderUserList(); // Ensure user list reflects private chat state
-  renderChatArea();
-  updateChatInputStyle(); // Update input style for the new room
-}
-
-// 渲染当前房间消息区
-function renderChatArea() {
-  const chatArea = document.getElementById('chat-area');
-  if (!chatArea) return;
-  if (activeRoomIndex < 0 || !roomsData[activeRoomIndex]) {
-    chatArea.innerHTML = '';
-    return;
-  }
-  chatArea.innerHTML = '';
-  roomsData[activeRoomIndex].messages.forEach(m => {
-    if (m.type === 'me') addMsg(m.text, true, m.msgType || 'text', m.timestamp);
-    else if (m.type === 'system') addSystemMsg(m.text, true, m.timestamp);
-    else addOtherMsg(m.text, m.userName, m.avatar, true, m.msgType || 'text', m.timestamp);
-  });
-  // 保证表情选择器挂载
-  if (window.setupEmojiPicker) window.setupEmojiPicker();
-}
-
-// 简单转义，防止XSS
-function escapeHTML(str) {
-  return str.replace(/[&<>"']/g, function (c) {
-    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c];
-  });
-}
-
-// 渲染在线用户列表（右侧Members）
-function renderUserList() {
-  const userListEl = document.getElementById('member-list');
-  userListEl.innerHTML = '';
-  const rd = roomsData[activeRoomIndex];
-  if (!rd) return;
-  let me = rd.userList.find(u => u.clientId === rd.myId);
-  let others = rd.userList.filter(u => u.clientId !== rd.myId);
-  if (me) userListEl.appendChild(createUserItem(me, true));
-  others.forEach(u => userListEl.appendChild(createUserItem(u, false)));
-  renderMainHeader(); // 在线用户变化时刷新
-}
-function createUserItem(user, isMe) {
-  let div = document.createElement('div');
-  const rd = roomsData[activeRoomIndex];
-  const isPrivateTarget = rd && user.clientId === rd.privateChatTargetId;
-  div.className = 'member' + (isMe ? ' me' : '') + (isPrivateTarget ? ' private-chat-active' : '');
-  // 兼容 userName/username/name
-  const rawName = user.userName || user.username || user.name || '';
-  const safeUserName = escapeHTML(rawName);
-  // 头像 SVG
-  createAvatarSVG(rawName).then(svg => {
-    div.querySelector('.avatar').innerHTML = svg;
-  });
-  div.innerHTML = `
-    <span class="avatar"></span>
-    <div class="member-info">
-      <div class="member-name">${safeUserName}${isMe ? ' (我)' : ''}</div>
-    </div>
-  `;
-  if (!isMe) {
-    div.onclick = () => togglePrivateChat(user.clientId, safeUserName);
-  }
-  return div;
-}
-
-// 处理服务器推送的在线用户列表
-function handleClientList(idx, list, selfId) {
-  const rd = roomsData[idx];
-  if (!rd) return;
-  // 记录旧用户ID集合
-  const oldUserIds = new Set((rd.userList || []).map(u => u.clientId));
-  // 新用户ID集合
-  const newUserIds = new Set(list.map(u => u.clientId));
-  // 检查退出用户（旧有，新没有），并调用 handleClientLeft
-  for (const oldId of oldUserIds) {
-    if (!newUserIds.has(oldId)) {
-      handleClientLeft(idx, oldId);
-    }
-  }
-  // 更新在线用户列表和映射
-  rd.userList = list;
-  rd.userMap = {};
-  list.forEach(u => { rd.userMap[u.clientId] = u; });
-  rd.myId = selfId;
-  if (activeRoomIndex === idx) {
-    renderUserList();
-    renderMainHeader(); // 刷新顶部信息栏
-  }
-  // 初始化计数
-  rd.initCount = (rd.initCount || 0) + 1;
-  // 收到 2 次列表后标记初始化完成，并填充已知用户集合
-  if (rd.initCount === 2) {
-    rd.isInitialized = true;
-    // 基准用户集合
-    rd.knownUserIds = new Set(list.map(u => u.clientId));
-  }
-}
-
-// 调整 handleClientSecured: 立即更新UI，仅在初始化完成后才处理加入提示
-function handleClientSecured(idx, user) {
-  const rd = roomsData[idx];
-  if (!rd) return;
-  // 无论初始化状态如何，始终更新用户映射
-  rd.userMap[user.clientId] = user;
-  // 检查用户是否已在列表中
-  const existingUserIndex = rd.userList.findIndex(u => u.clientId === user.clientId);
-  if (existingUserIndex === -1) {
-    // 用户不在列表中，添加它
-    rd.userList.push(user);
-  } else {
-    // 用户已在列表中，更新它
-    rd.userList[existingUserIndex] = user;
-  }
-  // 无论初始化状态如何，始终刷新当前房间UI
-  if (activeRoomIndex === idx) {
-    renderUserList();
-    renderMainHeader(); // 也刷新顶部信息栏
-  }
-  // 仅在初始化完成后才处理加入提示
-  if (!rd.isInitialized) {
-    return;
-  }
-  // 检测是否为已知用户集合中不存在的用户
-  const isNew = !rd.knownUserIds.has(user.clientId);
-  // 提示新用户加入
-  if (isNew) {
-    rd.knownUserIds.add(user.clientId);
-    const name = user.userName || user.username || user.name || 'Anonymous';
-    const msg = `${name} joined`;
-    rd.messages.push({ type: 'system', text: msg });
-    if (activeRoomIndex === idx) addSystemMsg(msg, true);
-    // 新增：系统/声音通知
-    notifyMessage(rd.roomName, 'system', msg);
-  }
-}
-
-// 用户下线
-function handleClientLeft(idx, clientId) {
-  const rd = roomsData[idx];
-  if (!rd) return;
-
-  // If the user leaving was the private chat target, exit private chat mode
-  if (rd.privateChatTargetId === clientId) {
-    rd.privateChatTargetId = null;
-    rd.privateChatTargetName = null;
-    if (activeRoomIndex === idx) {
-      updateChatInputStyle();
-    }
-  }
-
-  const user = rd.userMap[clientId];
-  // 退出提示逻辑：不再依赖 isInitialized，任何时候都提示
-  const name = user ? (user.userName || user.username || user.name || 'Anonymous') : 'Anonymous';
-  const msg = `${name} left`;
-  rd.messages.push({ type: 'system', text: msg });
-  if (activeRoomIndex === idx) addSystemMsg(msg, true);
-  rd.userList = rd.userList.filter(u => u.clientId !== clientId);
-  delete rd.userMap[clientId];
-  if (activeRoomIndex === idx) {
-    renderUserList();
-  }
-}
-
-function setStatus(text) {
-  let statusBar = document.getElementById('status-bar');
-  if (!statusBar) {
-    statusBar = document.createElement('div');
-    statusBar.id = 'status-bar';
-    statusBar.style = 'color:green;padding:4px 10px;font-size:13px;';
-    document.body.appendChild(statusBar);
-  }
-  statusBar.innerText = text;
-}
-
-function addMsg(text, isHistory = false, msgType = 'text', timestamp = null) {
-  let ts;
-  if (isHistory) {
-    ts = timestamp;
-  } else {
-    ts = timestamp || Date.now();
-    if (activeRoomIndex >= 0) {
-      roomsData[activeRoomIndex].messages.push({ type: 'me', text, msgType, timestamp: ts });
-    }
-  }
-  // 只用传入的 timestamp，不再 fallback 到 Date.now()，避免多余逻辑
-  if (!ts) return;
-  const chatArea = document.getElementById('chat-area');
-  if (!chatArea) return;
-  const div = document.createElement('div');
-  div.className = 'bubble me' + (msgType.includes('_private') ? ' private-message' : '');
-  const date = new Date(ts);
-  const time = date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
-  let contentHtml = '';
-  if (msgType === 'image' || msgType === 'image_private') {
-    contentHtml = `<img src="${text}" alt="image" class="bubble-img">`;
-  } else {
-    const safeText = escapeHTML(text).replace(/\n/g, '<br>');
-    contentHtml = safeText;
-  }
-  div.innerHTML = `<span class="bubble-content">${contentHtml}</span><span class="bubble-meta">${time}</span>`;
-  chatArea.appendChild(div);
-  chatArea.scrollTop = chatArea.scrollHeight;
-}
-
-function addOtherMsg(msg, userName = '', avatar = '', isHistory = false, msgType = 'text', timestamp = null) {
-  if (!userName && activeRoomIndex >= 0) {
-    const rd = roomsData[activeRoomIndex];
-    if (rd && msg && msg.clientId && rd.userMap[msg.clientId]) {
-      userName = rd.userMap[msg.clientId].userName || rd.userMap[msg.clientId].username || rd.userMap[msg.clientId].name || 'Anonymous';
-    }
-  }
-  if (!userName) userName = 'Anonymous';
-  let ts;
-  if (isHistory) {
-    ts = timestamp;
-  } else {
-    ts = timestamp || Date.now();
-    if (activeRoomIndex >= 0) {
-      roomsData[activeRoomIndex].messages.push({ type: 'other', text: msg, userName, avatar, msgType, timestamp: ts });
-    }
-  }
-  if (!ts) return;
-  const chatArea = document.getElementById('chat-area');
-  if (!chatArea) return;
-  const bubbleWrap = document.createElement('div');
-  bubbleWrap.className = 'bubble-other-wrap';
-  let contentHtml = '';
-  if (msgType === 'image' || msgType === 'image_private') {
-    contentHtml = `<img src="${msg}" alt="image" class="bubble-img">`;
-  } else {
-    const safeMsg = escapeHTML(msg).replace(/\n/g, '<br>');
-    contentHtml = safeMsg;
-  }
-  const safeUserName = escapeHTML(userName);
-  const date = new Date(ts);
-  const time = date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
-
-  // Determine bubble classes, explicitly adding 'private-message' for private types
-  let bubbleClasses = 'bubble other';
-  if (msgType && msgType.includes('_private')) {
-    bubbleClasses += ' private-message';
-  }
-
-  bubbleWrap.innerHTML = `
-    <span class="avatar"></span>
-    <div class="bubble-other-main">
-      <div class="${bubbleClasses}">
-        <div class="bubble-other-name">${safeUserName}</div>
-        <span class="bubble-content">${contentHtml}</span>
-        <span class="bubble-meta">${time}</span>
-      </div>
-    </div>
-  `;
-  createAvatarSVG(userName).then(svg => {
-    bubbleWrap.querySelector('.avatar').innerHTML = svg;
-  });
-  chatArea.appendChild(bubbleWrap);
-  chatArea.scrollTop = chatArea.scrollHeight;
-}
-
-// 添加系统信息消息
-function addSystemMsg(text, isHistory = false, timestamp = null) {
-  if (!isHistory && activeRoomIndex >= 0) {
-    const ts = timestamp || Date.now();
-    roomsData[activeRoomIndex].messages.push({ type: 'system', text, timestamp: ts });
-  }
-  const chatArea = document.getElementById('chat-area');
-  if (!chatArea) return;
-  const safeText = escapeHTML(text).replace(/\n/g, '<br>');
-  const div = document.createElement('div');
-  div.className = 'bubble system';
-  div.innerHTML = `<span class="bubble-content">${safeText}</span>`;
-  chatArea.appendChild(div);
-  chatArea.scrollTop = chatArea.scrollHeight;
-}
-
-// 在控制台中添加全局方法
-window.sendSystemMsg = function(message) {
-  addSystemMsg(message);
-};
-
-
-// 渲染房间列表（动态多房间）
-function renderRooms(activeId = 0) {
-  const roomList = document.getElementById('room-list');
-  roomList.innerHTML = '';
-  roomsData.forEach((rd, i) => {
-    const div = document.createElement('div');
-    div.className = 'room' + (i === activeId ? ' active' : '');
-    const safeRoomName = escapeHTML(rd.roomName);
-    let unreadHtml = '';
-    if (rd.unreadCount && i !== activeId) {
-      unreadHtml = `<span class="room-unread-badge">${rd.unreadCount > 99 ? '99+' : rd.unreadCount}</span>`;
-    }
-    div.innerHTML = `
-      <div class="info">
-        <div class="title">#${safeRoomName}</div>
-      </div>
-      ${unreadHtml}
-    `;
-    div.onclick = () => switchRoom(i);
-    roomList.appendChild(div);
-  });
-}
-
-// 登录表单提交处理
-function loginFormHandler(modal) {
-  return function(e) {
-    e.preventDefault();
-    let userName, roomName, password, btn, roomInput, warnTip;
-    if (modal) {
-      userName = document.getElementById('userName-modal').value.trim();
-      roomName = document.getElementById('roomName-modal').value.trim();
-      password = document.getElementById('password-modal').value.trim();
-      btn = modal.querySelector('.login-btn');
-      roomInput = document.getElementById('roomName-modal');
-    } else {
-      userName = document.getElementById('userName').value.trim();
-      roomName = document.getElementById('roomName').value.trim();
-      password = document.getElementById('password').value.trim();
-      btn = document.querySelector('#login-form .login-btn');
-      roomInput = document.getElementById('roomName');
-    }
-    // 检查房间是否已存在（忽略大小写）
-    const exists = roomsData.some(rd => rd.roomName && rd.roomName.toLowerCase() === roomName.toLowerCase());
-    // 先移除旧的警告样式和提示
-    if (roomInput) {
-      roomInput.style.border = '';
-      roomInput.style.background = '';
-      if (roomInput._warnTip) {
-        roomInput.parentNode.removeChild(roomInput._warnTip);
-        roomInput._warnTip = null;
-      }
-    }
-    if (exists) {
-      // 添加红色警告样式和提示
-      if (roomInput) {
-        roomInput.style.border = '1.5px solid #e74c3c';
-        roomInput.style.background = '#fff6f6';
-        warnTip = document.createElement('div');
-        warnTip.style.color = '#e74c3c';
-        warnTip.style.fontSize = '13px';
-        warnTip.style.marginTop = '4px';
-        warnTip.textContent = 'Node already exists';
-        roomInput.parentNode.appendChild(warnTip);
-        roomInput._warnTip = warnTip;
-        roomInput.focus();
-      }
-      if (btn) {
-        btn.disabled = false;
-        btn.innerText = 'ENTER';
-      }
-      return;
-    }
-    if (btn) {
-      btn.disabled = true;
-      btn.innerText = 'Connecting...';
-    }
-    joinRoom(userName, roomName, password, modal, function(success) {
-      if (!success && btn) {
-        btn.disabled = false;
-        btn.innerText = 'ENTER';
-      }
-    });
-  };
-}
-
-function setSidebarAvatar(userName) {
-  if (!userName) return;
-  createAvatarSVG(userName).then(svg => {
-    const el = document.getElementById('sidebar-user-avatar');
-    if (el) el.innerHTML = svg;
-  });
-}
-
-function joinRoom(userName, roomName, password, modal = null, onResult) {
-  // 生成房间数据并切换
-  const newRd = getNewRoomData();
-  newRd.roomName = roomName;
-  newRd.myUserName = userName;
-  newRd.password = password; // 保存密码
-  roomsData.push(newRd);
-  const idx = roomsData.length - 1;
-  switchRoom(idx);
-  // 更新侧边栏
-  const sidebarUsername = document.getElementById('sidebar-username');
-  if (sidebarUsername) sidebarUsername.textContent = userName;
-  setSidebarAvatar(userName);
-  // 初始化 ChatCrypt
-  let closed = false;
-  const callbacks = {
-    onServerClosed: () => {
-      setStatus('Node connection closed');
-      if (onResult && !closed) { closed = true; onResult(false); }
-    },
-    onServerSecured: () => {
-      setStatus('Secure connection to node');
-      // 连接成功，隐藏登录界面或关闭modal
-      if (modal) modal.remove();
-      else document.getElementById('login-container').style.display = 'none';
-      document.getElementById('chat-container').style.display = '';
-      if (onResult && !closed) { closed = true; onResult(true); }
-    },
-    onClientSecured: (user) => handleClientSecured(idx, user),
-    onClientList: (list, selfId) => handleClientList(idx, list, selfId),
-    onClientLeft: (clientId) => handleClientLeft(idx, clientId), // Ensure this is correctly handled
-    onClientMessage: (msg) => {
-      if (msg.userName === newRd.myUserName && !msg.type.includes('_private')) { // Allow receiving own private messages if server echoes them
-         // Or, more robustly, check msg.clientId against myId if server sends back my own private messages
-        const currentRd = roomsData[idx];
-        if (currentRd && msg.clientId === currentRd.myId && msg.type.includes('_private')) {
-            // This is an echo of my own private message, do nothing here as addMsg handles it
-        } else if (msg.clientId === newRd.myId) { // Standard self-message, ignore
-            return;
-        }
-      }
-      // 判断消息类型
-      let msgType = msg.type || 'text'; // msg.type from NodeCrypt is already the 't' field
-      if (!msgType.includes('_private') && msg.data && msg.data.startsWith('data:image/')) {
-        msgType = 'image';
-      }
-
-      // 修正：如果msg.userName缺失，尝试从userMap查找
-      let realUserName = msg.userName;
-      if (!realUserName && msg.clientId && newRd.userMap[msg.clientId]) {
-        realUserName = newRd.userMap[msg.clientId].userName || newRd.userMap[msg.clientId].username || newRd.userMap[msg.clientId].name;
-      }
-      roomsData[idx].messages.push({
-        type: 'other',
-        text: msg.data,
-        userName: realUserName,
-        avatar: realUserName, // Consider if avatar needs specific handling for private
-        msgType,
-        timestamp: Date.now()
-      });
-      // 通知消息，无论当前房间是否激活
-      const notificationMsgType = msgType.includes('_private') ? `private ${msgType.split('_')[0]}` : msgType;
-      notifyMessage(newRd.roomName, notificationMsgType, msg.data, realUserName);
-      // 未读数逻辑
-      if (activeRoomIndex !== idx) {
-        roomsData[idx].unreadCount = (roomsData[idx].unreadCount || 0) + 1;
-        renderRooms(activeRoomIndex);
-      } else {
-        renderChatArea();
-      }
-    }
-  };
-  const chatInst = new window.ChatCrypt(config, callbacks);
-  chatInst.setCredentials(userName, roomName, password);
-  chatInst.connect();
-  roomsData[idx].chat = chatInst;
-}
-
-// 禁止输入框输入空格的工具函数
-function preventSpaceInput(input) {
-  if (!input) return;
-  input.addEventListener('keydown', function(e) {
-    // 禁止空格和所有标点符号，允许英文单引号
-    if (e.key === ' ' || (/[\u0000-\u007f]/.test(e.key) && /[\p{P}\p{S}]/u.test(e.key) && e.key !== "'")) {
-      e.preventDefault();
-    }
-  });
-  input.addEventListener('input', function(e) {
-    // 替换所有空白和标点符号，允许英文单引号
-    input.value = input.value.replace(/[\s\p{P}\p{S}]/gu, function(match) {
-      return match === "'" ? "'" : '';
-    });
-  });
-}
-
-// 打开新房间登录模态
-function openLoginModal() {
-  const loginContainer = document.getElementById('login-container');
-  // 创建一个新的modal，内容copy（不是复用）初始登录页面
-  const modal = document.createElement('div');
-  modal.className = 'login-modal';
-  // 复制登录表单内容
-  modal.innerHTML = `
-    <div class="login-modal-bg"></div>
-    <div class="login-modal-card">
-      <button class="login-modal-close login-modal-close-abs">&times;</button>
-      <h1>Enter a Node</h1>
-      <form id="login-form-modal">
-        <div class="input-group">
-          <label for="userName-modal">Username</label>
-          <input id="userName-modal" type="text" autocomplete="username" required minlength="1" maxlength="15">
-        </div>
-        <div class="input-group">
-          <label for="roomName-modal">Node Name</label>
-          <input id="roomName-modal" type="text" required minlength="1" maxlength="15">
-        </div>
-        <div class="input-group">
-          <label for="password-modal">Node Password <span class="optional">(optional)</span></label>
-          <input id="password-modal" type="password" autocomplete="off" minlength="1" maxlength="15">
-        </div>
-        <button type="submit" class="login-btn">ENTER</button>
-      </form>
-    </div>
-  `;
-  document.body.appendChild(modal);
-  // 关闭按钮
-  modal.querySelector('.login-modal-close').onclick = () => modal.remove();
-  // 禁止弹窗登录页输入框输入空格
-  preventSpaceInput(modal.querySelector('#userName-modal'));
-  preventSpaceInput(modal.querySelector('#roomName-modal'));
-  preventSpaceInput(modal.querySelector('#password-modal'));
-  // 表单提交逻辑，复用loginFormHandler但传入modal
-  const form = modal.querySelector('#login-form-modal');
-  form.addEventListener('submit', loginFormHandler(modal));
-}
-
-// 渲染主面板房间头部（UI占位）
-function renderMainHeader() {
-  const rd = roomsData[activeRoomIndex];
-  let roomName = rd ? rd.roomName : 'Room';
-  let onlineCount = rd && rd.userList ? rd.userList.length : 0;
-  if (rd && !rd.userList.some(u => u.clientId === rd.myId)) {
-    onlineCount += 1;
-  }
-  const safeRoomName = escapeHTML(roomName);
-  // 头部结构：更多按钮和右侧栏按钮互换位置，右侧栏按钮在最右侧
-  document.getElementById("main-header").innerHTML = `
-    <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="打开侧栏">
-      <svg width="35px" height="35px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M21.4498 10.275L11.9998 3.1875L2.5498 10.275L2.9998 11.625H3.7498V20.25H20.2498V11.625H20.9998L21.4498 10.275ZM5.2498 18.75V10.125L11.9998 5.0625L18.7498 10.125V18.75H14.9999V14.3333L14.2499 13.5833H9.74988L8.99988 14.3333V18.75H5.2498ZM10.4999 18.75H13.4999V15.0833H10.4999V18.75Z" fill="#808080"></path> </g></svg>
-      </button>
-    <div class="main-header-center" id="main-header-center">
-      <div class="main-header-flex">
-        <div class="group-title group-title-bold">#${safeRoomName}</div>
-        <span class="main-header-members">${onlineCount} members</span>
-      </div>
-    </div>
-    <div class="main-header-actions">
-      <button class="more-btn" id="more-btn" aria-label="更多选项">
-         <svg width="35px" height="35px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <circle cx="12" cy="6" r="1.5" fill="#808080"></circle> <circle cx="12" cy="12" r="1.5" fill="#808080"></circle> <circle cx="12" cy="18" r="1.5" fill="#808080"></circle> </g></svg>
-      </button>
-      <button class="mobile-info-btn" id="mobile-info-btn" aria-label="打开成员栏" >
-        <svg width="35px" height="35px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M16.0603 18.307C14.89 19.0619 13.4962 19.5 12 19.5C10.5038 19.5 9.10996 19.0619 7.93972 18.307C8.66519 16.7938 10.2115 15.75 12 15.75C13.7886 15.75 15.3349 16.794 16.0603 18.307ZM17.2545 17.3516C16.2326 15.5027 14.2632 14.25 12 14.25C9.73663 14.25 7.76733 15.5029 6.74545 17.3516C5.3596 15.9907 4.5 14.0958 4.5 12C4.5 7.85786 7.85786 4.5 12 4.5C16.1421 4.5 19.5 7.85786 19.5 12C19.5 14.0958 18.6404 15.9908 17.2545 17.3516ZM21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12ZM12 12C13.2426 12 14.25 10.9926 14.25 9.75C14.25 8.50736 13.2426 7.5 12 7.5C10.7574 7.5 9.75 8.50736 9.75 9.75C9.75 10.9926 10.7574 12 12 12ZM12 13.5C14.0711 13.5 15.75 11.8211 15.75 9.75C15.75 7.67893 14.0711 6 12 6C9.92893 6 8.25 7.67893 8.25 9.75C8.25 11.8211 9.92893 13.5 12 13.5Z" fill="#808080"></path> </g></svg></button>
-      <div class="more-menu" id="more-menu">
-        <div class="more-menu-item" data-action="share">Share</div>
-        <div class="more-menu-item" data-action="exit">Quit</div>
-      </div>
-    </div>
-  `;
-  setupMoreBtnMenu();
-  // 重新绑定移动端按钮事件
-  const sidebar = document.getElementById('sidebar');
-  const rightbar = document.getElementById('rightbar');
-  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-  const mobileInfoBtn = document.getElementById('mobile-info-btn');
-  const sidebarMask = document.getElementById('mobile-sidebar-mask');
-  const rightbarMask = document.getElementById('mobile-rightbar-mask');
-  function isMobile() {
-    return window.innerWidth <= 768;
-  }
-  function updateMobileBtnDisplay() {
-    if (isMobile()) {
-      if (mobileMenuBtn) mobileMenuBtn.style.display = 'flex';
-      if (mobileInfoBtn) mobileInfoBtn.style.display = 'flex';
-    } else {
-      if (mobileMenuBtn) mobileMenuBtn.style.display = 'none';
-      if (mobileInfoBtn) mobileInfoBtn.style.display = 'none';
-      if (sidebar) sidebar.classList.remove('mobile-open');
-      if (rightbar) rightbar.classList.remove('mobile-open');
-      if (sidebarMask) sidebarMask.classList.remove('active');
-      if (rightbarMask) rightbarMask.classList.remove('active');
-    }
-  }
-  updateMobileBtnDisplay();
-  window.addEventListener('resize', updateMobileBtnDisplay);
-  if (mobileMenuBtn && sidebar && sidebarMask) {
-    mobileMenuBtn.onclick = function(e) {
-      e.stopPropagation();
-      sidebar.classList.add('mobile-open');
-      sidebarMask.classList.add('active');
-    };
-    sidebarMask.onclick = function() {
-      sidebar.classList.remove('mobile-open');
-      sidebarMask.classList.remove('active');
-    };
-  }
-  if (mobileInfoBtn && rightbar && rightbarMask) {
-    mobileInfoBtn.onclick = function(e) {
-      e.stopPropagation();
-      rightbar.classList.add('mobile-open');
-      rightbarMask.classList.add('active');
-    };
-    rightbarMask.onclick = function() {
-      rightbar.classList.remove('mobile-open');
-      rightbarMask.classList.remove('active');
-    };
-  }
-}
-
-// 清空消息区（UI占位）
-function clearChat() {
-  document.getElementById("chat-area").innerHTML = "";
-}
-
-// 右侧tab切换
-function setupTabs() {
-  const tabs = document.getElementById("member-tabs").children;
-  for (let i = 0; i < tabs.length; i++) {
-    tabs[i].onclick = function() {
-      for (let j = 0; j < tabs.length; j++) tabs[j].classList.remove("active");
-      this.classList.add("active");
-      // 这里只做UI切换，实际功能由你开发
-    }
-  }
-}
-
-// Telegram风格输入框占位符逻辑
-function autoGrowInput() {
-  const input = document.querySelector('.input-message-input');
-  if (!input) return;
-  input.style.height = 'auto';
-  input.style.height = input.scrollHeight + 'px';
-}
-
-function setupInputPlaceholder() {
-  const input = document.querySelector('.input-message-input');
-  const placeholder = document.querySelector('.input-field-placeholder');
-  function checkEmpty() {
-    // 判断内容是否为空（忽略所有空白、<br>、&nbsp;等）
-    const html = input.innerHTML.replace(/<br\s*\/?>(\s*)?/gi, '').replace(/&nbsp;/g, '').replace(/\u200B/g, '').trim();
-    if (html === '') {
-      placeholder.style.opacity = '1';
-    } else {
-      placeholder.style.opacity = '0';
-    }
-    autoGrowInput();
-  }
-  input.addEventListener('input', checkEmpty);
-  input.addEventListener('blur', checkEmpty);
-  input.addEventListener('focus', checkEmpty);
-  // 初始化
-  checkEmpty(); // Call checkEmpty which now calls updateChatInputStyle indirectly via updateChatInputStyle
-  autoGrowInput();
-  updateChatInputStyle(); // Initial call
-}
-
-// 更多按钮菜单交互
-function setupMoreBtnMenu() {
-  const btn = document.getElementById('more-btn');
-  const menu = document.getElementById('more-menu');
-  if (!btn || !menu) return;
-  let menuRect = null;
-  let animating = false;
-  let isMouseMoveBound = false;
-
-  function onMouseMove(ev) {
-    if (!menuRect) return;
-    const mx = ev.clientX, my = ev.clientY;
-    const btnRect = btn.getBoundingClientRect();
-    const safe = 100;
-    const inMenu =
-      mx >= menuRect.left - safe && mx <= menuRect.right + safe &&
-      my >= menuRect.top - safe && my <= menuRect.bottom + safe;
-    const inBtn =
-      mx >= btnRect.left - safe && mx <= btnRect.right + safe &&
-      my >= btnRect.top - safe && my <= btnRect.bottom + safe;
-    if (!inMenu && !inBtn) {
-      closeMenu();
-    }
-  }
-
-  function bindMouseMove() {
-    if (!isMouseMoveBound) {
-      window.addEventListener('mousemove', onMouseMove);
-      isMouseMoveBound = true;
-    }
-  }
-  function unbindMouseMove() {
-    if (!isMouseMoveBound) {
-      window.removeEventListener('mousemove', onMouseMove);
-      isMouseMoveBound = false;
-    }
-  }
-
-  function openMenu() {
-    menu.classList.remove('close');
-    menu.classList.add('open');
-    menu.style.display = 'block';
-    menuRect = menu.getBoundingClientRect();
-    bindMouseMove();
-  }
-  function closeMenu() {
-    if (animating) return;
-    animating = true;
-    menu.classList.remove('open');
-    menu.classList.add('close');
-    setTimeout(() => {
-      if (menu.classList.contains('close')) menu.style.display = 'none';
-      animating = false;
-      unbindMouseMove();
-    }, 180);
-    menuRect = null;
-  }
-
-  btn.onclick = function(e) {
-    e.stopPropagation();
-    if (menu.classList.contains('open')) {
-      closeMenu();
-    } else {
-      openMenu();
-    }
-  };
-
-  menu.onclick = function(e) {
-    if (e.target.classList.contains('more-menu-item')) {
-      if (e.target.dataset.action === 'share') {
-        // 分享功能：生成带房间号和密码的链接
-        if (activeRoomIndex >= 0 && roomsData[activeRoomIndex]) {
-          const rd = roomsData[activeRoomIndex];
-          const room = encodeURIComponent(rd.roomName || '');
-          // 密码需要在 joinRoom 时存一份到 roomsData
-          const pwd = encodeURIComponent(rd.password || '');
-          const url = `${location.origin}${location.pathname}?node=${room}&pwd=${pwd}`;
-          // 复制到剪贴板
-          if (navigator.clipboard) {
-            navigator.clipboard.writeText(url).then(() => {
-              addSystemMsg('Share link copied!');
-            }, () => {
-              prompt('Copy failed, url:', url);
-            });
-          } else {
-            prompt('Copy failed, url:', url);
-          }
-        }
-        closeMenu();
-      } else if (e.target.dataset.action === 'exit') {
-        // 更彻底的退出/销毁逻辑
-        if (activeRoomIndex >= 0 && roomsData[activeRoomIndex]) {
-          const chatInst = roomsData[activeRoomIndex].chat;
-          if (chatInst && typeof chatInst.destruct === 'function') {
-            chatInst.destruct();
-          } else if (chatInst && typeof chatInst.disconnect === 'function') {
-            chatInst.disconnect();
-          }
-          roomsData[activeRoomIndex].chat = null;
-          roomsData.splice(activeRoomIndex, 1);
-          if (roomsData.length > 0) {
-            switchRoom(0);
-          } else {
-            // 没有房间了，刷新页面
-            location.reload();
-          }
-        }
-        closeMenu();
-      }
-    }
-  };
-
-  document.addEventListener('click', function hideMenu(ev) {
-    if (!menu.contains(ev.target) && ev.target !== btn) {
-      closeMenu();
-    }
-  });
-
-  // 动画结束后允许再次触发
-  menu.addEventListener('animationend', function(e) {
-    animating = false;
-  });
-  menu.addEventListener('transitionend', function(e) {
-    animating = false;
-  });
-}
-
-// 图片气泡点击预览
-function setupImagePreview() {
-  document.getElementById('chat-area').addEventListener('click', function(e) {
-    const target = e.target;
-    if (target.tagName === 'IMG' && target.closest('.bubble-content')) {
-      showImageModal(target.src);
-    }
-  });
-}
-function showImageModal(src) {
-  let modal = document.createElement('div');
-  modal.className = 'img-modal-bg';
-  modal.innerHTML = `
-    <div class="img-modal-blur"></div>
-    <div class="img-modal-content img-modal-content-overflow">
-      <img src="${src}" class="img-modal-img" />
-      <span class="img-modal-close">&times;</span>
-    </div>
-  `;
-  document.body.appendChild(modal);
-  // 关闭逻辑
-  modal.querySelector('.img-modal-close').onclick = () => modal.remove();
-  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
-  // 支持缩放和拖动
-  const img = modal.querySelector('img');
-  let scale = 1;
-  let isDragging = false;
-  let lastX = 0, lastY = 0;
-  let offsetX = 0, offsetY = 0;
-  img.ondragstart = function(e) { e.preventDefault(); };
-  img.onwheel = function(ev) {
-    ev.preventDefault();
-    const prevScale = scale;
-    scale += ev.deltaY < 0 ? 0.1 : -0.1;
-    scale = Math.max(0.2, Math.min(5, scale));
-    // 缩放以图片中心为基准
-    if (scale === 1) {
-      offsetX = 0;
-      offsetY = 0;
-    } else if (prevScale !== scale) {
-      // 缩放时保持当前偏移不变
-    }
-    updateTransform();
-  };
-
-  function updateTransform() {
-    img.style.transform = `translate(${offsetX}px,${offsetY}px) scale(${scale})`;
-    img.style.cursor = scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'zoom-in';
-  }
-
-  img.onmousedown = function(ev) {
-    if (scale <= 1) return;
-    isDragging = true;
-    lastX = ev.clientX;
-    lastY = ev.clientY;
-    img.style.cursor = 'grabbing';
-    document.body.style.userSelect = 'none';
-  };
-  window.onmousemove = function(ev) {
-    if (!isDragging) return;
-    offsetX += ev.clientX - lastX;
-    offsetY += ev.clientY - lastY;
-    lastX = ev.clientX;
-    lastY = ev.clientY;
-    updateTransform();
-  };
-  window.onmouseup = function() {
-    if (isDragging) {
-      isDragging = false;
-      img.style.cursor = 'grab';
-      document.body.style.userSelect = '';
-    }
-  };
-  // 双击还原
-  img.ondblclick = function() {
-    scale = 1;
-    offsetX = 0;
-    offsetY = 0;
-    updateTransform();
-  };
-  // 关闭时清理事件
-  const cleanup = () => {
-    window.onmousemove = null;
-    window.onmouseup = null;
-    document.body.style.userSelect = '';
-  };
-  modal.addEventListener('remove', cleanup);
-  modal.querySelector('.img-modal-close').addEventListener('click', cleanup);
-  // 初始化
-  updateTransform();
-}
-
-// 自动填充房间号和密码（支持分享链接）
-function autofillRoomPwd(formPrefix = '') {
-  const params = new URLSearchParams(window.location.search);
-  const room = params.get('node');
-  const pwd = params.get('pwd');
-  if (room) {
-    const roomInput = document.getElementById(formPrefix + 'roomName');
-    if (roomInput) {
-      roomInput.value = decodeURIComponent(room);
-      roomInput.readOnly = true;
-      roomInput.style.background = '#f5f5f5';
-    }
-  }
-  if (pwd) {
-    const pwdInput = document.getElementById(formPrefix + 'password');
-    if (pwdInput) {
-      pwdInput.value = decodeURIComponent(pwd);
-      pwdInput.readOnly = true;
-      pwdInput.style.background = '#f5f5f5';
-    }
-  }
-  if (room || pwd) {
-    window.history.replaceState({}, '', location.pathname);
-  }
-}
-
-// --- NEW FUNCTIONS FOR PRIVATE CHAT ---
-function togglePrivateChat(targetId, targetName) {
-  const rd = roomsData[activeRoomIndex];
-  if (!rd) return;
-
-  if (rd.privateChatTargetId === targetId) {
-    // Clicking the same user again, exit private chat
-    rd.privateChatTargetId = null;
-    rd.privateChatTargetName = null;
-  } else {
-    // Switching to a new user or entering private chat
-    rd.privateChatTargetId = targetId;
-    rd.privateChatTargetName = targetName;
-  }
-  renderUserList(); // Re-render to update active card style
-  updateChatInputStyle(); // Update input placeholder and style
-}
-
-function updateChatInputStyle() {
-  const rd = roomsData[activeRoomIndex];
-  const chatInputArea = document.querySelector('.chat-input-area');
-  const placeholder = document.querySelector('.input-field-placeholder');
-  const inputMessageInput = document.querySelector('.input-message-input');
-
-  if (!chatInputArea || !placeholder || !inputMessageInput) return;
-
-  if (rd && rd.privateChatTargetId) {
-    chatInputArea.classList.add('private-mode');
-    inputMessageInput.classList.add('private-mode'); // For more specific styling if needed
-    placeholder.textContent = `Private Message to ${escapeHTML(rd.privateChatTargetName)}`;
-  } else {
-    chatInputArea.classList.remove('private-mode');
-    inputMessageInput.classList.remove('private-mode');
-    placeholder.textContent = 'Message';
-  }
-  // Ensure placeholder visibility is correctly updated after text change
-  const html = inputMessageInput.innerHTML.replace(/<br\s*\/?>(\s*)?/gi, '').replace(/&nbsp;/g, '').replace(/\u200B/g, '').trim();
-  placeholder.style.opacity = (html === '') ? '1' : '0';
-}
-// --- END NEW FUNCTIONS ---
+// 将关键函数暴露给全局，以便其他模块调用
+window.addSystemMsg = addSystemMsg;
+window.joinRoom = joinRoom; 
+window.notifyMessage = notifyMessage;
+window.setupEmojiPicker = setupEmojiPicker;
 
 // 页面初始化
 window.addEventListener('DOMContentLoaded', () => {
@@ -970,10 +48,12 @@ window.addEventListener('DOMContentLoaded', () => {
   const chatContainer = document.getElementById('chat-container');
   const loginForm = document.getElementById('login-form');
 
+  // 绑定初始登录表单
   if (loginForm) {
     loginForm.addEventListener('submit', loginFormHandler(null));
   }
-  // 绑定“进入新房间”按钮
+  
+  // 绑定"进入新房间"按钮
   const joinBtn = document.querySelector('.join-room');
   if (joinBtn) joinBtn.onclick = openLoginModal;
 
@@ -982,15 +62,19 @@ window.addEventListener('DOMContentLoaded', () => {
   preventSpaceInput(document.getElementById('roomName'));
   preventSpaceInput(document.getElementById('password'));
 
-  autofillRoomPwd(); // 主登录页
+  // 自动填充URL参数中的房间信息
+  autofillRoomPwd();
 
+  // 设置各种UI组件
   setupInputPlaceholder();
   setupMoreBtnMenu();
   setupImagePreview();
-  setupEmojiPicker(); // 集成表情选择器
+  setupEmojiPicker();
 
+  // 初始化设置
   initSettings();
 
+  // 设置按钮点击事件
   let settingsBtn = document.getElementById('settings-btn');
   if (settingsBtn) {
     settingsBtn.onclick = (e) => {
@@ -1010,7 +94,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 自动聚焦到输入框
+  // 自动聚焦到输入框并设置消息发送逻辑
   const input = document.querySelector('.input-message-input');
   if (input) {
     input.focus();
@@ -1043,7 +127,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 附件按钮和图片发送、粘贴图片功能统一交给 util.image.js
+  // 附件按钮和图片发送、粘贴图片功能
   setupImageSend({
     inputSelector: '.input-message-input',
     attachBtnSelector: '.chat-attach-btn',
@@ -1071,83 +155,21 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 初始化
-  renderRooms(activeRoomIndex);
+  // 初始化UI
   renderMainHeader();
-  renderUserList();
-  setupTabs();
-  renderChatArea();
-  updateChatInputStyle(); // Initial call after everything is set up
-
+  renderUserList();  setupTabs();
+  
+  // 监听房间点击和成员tab点击（移动端）
+  const roomList = document.getElementById('room-list');
   const sidebar = document.getElementById('sidebar');
   const rightbar = document.getElementById('rightbar');
-  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-  const mobileInfoBtn = document.getElementById('mobile-info-btn');
   const sidebarMask = document.getElementById('mobile-sidebar-mask');
   const rightbarMask = document.getElementById('mobile-rightbar-mask');
-
-  function isMobile() {
+  
+  const isMobile = () => {
     return window.innerWidth <= 768;
   }
-  function updateMobileBtnDisplay() {
-    if (isMobile()) {
-      if (mobileMenuBtn) mobileMenuBtn.style.display = 'flex';
-      if (mobileInfoBtn) mobileInfoBtn.style.display = 'flex';
-    } else {
-      if (mobileMenuBtn) mobileMenuBtn.style.display = 'none';
-      if (mobileInfoBtn) mobileInfoBtn.style.display = 'none';
-      if (sidebar) sidebar.classList.remove('mobile-open');
-      if (rightbar) rightbar.classList.remove('mobile-open');
-      if (sidebarMask) sidebarMask.classList.remove('active');
-      if (rightbarMask) rightbarMask.classList.remove('active');
-    }
-  }
-  updateMobileBtnDisplay();
-  window.addEventListener('resize', updateMobileBtnDisplay);
-
-  // 打开/关闭 sidebar
-  if (mobileMenuBtn && sidebar && sidebarMask) {
-    mobileMenuBtn.onclick = function(e) {
-      e.stopPropagation();
-      sidebar.classList.add('mobile-open');
-      sidebarMask.classList.add('active');
-    };
-    sidebarMask.onclick = function() {
-      sidebar.classList.remove('mobile-open');
-      sidebarMask.classList.remove('active');
-    };
-  }
-  // 打开/关闭 rightbar
-  if (mobileInfoBtn && rightbar && rightbarMask) {
-    mobileInfoBtn.onclick = function(e) {
-      e.stopPropagation();
-      rightbar.classList.add('mobile-open');
-      rightbarMask.classList.add('active');
-    };
-    rightbarMask.onclick = function() {
-      rightbar.classList.remove('mobile-open');
-      rightbarMask.classList.remove('active');
-    };
-  }
-  // 点击其它区域关闭侧栏/右栏
-  document.addEventListener('click', function(ev) {
-    if (!isMobile()) return;
-    if (sidebar && sidebar.classList.contains('mobile-open')) {
-      if (!sidebar.contains(ev.target) && ev.target !== mobileMenuBtn) {
-        sidebar.classList.remove('mobile-open');
-        sidebarMask.classList.remove('active');
-      }
-    }
-    if (rightbar && rightbar.classList.contains('mobile-open')) {
-      if (!rightbar.contains(ev.target) && ev.target !== mobileInfoBtn) {
-        rightbar.classList.remove('mobile-open');
-        rightbarMask.classList.remove('active');
-      }
-    }
-  });
-
-  // 监听房间点击和成员tab点击
-  const roomList = document.getElementById('room-list');
+  
   if (roomList) {
     roomList.addEventListener('click', function() {
       if (isMobile()) {
@@ -1156,6 +178,7 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+  
   const memberTabs = document.getElementById('member-tabs');
   if (memberTabs) {
     memberTabs.addEventListener('click', function() {
@@ -1166,3 +189,16 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+// 清空消息区（UI占位）
+function clearChat() {
+  document.getElementById("chat-area").innerHTML = "";
+}
+
+// Telegram风格输入框占位符逻辑
+function autoGrowInput() {
+  const input = document.querySelector('.input-message-input');
+  if (!input) return;
+  input.style.height = 'auto';
+  input.style.height = input.scrollHeight + 'px';
+}

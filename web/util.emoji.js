@@ -10,9 +10,9 @@ const EMOJIS = [
 export function setupEmojiPicker({ btnSelector = '.chat-emoji-btn', inputSelector = '.input-message-input' } = {}) {
   const btn = document.querySelector(btnSelector);
   const input = document.querySelector(inputSelector);
-  if (!btn || !input) return;
-  let panel = document.createElement('div');
+  if (!btn || !input) return;  let panel = document.createElement('div');
   panel.className = 'emoji-panel';
+  panel.style.display = 'none'; // 确保面板默认隐藏
   // 样式已交由 style.css 控制，这里不再内联 style
   EMOJIS.forEach(e => {
     let span = document.createElement('span');
