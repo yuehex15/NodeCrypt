@@ -18,7 +18,6 @@ import {
   setupInputPlaceholder 
 } from './chat.js';
 import { 
-  escapeHTML,
   renderUserList, 
   renderMainHeader, 
   setupMoreBtnMenu,
@@ -28,6 +27,8 @@ import {
   setupTabs,
   autofillRoomPwd
 } from './ui.js';
+import { escapeHTML, textToHTML } from './util.string.js';
+import { $, $$, $id, on, off, addClass, removeClass } from './util.dom.js';
 
 // 全局配置
 window.config = {
@@ -44,9 +45,9 @@ window.setupEmojiPicker = setupEmojiPicker;
 
 // 页面初始化
 window.addEventListener('DOMContentLoaded', () => {
-  const loginContainer = document.getElementById('login-container');
-  const chatContainer = document.getElementById('chat-container');
-  const loginForm = document.getElementById('login-form');
+  const loginContainer = $id('login-container');
+  const chatContainer = $id('chat-container');
+  const loginForm = $id('login-form');
 
   // 绑定初始登录表单
   if (loginForm) {
@@ -54,13 +55,13 @@ window.addEventListener('DOMContentLoaded', () => {
   }
   
   // 绑定"进入新房间"按钮
-  const joinBtn = document.querySelector('.join-room');
+  const joinBtn = $('.join-room');
   if (joinBtn) joinBtn.onclick = openLoginModal;
 
   // 禁止主登录页输入框输入空格
-  preventSpaceInput(document.getElementById('userName'));
-  preventSpaceInput(document.getElementById('roomName'));
-  preventSpaceInput(document.getElementById('password'));
+  preventSpaceInput($id('userName'));
+  preventSpaceInput($id('roomName'));
+  preventSpaceInput($id('password'));
 
   // 自动填充URL参数中的房间信息
   autofillRoomPwd();
@@ -75,7 +76,7 @@ window.addEventListener('DOMContentLoaded', () => {
   initSettings();
 
   // 设置按钮点击事件
-  let settingsBtn = document.getElementById('settings-btn');
+  let settingsBtn = $id('settings-btn');
   if (settingsBtn) {
     settingsBtn.onclick = (e) => {
       e.stopPropagation();
@@ -85,7 +86,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // 点击其它区域关闭设置面板
   document.addEventListener('click', function(ev) {
-    const panel = document.getElementById('settings-panel');
+    const panel = $id('settings-panel');
     if (panel && panel.style.display === 'block') {
       const card = panel.querySelector('.settings-panel-card');
       if (card && !card.contains(ev.target) && ev.target.id !== 'settings-btn') {
@@ -160,11 +161,11 @@ window.addEventListener('DOMContentLoaded', () => {
   renderUserList();  setupTabs();
   
   // 监听房间点击和成员tab点击（移动端）
-  const roomList = document.getElementById('room-list');
-  const sidebar = document.getElementById('sidebar');
-  const rightbar = document.getElementById('rightbar');
-  const sidebarMask = document.getElementById('mobile-sidebar-mask');
-  const rightbarMask = document.getElementById('mobile-rightbar-mask');
+  const roomList = $id('room-list');
+  const sidebar = $id('sidebar');
+  const rightbar = $id('rightbar');
+  const sidebarMask = $id('mobile-sidebar-mask');
+  const rightbarMask = $id('mobile-rightbar-mask');
   
   const isMobile = () => {
     return window.innerWidth <= 768;
@@ -179,12 +180,12 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
   
-  const memberTabs = document.getElementById('member-tabs');
+  const memberTabs = $id('member-tabs');
   if (memberTabs) {
     memberTabs.addEventListener('click', function() {
       if (isMobile()) {
-        if (rightbar) rightbar.classList.remove('mobile-open');
-        if (rightbarMask) rightbarMask.classList.remove('active');
+        if (rightbar) removeClass(rightbar, 'mobile-open');
+        if (rightbarMask) removeClass(rightbarMask, 'active');
       }
     });
   }
@@ -192,12 +193,12 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // 清空消息区（UI占位）
 function clearChat() {
-  document.getElementById("chat-area").innerHTML = "";
+  $id("chat-area").innerHTML = "";
 }
 
 // Telegram风格输入框占位符逻辑
 function autoGrowInput() {
-  const input = document.querySelector('.input-message-input');
+  const input = $('.input-message-input');
   if (!input) return;
   input.style.height = 'auto';
   input.style.height = input.scrollHeight + 'px';

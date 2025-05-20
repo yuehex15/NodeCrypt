@@ -7,12 +7,9 @@ import { roomsData, activeRoomIndex, togglePrivateChat, exitRoom } from './room.
  * @param {string} str 需要转义的字符串
  * @returns {string} 转义后的安全字符串
  */
-export function escapeHTML(str) {
-  if (typeof str !== 'string') return '';
-  return str.replace(/[&<>"']/g, function (c) {
-    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c];
-  });
-}
+// 导入工具库
+import { escapeHTML } from './util.string.js';
+import { $, $$, $id, createElement, on, off, addClass, removeClass, toggleClass } from './util.dom.js';
 
 /**
  * 渲染主面板房间头部
@@ -29,7 +26,7 @@ export function renderMainHeader() {
   const safeRoomName = escapeHTML(roomName);
   
   // 头部结构：更多按钮和右侧栏按钮互换位置，右侧栏按钮在最右侧
-  document.getElementById("main-header").innerHTML = `
+  $id("main-header").innerHTML = `
     <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="打开侧栏">
       <svg width="35px" height="35px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M21.4498 10.275L11.9998 3.1875L2.5498 10.275L2.9998 11.625H3.7498V20.25H20.2498V11.625H20.9998L21.4498 10.275ZM5.2498 18.75V10.125L11.9998 5.0625L18.7498 10.125V18.75H14.9999V14.3333L14.2499 13.5833H9.74988L8.99988 14.3333V18.75H5.2498ZM10.4999 18.75H13.4999V15.0833H10.4999V18.75Z" fill="#808080"></path> </g></svg>
       </button>
@@ -138,7 +135,7 @@ export function setupMobileUIHandlers() {
  * 渲染在线用户列表
  */
 export function renderUserList() {
-  const userListEl = document.getElementById('member-list');
+  const userListEl = $id('member-list');
   userListEl.innerHTML = '';
   
   const rd = roomsData[activeRoomIndex];
@@ -193,8 +190,8 @@ export function createUserItem(user, isMe) {
  * 设置更多按钮菜单交互
  */
 export function setupMoreBtnMenu() {
-  const btn = document.getElementById('more-btn');
-  const menu = document.getElementById('more-menu');
+  const btn = $id('more-btn');
+  const menu = $id('more-menu');
   
   if (!btn || !menu) return;
   

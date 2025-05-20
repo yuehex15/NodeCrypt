@@ -1,5 +1,6 @@
 // util.settings.js
 // 设置面板逻辑（仅UI和本地存储，功能待实现）
+import { $, $$, $id, createElement, on, off, addClass, removeClass } from './util.dom.js';
 
 const DEFAULT_SETTINGS = {
   notify: false,  // 桌面通知
@@ -37,12 +38,12 @@ function askNotificationPermission(callback) {
 }
 
 function setupSettingsPanel() {
-  let panel = document.getElementById('settings-panel');
+  let panel = $id('settings-panel');
   if (!panel) {
-    panel = document.createElement('div');
-    panel.id = 'settings-panel';
-    panel.className = 'settings-panel';
-    panel.innerHTML = `
+    panel = createElement('div', {
+      id: 'settings-panel',
+      class: 'settings-panel'
+    }, `
       <div class="settings-panel-card">
         <div class="settings-title">Settings</div>
         <div class="settings-item">
@@ -60,15 +61,18 @@ function setupSettingsPanel() {
           </label>
         </div>
       </div>
-    `;
+    `);
     document.body.appendChild(panel);
   }
   const settings = loadSettings();
   // 初始化UI
-  panel.querySelector('#settings-notify').checked = !!settings.notify;
-  panel.querySelector('#settings-sound').checked = !!settings.sound;
+  const notifyCheckbox = $('#settings-notify', panel);
+  const soundCheckbox = $('#settings-sound', panel);
+  
+  if (notifyCheckbox) notifyCheckbox.checked = !!settings.notify;
+  if (soundCheckbox) soundCheckbox.checked = !!settings.sound;
   // 事件
-  panel.querySelector('#settings-notify').onchange = e => {
+  on(notifyCheckbox, 'change', e => {
     const checked = e.target.checked;
     if (checked) {
       // 浏览器不支持时回退
@@ -83,7 +87,7 @@ function setupSettingsPanel() {
           settings.notify = true;
           // 互斥：关闭声音
           settings.sound = false;
-          panel.querySelector('#settings-sound').checked = false;
+          if (soundCheckbox) soundCheckbox.checked = false;
           saveSettings(settings); applySettings(settings);
           // 测试推送
           new Notification('Notifications enabled', { body: 'You will receive alerts here.' });
@@ -99,72 +103,87 @@ function setupSettingsPanel() {
       settings.notify = false;
       saveSettings(settings); applySettings(settings);
     }
-  };
-  panel.querySelector('#settings-sound').onchange = e => {
+  });
+
+  on(soundCheckbox, 'change', e => {
     settings.sound = e.target.checked;
     // 互斥：启用声音时关闭通知
     if (settings.sound) {
       settings.notify = false;
-      panel.querySelector('#settings-notify').checked = false;
+      if (notifyCheckbox) notifyCheckbox.checked = false;
     }
     saveSettings(settings); applySettings(settings);
-  };
+  });
 }
 
 function openSettingsPanel() {
   setupSettingsPanel();
-  const panel = document.getElementById('settings-panel');
-  const btn = document.getElementById('settings-btn');
+  const panel = $id('settings-panel');
+  const btn = $id('settings-btn');
   if (!btn || !panel) return;
   if (panel.style.display === 'block') return;
+  
   // 定位到按钮下方，始终与按钮对齐
   const btnRect = btn.getBoundingClientRect();
   panel.style.display = 'block';
-  const card = panel.querySelector('.settings-panel-card');
+  const card = $('.settings-panel-card', panel);
+  
+  if (!card) return;
+  
   card.style.position = 'fixed';
   card.style.left = btnRect.left + 'px';
   card.style.top = (btnRect.bottom + 8) + 'px';
   card.style.transform = 'translateX(0)';
-  card.classList.remove('close-anim');
-  card.classList.add('open-anim');
+  removeClass(card, 'close-anim');
+  addClass(card, 'open-anim');
+  
   // 监听鼠标移出自动关闭（只绑定一次）
   function onMouseMove(ev) {
     const cardRect = card.getBoundingClientRect();
     const safe = 60;
     const mx = ev.clientX, my = ev.clientY;
-    const inCard = mx >= cardRect.left - safe && mx <= cardRect.right + safe && my >= cardRect.top - safe && my <= cardRect.bottom + safe;
-    const inBtn = mx >= btnRect.left - safe && mx <= btnRect.right + safe && my >= btnRect.top - safe && my <= btnRect.bottom + safe;
+    const inCard = mx >= cardRect.left - safe && mx <= cardRect.right + safe && 
+                   my >= cardRect.top - safe && my <= cardRect.bottom + safe;
+    const inBtn = mx >= btnRect.left - safe && mx <= btnRect.right + safe && 
+                  my >= btnRect.top - safe && my <= btnRect.bottom + safe;
+    
     if (!inCard && !inBtn) {
       closeSettingsPanel();
     }
   }
+  
   function bindMouseMove() {
     if (!panel._mousemoveBound) {
-      window.addEventListener('mousemove', onMouseMove);
+      on(window, 'mousemove', onMouseMove);
       panel._mousemoveBound = true;
     }
   }
+  
   function unbindMouseMove() {
     if (panel._mousemoveBound) {
-      window.removeEventListener('mousemove', onMouseMove);
+      off(window, 'mousemove', onMouseMove);
       panel._mousemoveBound = false;
     }
   }
+  
   bindMouseMove();
   panel._unbind = unbindMouseMove;
 }
 
 function closeSettingsPanel() {
-  const panel = document.getElementById('settings-panel');
+  const panel = $id('settings-panel');
   if (!panel) return;
-  const card = panel.querySelector('.settings-panel-card');
+  const card = $('.settings-panel-card', panel);
   if (!card) return;
-  card.classList.remove('open-anim');
-  card.classList.add('close-anim');
+  
+  removeClass(card, 'open-anim');
+  addClass(card, 'close-anim');
+  
   if (panel._unbind) panel._unbind();
+  
   setTimeout(() => {
     panel.style.display = 'none';
-    card.classList.remove('close-anim');
+    removeClass(card, 'close-anim');
   }, 180);
 }
 

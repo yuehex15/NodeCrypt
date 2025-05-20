@@ -1,7 +1,9 @@
 // 房间逻辑管理模块
 import { createAvatarSVG } from './util.avatar.js';
 import { renderChatArea, addSystemMsg, updateChatInputStyle } from './chat.js';
-import { escapeHTML, renderMainHeader, renderUserList } from './ui.js';
+import { renderMainHeader, renderUserList } from './ui.js';
+import { escapeHTML } from './util.string.js';
+import { $id, createElement } from './util.dom.js';
 
 // 多房间状态管理
 let roomsData = [];
@@ -59,7 +61,7 @@ export function switchRoom(index) {
 export function setSidebarAvatar(userName) {
   if (!userName) return;
   createAvatarSVG(userName).then(svg => {
-    const el = document.getElementById('sidebar-user-avatar');
+    const el = $id('sidebar-user-avatar');
     if (el) el.innerHTML = svg;
   });
 }
@@ -69,23 +71,27 @@ export function setSidebarAvatar(userName) {
  * @param {number} activeId 当前激活的房间索引
  */
 export function renderRooms(activeId = 0) {
-  const roomList = document.getElementById('room-list');
+  const roomList = $id('room-list');
   roomList.innerHTML = '';
   roomsData.forEach((rd, i) => {
-    const div = document.createElement('div');
-    div.className = 'room' + (i === activeId ? ' active' : '');
+    const div = createElement('div', { 
+      class: 'room' + (i === activeId ? ' active' : ''),
+      onclick: () => switchRoom(i)
+    });
+    
     const safeRoomName = escapeHTML(rd.roomName);
     let unreadHtml = '';
     if (rd.unreadCount && i !== activeId) {
       unreadHtml = `<span class="room-unread-badge">${rd.unreadCount > 99 ? '99+' : rd.unreadCount}</span>`;
     }
+    
     div.innerHTML = `
       <div class="info">
         <div class="title">#${safeRoomName}</div>
       </div>
       ${unreadHtml}
     `;
-    div.onclick = () => switchRoom(i);
+    
     roomList.appendChild(div);
   });
 }
@@ -109,7 +115,7 @@ export function joinRoom(userName, roomName, password, modal = null, onResult) {
   switchRoom(idx);
   
   // 更新侧边栏
-  const sidebarUsername = document.getElementById('sidebar-username');
+  const sidebarUsername = $id('sidebar-username');
   if (sidebarUsername) sidebarUsername.textContent = userName;
   setSidebarAvatar(userName);
   
@@ -124,8 +130,13 @@ export function joinRoom(userName, roomName, password, modal = null, onResult) {
       setStatus('Secure connection to node');
       // 连接成功，隐藏登录界面或关闭modal
       if (modal) modal.remove();
-      else document.getElementById('login-container').style.display = 'none';
-      document.getElementById('chat-container').style.display = '';
+      else {
+        const loginContainer = $id('login-container');
+        if (loginContainer) loginContainer.style.display = 'none';
+        
+        const chatContainer = $id('chat-container');
+        if (chatContainer) chatContainer.style.display = '';
+      }
       if (onResult && !closed) { closed = true; onResult(true); }
     },
     onClientSecured: (user) => handleClientSecured(idx, user),
@@ -352,11 +363,12 @@ export function togglePrivateChat(targetId, targetName) {
  * @param {string} text 状态文本
  */
 export function setStatus(text) {
-  let statusBar = document.getElementById('status-bar');
+  let statusBar = $id('status-bar');
   if (!statusBar) {
-    statusBar = document.createElement('div');
-    statusBar.id = 'status-bar';
-    statusBar.style = 'color:green;padding:4px 10px;font-size:13px;';
+    statusBar = createElement('div', {
+      id: 'status-bar',
+      style: 'color:green;padding:4px 10px;font-size:13px;'
+    });
     document.body.appendChild(statusBar);
   }
   statusBar.innerText = text;

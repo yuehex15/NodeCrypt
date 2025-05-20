@@ -1,4 +1,6 @@
 // 图片压缩与格式转换工具
+import { $, on, createElement } from './util.dom.js';
+
 export async function processImage(file, callback) {
   // 检查webp支持
   let webpSupported = await checkWebpSupport();
@@ -12,7 +14,7 @@ export async function processImage(file, callback) {
       w = Math.round(w * scale);
       h = Math.round(h * scale);
     }
-    const canvas = document.createElement('canvas');
+    const canvas = createElement('canvas');
     canvas.width = w;
     canvas.height = h;
     const ctx = canvas.getContext('2d');
@@ -58,13 +60,16 @@ function t(key) {
  * @param {function} opts.onSend 发送图片回调(dataUrl)
  */
 export function setupImageSend({ inputSelector, attachBtnSelector, fileInputSelector, onSend }) {
-  const input = document.querySelector(inputSelector);
-  const attachBtn = document.querySelector(attachBtnSelector);
-  const fileInput = document.querySelector(fileInputSelector);
+  const input = $(inputSelector);
+  const attachBtn = $(attachBtnSelector);
+  const fileInput = $(fileInputSelector);
+  
   if (fileInput) fileInput.setAttribute('accept', 'image/*');
+  
   if (attachBtn && fileInput) {
-    attachBtn.onclick = () => fileInput.click();
-    fileInput.onchange = async function() {
+    on(attachBtn, 'click', () => fileInput.click());
+    
+    on(fileInput, 'change', async function() {
       if (!fileInput.files || !fileInput.files.length) return;
       const file = fileInput.files[0];
       if (!file.type.startsWith('image/')) return;
@@ -76,11 +81,12 @@ export function setupImageSend({ inputSelector, attachBtnSelector, fileInputSele
         if (typeof onSend === 'function') onSend(dataUrl);
       });
       fileInput.value = '';
-    };
+    });
   }
+  
   // 粘贴图片支持
   if (input) {
-    input.addEventListener('paste', function(e) {
+    on(input, 'paste', function(e) {
       if (!e.clipboardData) return;
       for (const item of e.clipboardData.items) {
         if (item.type.startsWith('image/')) {
