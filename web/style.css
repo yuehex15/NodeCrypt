@@ -408,7 +408,6 @@ body {
   max-width: 100%;
   color: #222;
   border-bottom-left-radius: 0px;
-  
   margin-left: 0px;
   padding: 1px 40px 5px 10px;
 }
@@ -628,11 +627,13 @@ body {
   color: #222;
   width: 100%;
   overflow-y: auto !important;
-  display: flex;
-  align-items: center;
+  display: block; /* 改为block而不是flex，更好地处理换行 */
   /* 允许多行自动扩展高度 */
   white-space: pre-wrap;
   word-break: break-word;
+  word-wrap: break-word; /* 确保长单词也能换行 */
+  overflow-wrap: break-word; /* 现代浏览器的换行支持 */
+  max-width: 100%; /* 确保不超出容器 */
 }
 .input-field-placeholder {
   position: absolute;

@@ -329,6 +329,45 @@ export function autoGrowInput() {
 }
 
 /**
+ * 处理粘贴事件，确保粘贴为纯文本
+ * @param {HTMLElement} element 绑定处理的元素
+ */
+function handlePasteAsPlainText(element) {
+  if (!element) return;
+  
+  on(element, 'paste', function(e) {
+    // 阻止默认粘贴行为
+    e.preventDefault();
+    
+    // 获取纯文本
+    let text = '';
+    if (e.clipboardData || window.clipboardData) {
+      text = (e.clipboardData || window.clipboardData).getData('text/plain');
+    }
+    
+    // 使用document.execCommand插入纯文本
+    if (document.queryCommandSupported('insertText')) {
+      document.execCommand('insertText', false, text);
+    } else {
+      // 回退方法：直接插入文本节点
+      const selection = window.getSelection();
+      if (selection.rangeCount) {
+        const range = selection.getRangeAt(0);
+        range.deleteContents();
+        const textNode = document.createTextNode(text);
+        range.insertNode(textNode);
+        
+        // 将光标移动到插入的文本后面
+        range.setStartAfter(textNode);
+        range.setEndAfter(textNode);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    }
+  });
+}
+
+/**
  * 设置输入框占位符逻辑
  */
 export function setupInputPlaceholder() {
@@ -351,6 +390,9 @@ export function setupInputPlaceholder() {
   on(input, 'input', checkEmpty);
   on(input, 'blur', checkEmpty);
   on(input, 'focus', checkEmpty);
+  
+  // 添加粘贴纯文本处理
+  handlePasteAsPlainText(input);
   
   // 初始化
   checkEmpty();
