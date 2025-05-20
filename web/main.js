@@ -39,7 +39,7 @@ import {
   autofillRoomPwd
 } from './ui.js';
 
-import './NodeCrypt.js';
+//import './NodeCrypt.js';
 
 // === 全局配置 ===
 

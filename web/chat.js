@@ -54,10 +54,11 @@ export function addMsg(text, isHistory = false, msgType = 'text', timestamp = nu
   
   const date = new Date(ts);
   const time = date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
-  
-  let contentHtml = '';
+    let contentHtml = '';
   if (msgType === 'image' || msgType === 'image_private') {
-    contentHtml = `<img src="${text}" alt="image" class="bubble-img">`;
+    // 处理图片URL，确保只允许安全的数据URL或HTTPS链接
+    const safeImgSrc = escapeHTML(text).replace(/javascript:/gi, '');
+    contentHtml = `<img src="${safeImgSrc}" alt="image" class="bubble-img">`;
   } else {
     contentHtml = textToHTML(text);
   }
@@ -105,10 +106,11 @@ export function addOtherMsg(msg, userName = '', avatar = '', isHistory = false, 
   if (!chatArea) return;
   
   const bubbleWrap = createElement('div', { class: 'bubble-other-wrap' });
-  
-  let contentHtml = '';
+    let contentHtml = '';
   if (msgType === 'image' || msgType === 'image_private') {
-    contentHtml = `<img src="${msg}" alt="image" class="bubble-img">`;
+    // 处理图片URL，确保只允许安全的数据URL或HTTPS链接
+    const safeImgSrc = escapeHTML(msg).replace(/javascript:/gi, '');
+    contentHtml = `<img src="${safeImgSrc}" alt="image" class="bubble-img">`;
   } else {
     contentHtml = textToHTML(msg);
   }
@@ -136,7 +138,11 @@ export function addOtherMsg(msg, userName = '', avatar = '', isHistory = false, 
   
   createAvatarSVG(userName).then(svg => {
     const avatarEl = $('.avatar', bubbleWrap);
-    if (avatarEl) avatarEl.innerHTML = svg;
+    if (avatarEl) {
+      // 清理SVG，移除任何可能的脚本内容
+      const cleanSvg = svg.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+      avatarEl.innerHTML = cleanSvg;
+    }
   });
   
   chatArea.appendChild(bubbleWrap);

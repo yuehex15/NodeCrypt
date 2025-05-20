@@ -16,7 +16,7 @@ export async function createAvatarSVG(userName) {
   return dicebear.createAvatar(micah, { 
     seed: userName, 
     baseColor: ["f7e1c3", "f9c9b6", "f2d6cb", "f8ce8e", "eac393"],
-    backgroundColor: ["b6e3f4", "c0aede", "d1d4f9"],
-    backgroundType: ["gradientLinear", "solid"] 
+    backgroundColor: ["f87171","fb923c","09acf4", "fb923c", "f472b6","a78bfa","34d399"],
+    backgroundType: ["gradientLinear"] 
   }).toString();
 }
