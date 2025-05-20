@@ -27,7 +27,6 @@ const addEmojiPickerStyles = () => {
   style.id = 'emoji-picker-styles';
   style.textContent = `
     emoji-picker {
-      --emoji-size: 1.25rem;
       --background: #fff;
       --border-color: rgba(0, 0, 0, 0.1);
       --border-radius: 10px;
