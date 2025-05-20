@@ -405,9 +405,10 @@ body {
 
 .bubble.other {
   background: #fff;
+  max-width: 100%;
   color: #222;
   border-bottom-left-radius: 0px;
-  margin-right: 0;
+  
   margin-left: 0px;
   padding: 1px 40px 5px 10px;
 }

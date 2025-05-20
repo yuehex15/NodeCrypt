@@ -57,7 +57,7 @@ const config = {
 };
 */
 window.config = {
-  rsaPublic: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxNhKL8OwnBw4ib1Kz5xAmqlR6gITfos9GLz4meUR7Aso3pjB2J3XB9dmNoifD2mPVngpVKjgnC3cQvayKWeX926r1xOzG/k7B5pAl2r8ZjDe2Ju0wwBSzD5by2n7eApThEOVVkJaU72ubG4GvRogyGKbP+IbgkowGhrVlipVro4mv+u7qo4RUcAZ6bjdVLctVtdjiclOiCYhTRtEdsTPGu9ag6TRvLtyaZA2hdWx/7sVsDOKntQv6IVdZ7DPGWRC5Eoxqe+VPSa1KsKpGOaY7TLNcorXrFgMaWBnoOwlv9HyTGro0JFCvt+dExgvEhpISjQnaXhUPl6//NCWmCOAmQIDAQAB', 
+  rsaPublic: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAj56XR23fVMeETZtH96QcVjWiOaPzDtqqJoEdb+hde2Iv4QlZBauyMjQXS8YIfytym7RA9Y/iQ20Q4DdL9/HKBPb9+frYcY+icYMX6/kdeAIxH0/2TP0lbxQQHbjx1k2AXEjq3n/srnUUKduyji8ZtnyBCgpkCaaWkNepW3M1lskJASfYLZFE56llZsHwkq+CNqcAiTJU2dL9WVNbJmEHS27++L5a2zWPyIsnmsw1f1hGKNqY2ksCmVQGLiLQhB3DATtDv/lPiqQWf//EXsTQ7j6S1cVyiJwqE0IEa0ikUOmmBu6dplL/EgQDeyNJ2BgIvKMn5IcXk86zxnOB6qpTnwIDAQAB', 
   wsAddress: 'wss://crypt.works/ws',
   debug: true
 };
