@@ -1,29 +1,4 @@
-﻿/* USAGE EXAMPLE:
-
-  // Initialize chat provider
-
-  this.chat = new ChatCrypt({
-    rsaPublic: '...generate with server/key-generate.js...',
-    wsAddress: 'wss://client.chatcrypt.com/server/',
-    debug: this.debug
-  }, {
-    onServerClosed: this.onServerClosed,
-    onServerSecured: this.onServerSecured,
-    onClientSecured: this.onClientSecured,
-    onClientList: this.onClientList,
-    onClientMessage: this.onClientMessage
-  });
-
-  // Set credentials
-
-  this.chat.setCredentials(...username, ...channel,...password);
-
-  // Connect to server
-
-  this.chat.connect();
-
-*/
-
+﻿
 import { sha256 } from 'js-sha256';
 import { ec as elliptic } from 'elliptic';
 import { ModeOfOperation } from 'aes-js';
