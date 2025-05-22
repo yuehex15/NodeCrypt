@@ -129,8 +129,7 @@ export function joinRoom(userName, roomName, password, modal = null, onResult) {
     onServerClosed: () => {
       setStatus('Node connection closed');
       if (onResult && !closed) { closed = true; onResult(false); }
-    },
-    onServerSecured: () => {
+    },    onServerSecured: () => {
       setStatus('Secure connection to node');
       // 连接成功，隐藏登录界面或关闭modal
       if (modal) modal.remove();
@@ -142,6 +141,9 @@ export function joinRoom(userName, roomName, password, modal = null, onResult) {
         if (chatContainer) chatContainer.style.display = '';
       }
       if (onResult && !closed) { closed = true; onResult(true); }
+      
+      // 添加服务器连接安全的系统消息
+      addSystemMsg("Server connection secured");
     },
     onClientSecured: (user) => handleClientSecured(idx, user),
     onClientList: (list, selfId) => handleClientList(idx, list, selfId),
