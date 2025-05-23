@@ -133,8 +133,9 @@ export function setupMobileUIHandlers() {
 
 /**
  * 渲染在线用户列表
+ * @param {boolean} updateHeader 是否同时更新房间信息头部
  */
-export function renderUserList() {
+export function renderUserList(updateHeader = false) {
   const userListEl = $id('member-list');
   userListEl.innerHTML = '';
   
@@ -147,7 +148,10 @@ export function renderUserList() {
   if (me) userListEl.appendChild(createUserItem(me, true));
   others.forEach(u => userListEl.appendChild(createUserItem(u, false)));
   
-  renderMainHeader(); // 在线用户变化时刷新
+  // 只在需要时更新房间头部信息，避免循环调用
+  if (updateHeader) {
+    renderMainHeader();
+  }
 }
 
 /**
@@ -165,19 +169,25 @@ export function createUserItem(user, isMe) {
     // 兼容 userName/username/name
   const rawName = user.userName || user.username || user.name || '';
   const safeUserName = escapeHTML(rawName);
-    // 头像 SVG
-  const svg = createAvatarSVG(rawName);
-  // svg内容已经通过createAvatarSVG生成，通常是安全的
-  // 但为确保安全，仍应当清理任何可能的脚本内容
-  const cleanSvg = svg.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-  div.querySelector('.avatar').innerHTML = cleanSvg;
   
+  // 先设置 HTML 内容
   div.innerHTML = `
     <span class="avatar"></span>
     <div class="member-info">
       <div class="member-name">${safeUserName}${isMe ? ' (我)' : ''}</div>
     </div>
   `;
+  
+  // 然后找到头像元素并设置其内容
+  const avatarEl = div.querySelector('.avatar');
+  if (avatarEl) {
+    // 头像 SVG
+    const svg = createAvatarSVG(rawName);
+    // svg内容已经通过createAvatarSVG生成，通常是安全的
+    // 但为确保安全，仍应当清理任何可能的脚本内容
+    const cleanSvg = svg.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+    avatarEl.innerHTML = cleanSvg;
+  }
   
   if (!isMe) {
     div.onclick = () => togglePrivateChat(user.clientId, safeUserName);

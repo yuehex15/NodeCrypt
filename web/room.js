@@ -48,8 +48,10 @@ export function switchRoom(index) {
   setSidebarAvatar(rd.myUserName);
   
   renderRooms(index);
+  // 先渲染头部信息
   renderMainHeader();
-  renderUserList(); // 确保用户列表反映私聊状态
+  // 再渲染用户列表，不再重复更新头部
+  renderUserList(false);
   renderChatArea();
   updateChatInputStyle(); // 根据新房间更新输入框样式
 }
@@ -185,9 +187,12 @@ export function handleClientList(idx, list, selfId) {
   list.forEach(u => { rd.userMap[u.clientId] = u; });
   rd.myId = selfId;
   
+  // 确保当前活动房间的界面刷新
   if (activeRoomIndex === idx) {
-    renderUserList();
-    renderMainHeader(); // 刷新顶部信息栏
+    // 先渲染用户列表，不同时更新头部信息
+    renderUserList(false);
+    // 然后单独渲染头部信息
+    renderMainHeader();
   }
   
   // 初始化计数
@@ -225,8 +230,10 @@ export function handleClientSecured(idx, user) {
   
   // 无论初始化状态如何，始终刷新当前房间UI
   if (activeRoomIndex === idx) {
-    renderUserList();
-    renderMainHeader(); // 也刷新顶部信息栏
+    // 先渲染用户列表，不同时更新头部信息
+    renderUserList(false);
+    // 然后单独渲染头部信息
+    renderMainHeader();
   }
   
   // 仅在初始化完成后才处理加入提示
@@ -281,7 +288,10 @@ export function handleClientLeft(idx, clientId) {
   delete rd.userMap[clientId];
   
   if (activeRoomIndex === idx) {
-    renderUserList();
+    // 先渲染用户列表，不同时更新头部信息
+    renderUserList(false);
+    // 然后单独渲染头部信息
+    renderMainHeader();
   }
 }
 
