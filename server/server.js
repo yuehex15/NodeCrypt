@@ -139,11 +139,9 @@ wss.on('connection', ( connection ) => {
     }
 
     // Update seen
-
     clients[clientId].seen = getTime();
 
     // Respond to ping requests
-
     if (
       message === 'ping'
     ) {
@@ -154,7 +152,6 @@ wss.on('connection', ( connection ) => {
     logEvent('message', [ clientId, message ], 'debug');
 
     // Receive client ecdh public key
-
     if (
       ! clients[clientId].shared &&
       message.length < 2048
@@ -191,154 +188,13 @@ wss.on('connection', ( connection ) => {
     }
 
     // Receive encrypted message from client
-
     if (
       clients[clientId].shared &&
       message.length <= ( 8 * 1024 * 1024 )
     ) {
 
-      const decrypted = decryptMessage(message, clients[clientId].shared);
-
-      logEvent('message-decrypted', [ clientId, decrypted ], 'debug');
-
-      if (
-        ! isObject(decrypted) ||
-        ! isString(decrypted.a)
-      ) {
-        return;
-      }
-
-      // Join channel
-
-      if (
-        decrypted.a === 'j' &&
-        isString(decrypted.p) &&
-        ! clients[clientId].channel
-      ) {
-
-        try {
-
-          const channel = decrypted.p;
-
-          // Set client channel
-
-          clients[clientId].channel = channel;
-
-          // Add client to channel
-
-          if (
-            ! channels[channel]
-          ) {
-            channels[channel] = [ clientId ];
-          } else {
-            channels[channel].push(clientId);
-          }
-
-          // Send channel client list (except themselves) to all clients in the channel
-
-          const members = channels[channel];
-
-          for (
-            const member of members
-          ) {
-
-            const client = clients[member];
-
-            if (
-              isClientInChannel(client, channel)
-            ) {
-              sendMessage(client.connection, encryptMessage({
-                a: 'l',
-                p: members.filter(( value ) => {
-                  return(
-                    value !== member
-                    ? true
-                    : false
-                  );
-                })
-              }, client.shared));
-            }
-
-          }
-
-        } catch ( error ) {
-          logEvent('message-join', [ clientId, error ], 'error');
-        }
-
-        return;
-
-      }
-
-      // Message client
-
-      if (
-        decrypted.a === 'c' &&
-        isString(decrypted.p) &&
-        isString(decrypted.c) &&
-        clients[clientId].channel
-      ) {
-
-        try {
-
-          const channel = clients[clientId].channel;
-          const client = clients[decrypted.c];
-
-          if (
-            isClientInChannel(client, channel)
-          ) {
-            sendMessage(client.connection, encryptMessage({
-              a: 'c',
-              p: decrypted.p,
-              c: clientId
-            }, client.shared));
-          }
-
-        } catch ( error ) {
-          logEvent('message-client', [ clientId, error ], 'error');
-        }
-
-        return;
-
-      }
-
-      // Message whole channel
-
-      if (
-        decrypted.a === 'w' &&
-        isObject(decrypted.p) &&
-        clients[clientId].channel
-      ) {
-
-        try {
-
-          const channel = clients[clientId].channel;
-
-          for (
-            const member in decrypted.p
-          ) {
-
-            const client = clients[member];
-
-            if (
-              isString(decrypted.p[member]) &&
-              isClientInChannel(client, channel)
-            ) {
-              sendMessage(client.connection, encryptMessage({
-                a: 'c',
-                p: decrypted.p[member],
-                c: clientId
-              }, client.shared));
-            }
-
-          }
-
-        } catch ( error ) {
-          logEvent('message-channel', [ clientId, error ], 'error');
-        }
-
-        return;
-
-      }
+      // 立即处理并清理，避免在回调中持有大对象引用
+      processEncryptedMessage(clientId, message);
 
     }
 
@@ -422,6 +278,173 @@ wss.on('connection', ( connection ) => {
 
 });
 
+// 将加密消息处理提取为独立函数，便于内存管理
+const processEncryptedMessage = (clientId, message) => {
+  let decrypted = null;
+  
+  try {
+    decrypted = decryptMessage(message, clients[clientId].shared);
+    
+    logEvent('message-decrypted', [ clientId, decrypted ], 'debug');
+
+    if (
+      ! isObject(decrypted) ||
+      ! isString(decrypted.a)
+    ) {
+      return;
+    }
+
+    // 根据消息类型分发处理
+    const action = decrypted.a;
+    
+    if (action === 'j') {
+      handleJoinChannel(clientId, decrypted);
+    } else if (action === 'c') {
+      handleClientMessage(clientId, decrypted);
+    } else if (action === 'w') {
+      handleChannelMessage(clientId, decrypted);
+    }
+
+  } catch (error) {
+    logEvent('process-encrypted-message', [clientId, error], 'error');
+  } finally {
+    // 确保解密对象被立即清理
+    decrypted = null;
+  }
+};
+
+// 处理加入频道请求
+const handleJoinChannel = (clientId, decrypted) => {
+  if (
+    ! isString(decrypted.p) ||
+    clients[clientId].channel
+  ) {
+    return;
+  }
+
+  try {
+    const channel = decrypted.p;
+
+    // Set client channel
+    clients[clientId].channel = channel;
+
+    // Add client to channel
+    if (! channels[channel]) {
+      channels[channel] = [ clientId ];
+    } else {
+      channels[channel].push(clientId);
+    }
+
+    // Send channel client list
+    broadcastMemberList(channel);
+
+  } catch (error) {
+    logEvent('message-join', [ clientId, error ], 'error');
+  }
+};
+
+// 处理客户端私聊消息
+const handleClientMessage = (clientId, decrypted) => {
+  if (
+    ! isString(decrypted.p) ||
+    ! isString(decrypted.c) ||
+    ! clients[clientId].channel
+  ) {
+    return;
+  }
+
+  try {
+    const channel = clients[clientId].channel;
+    const targetClient = clients[decrypted.c];
+
+    if (isClientInChannel(targetClient, channel)) {
+      // 创建临时消息对象，发送后立即清理
+      const messageObj = {
+        a: 'c',
+        p: decrypted.p,
+        c: clientId
+      };
+      
+      const encrypted = encryptMessage(messageObj, targetClient.shared);
+      sendMessage(targetClient.connection, encrypted);
+      
+      // 清理临时对象
+      messageObj.p = null;
+    }
+
+  } catch (error) {
+    logEvent('message-client', [ clientId, error ], 'error');
+  }
+};
+
+// 处理频道广播消息
+const handleChannelMessage = (clientId, decrypted) => {
+  if (
+    ! isObject(decrypted.p) ||
+    ! clients[clientId].channel
+  ) {
+    return;
+  }
+
+  try {
+    const channel = clients[clientId].channel;
+
+    for (const member in decrypted.p) {
+      const targetClient = clients[member];
+      
+      if (
+        isString(decrypted.p[member]) &&
+        isClientInChannel(targetClient, channel)
+      ) {
+        // 创建临时消息对象
+        const messageObj = {
+          a: 'c',
+          p: decrypted.p[member],
+          c: clientId
+        };
+        
+        const encrypted = encryptMessage(messageObj, targetClient.shared);
+        sendMessage(targetClient.connection, encrypted);
+        
+        // 清理临时对象
+        messageObj.p = null;
+      }
+    }
+
+  } catch (error) {
+    logEvent('message-channel', [ clientId, error ], 'error');
+  }
+};
+
+// 广播成员列表
+const broadcastMemberList = (channel) => {
+  try {
+    const members = channels[channel];
+    
+    for (const member of members) {
+      const client = clients[member];
+      
+      if (isClientInChannel(client, channel)) {
+        // 创建过滤后的成员列表
+        const filteredMembers = members.filter(value => value !== member);
+        
+        const listObj = {
+          a: 'l',
+          p: filteredMembers
+        };
+        
+        const encrypted = encryptMessage(listObj, client.shared);
+        sendMessage(client.connection, encrypted);
+        
+        // 清理临时对象
+        listObj.p = null;
+      }
+    }
+  } catch (error) {
+    logEvent('broadcast-member-list', error, 'error');
+  }
+};
+
 /* ==================
     HELPER FUNCTIONS
    ================== */
@@ -497,32 +520,24 @@ const sendMessage = ( connection, message ) => {
   }
 };
 
-// Encrypt message
-
+// Encrypt message - 简化内存优化
 const encryptMessage = ( message, key ) => {
 
   let encrypted = '';
 
   try {
 
-    message = Buffer.from(JSON.stringify(message), 'utf8');
+    const messageBuffer = Buffer.from(JSON.stringify(message), 'utf8');
 
-    if (
-      ( message.length % 16 ) !== 0
-    ) {
-      message = Buffer.from([ ...message, ...Buffer.alloc(16 - ( message.length % 16 )) ]);
-    }
+    const paddedBuffer = ( messageBuffer.length % 16 ) !== 0
+      ? Buffer.concat([messageBuffer, Buffer.alloc(16 - ( messageBuffer.length % 16 ))])
+      : messageBuffer;
 
     const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipheriv(
-      'aes-256-cbc',
-      key,
-      iv
-    );
-
+    const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
     cipher.setAutoPadding(false);
 
-    encrypted = iv.toString('base64') + '|' + cipher.update(message, '', 'base64') + cipher.final('base64');
+    encrypted = iv.toString('base64') + '|' + cipher.update(paddedBuffer, '', 'base64') + cipher.final('base64');
 
   } catch ( error ) {
     logEvent('encryptMessage', error, 'error');
@@ -532,8 +547,7 @@ const encryptMessage = ( message, key ) => {
 
 };
 
-// Decrypt message
-
+// Decrypt message - 简化内存优化
 const decryptMessage = ( message, key ) => {
 
   let decrypted = {};
@@ -549,7 +563,8 @@ const decryptMessage = ( message, key ) => {
 
     decipher.setAutoPadding(false);
 
-    decrypted = JSON.parse(( decipher.update(parts[1], 'base64', 'utf8') + decipher.final('utf8') ).replace(/\0+$/, ''));
+    const decryptedText = decipher.update(parts[1], 'base64', 'utf8') + decipher.final('utf8');
+    decrypted = JSON.parse(decryptedText.replace(/\0+$/, ''));
 
   } catch ( error ) {
     logEvent('decryptMessage', error, 'error');
@@ -597,3 +612,57 @@ const isObject = ( value ) => {
     : false
   );
 };
+
+// =================== 内存监控 (测试用) ===================
+let lastHeapUsed = 0;
+let gcCounter = 0;
+let lastClientCount = 0;
+
+setInterval(() => {
+  const memUsage = process.memoryUsage();
+  const clientCount = Object.keys(clients).length;
+  const channelCount = Object.keys(channels).length;
+  
+  const currentHeap = Math.round(memUsage.heapUsed / 1024 / 1024);
+  const heapDiff = currentHeap - lastHeapUsed;
+  
+  console.log(`[MEMORY] RSS: ${Math.round(memUsage.rss / 1024 / 1024)}MB, Heap: ${currentHeap}MB/${Math.round(memUsage.heapTotal / 1024 / 1024)}MB (${heapDiff > 0 ? '+' : ''}${heapDiff}MB), External: ${Math.round(memUsage.external / 1024 / 1024)}MB, Clients: ${clientCount}, Channels: ${channelCount}`);
+  
+  // 检测到客户端数量变化时立即触发GC
+  if (clientCount !== lastClientCount && global.gc) {
+    global.gc();
+    gcCounter++;
+    console.log(`[GC] Client change detected, triggered GC (#${gcCounter})`);
+  }
+  
+  lastHeapUsed = currentHeap;
+  lastClientCount = clientCount;
+}, 1000);
+
+// 每30秒强制触发一次垃圾回收
+setInterval(() => {
+  if (global.gc) {
+    global.gc();
+    gcCounter++;
+    console.log(`[GC] Periodic garbage collection triggered (#${gcCounter})`);
+  }
+}, 30000);
+
+// 进程退出时的清理
+process.on('SIGINT', () => {
+  console.log('\n[CLEANUP] Server shutting down...');
+  if (global.gc) {
+    global.gc();
+    console.log('[CLEANUP] Final garbage collection performed');
+  }
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  console.log('\n[CLEANUP] Server terminating...');
+  if (global.gc) {
+    global.gc();
+    console.log('[CLEANUP] Final garbage collection performed');
+  }
+  process.exit(0);
+});

@@ -10,7 +10,7 @@ import { openSettingsPanel, closeSettingsPanel, initSettings, notifyMessage } fr
 import { escapeHTML, textToHTML } from './util.string.js';
 import { $, $$, $id, on, off, addClass, removeClass } from './util.dom.js';
 
-import './NodeCrypt.js';
+// import './NodeCrypt.js';
 
 // === 核心功能模块导入 ===
 import { 
@@ -49,7 +49,7 @@ import {
  * debug: 是否开启调试模式
  */
 window.config = {
-  wsAddress: '/ws',
+  wsAddress: 'ws://127.0.0.1:8088',
   debug: true
 };
 
