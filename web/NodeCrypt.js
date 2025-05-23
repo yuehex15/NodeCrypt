@@ -1,14 +1,11 @@
-﻿
-import { sha256 } from 'js-sha256';
+﻿import { sha256 } from 'js-sha256';
 import { ec as elliptic } from 'elliptic';
 import { ModeOfOperation } from 'aes-js';
 import chacha from 'js-chacha20';
 import './NodeCrypt.js';import { Buffer } from 'buffer';
 window.Buffer = Buffer;
 
-class ChatCrypt {
-
-  constructor ( config = {}, callbacks = {} ) {
+class ChatCrypt {  constructor ( config = {}, callbacks = {} ) {
 
     // Update configuration
 
@@ -29,6 +26,9 @@ class ChatCrypt {
       onClientList: callbacks.onClientList || null,         // Parameters: clients => [ { clientId: <client id>, username: <username> } ]
       onClientMessage: callbacks.onClientMessage || null,   // Parameters: message => { clientId: <client id>, username: <username>, type: <type>, data: <data> }
     };
+    
+    // Initialize server key storage
+    this.SERVER_KEY_STORAGE = 'nodecrypt_server_key';
 
     // Initialize client elliptic curve
 
@@ -270,7 +270,6 @@ class ChatCrypt {
   /* ============
       ON MESSAGE
      ============ */
-
   async onMessage ( event ) {
 
     if (
@@ -289,6 +288,19 @@ class ChatCrypt {
     }
 
     this.logEvent('onMessage', event.data);
+
+    // 检查是否是服务器公钥消息
+    try {
+      const data = JSON.parse(event.data);
+      if (data.type === 'server-key') {
+        const result = await this.handleServerKey(data.key);
+        if (!result) {
+          return; // 如果服务器密钥处理尚未完成，不继续处理
+        }
+      }
+    } catch (e) {
+      // 不是JSON或解析错误，按正常消息处理
+    }
 
     // Receive server ecdh public key
 
@@ -1073,7 +1085,18 @@ class ChatCrypt {
       : false
     );
   }
-
+  /* =================
+      HANDLE SERVER KEY
+     ================= */  // 处理从服务器收到的公钥
+  async handleServerKey(serverKey) {
+    this.logEvent('handleServerKey', 'Received server key'); 
+    // 清空并保存新公钥
+    localStorage.removeItem(this.SERVER_KEY_STORAGE);
+    localStorage.setItem(this.SERVER_KEY_STORAGE, serverKey);
+    this.config.rsaPublic = serverKey;
+    
+    return true;
+  }
 };
 
 if (typeof window !== 'undefined') {

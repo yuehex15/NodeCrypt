@@ -10,7 +10,7 @@ import { openSettingsPanel, closeSettingsPanel, initSettings, notifyMessage } fr
 import { escapeHTML, textToHTML } from './util.string.js';
 import { $, $$, $id, on, off, addClass, removeClass } from './util.dom.js';
 
-//import './NodeCrypt.js';
+import './NodeCrypt.js';
 
 // === 核心功能模块导入 ===
 import { 
@@ -45,24 +45,14 @@ import {
 
 /**
  * 应用全局配置
- * rsaPublic: RSA公钥，用于加密通信
  * wsAddress: WebSocket服务器地址
  * debug: 是否开启调试模式
  */
-/*
-const config = {
-  rsaPublic: window.NODECRYPT_PUBLIC_KEY, 
+window.config = {
   wsAddress: '/ws',
   debug: true
 };
-*/
-window.config = {
-  rsaPublic: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzKm1a2iTsDM25z19sv2RlfX/nQuM5UQoT6oVNLFRQM5Pgk6B7jV0jUdcbeopP3Vka5Q81QYW12QfM/RvdPoLyLEMRLysGGpJlB7vvrbRFLjg31lWKgaavghb9cedde0w9/qVjU3qKNdcmL+/csQJ7bqMj20X9Jwm2JAr1NS0Ys0EAAPKlWYDq1UWmTaFIHxzuyxsokQy8QyeKSJtD0KCPs6509xGaEXB2mqLEgxpbRZ1xeguBgSj41lQB0FaN8nSalhUrGbcmTAVyOb7hz1GhutzzTAJ1l0Fd+NYLo/+FuKo/cL65hCBlBn7ddnIJqWW3SoDscIOzmxvYPj998C91wIDAQAB', 
-  wsAddress: 'wss://crypt.works/ws',
-  debug: true
-};
 
-window.config = config;
 // === 全局函数导出 ===
 
 /**

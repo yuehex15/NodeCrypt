@@ -5,12 +5,43 @@
 const crypto = require('crypto');
 const ws = require('ws');
 
+// 生成RSA密钥对函数，整合自key-generate.js
+const generateRSAKeyPair = () => {
+  try {
+    console.log('Generating new RSA keypair...');
+    const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
+      modulusLength: 2048,
+      publicKeyEncoding: {
+        type: 'spki',
+        format: 'der'
+      },
+      privateKeyEncoding: {
+        type: 'pkcs8',
+        format: 'der'
+      }
+    });
+
+    return {
+      rsaPublic: Buffer.from(publicKey).toString('base64'),
+      rsaPrivate: crypto.createPrivateKey({
+        key: privateKey,
+        format: 'der',
+        type: 'pkcs8'
+      })
+    };
+  } catch (error) {
+    console.error('Error generating RSA key pair:', error);
+    process.exit(1);
+  }
+};
+
+// 生成密钥并配置服务器
+const keyPair = generateRSAKeyPair();
+console.log('RSA key pair generated successfully');
+
 const config = {
-  rsaPrivate: crypto.createPrivateKey({
-    key: Buffer.from(process.env.NODECRYPT_PRIVATE_KEY, 'base64'),
-    format: 'der',
-    type: 'pkcs8'
-  }),
+  rsaPrivate: keyPair.rsaPrivate,
+  rsaPublic: keyPair.rsaPublic,
   wsHost: '127.0.0.1',
   wsPort: 8088,
   seenTimeout: 60000,
@@ -82,6 +113,17 @@ wss.on('connection', ( connection ) => {
     key: null,
     channel: null
   };
+
+  // Send the server's public key to the client first
+  try {
+    logEvent('sending-public-key', clientId, 'debug');
+    sendMessage(connection, JSON.stringify({
+      type: 'server-key',
+      key: config.rsaPublic
+    }));
+  } catch (error) {
+    logEvent('sending-public-key', error, 'error');
+  }
 
   /* ============
       ON MESSAGE

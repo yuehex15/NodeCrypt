@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM docker.1ms.run/node:18-alpine
 
 WORKDIR /app
 
@@ -6,11 +6,7 @@ COPY server/ ./server/
 RUN cd server && npm install
 COPY dist/ ./web/
 
-COPY start.sh /start.sh
-
-RUN chmod +x /start.sh && \
-    dos2unix /start.sh && \
-    apk add --no-cache nginx dos2unix && \
+RUN apk add --no-cache nginx && \
     mkdir -p /etc/nginx
 
 RUN cat > /etc/nginx/nginx.conf <<'EOF'
@@ -43,8 +39,7 @@ http {
 }
 EOF
 
-RUN dos2unix /etc/nginx/nginx.conf
-
 EXPOSE 80
 
-CMD ["/start.sh"]
+# 直接启动Node.js服务和Nginx
+CMD node /app/server/server.js & nginx -g "daemon off;"

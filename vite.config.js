@@ -9,11 +9,10 @@ export default defineConfig({
   ],
   build: {
     outDir: '../dist',
-    emptyOutDir: true,
-    minify: 'terser', // 比默认的 esbuild 压缩更彻底
+    emptyOutDir: true,    minify: 'terser', // 比默认的 esbuild 压缩更彻底
     terserOptions: {
       compress: {
-        drop_console: true, // 移除生产环境中的console语句
+        drop_console: false, // 保留生产环境中的console语句
         drop_debugger: true
       }
     },
