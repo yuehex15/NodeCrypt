@@ -613,31 +613,8 @@ const isObject = ( value ) => {
   );
 };
 
-// =================== 内存监控 (测试用) ===================
-let lastHeapUsed = 0;
+// =================== 内存优化 ===================
 let gcCounter = 0;
-let lastClientCount = 0;
-
-setInterval(() => {
-  const memUsage = process.memoryUsage();
-  const clientCount = Object.keys(clients).length;
-  const channelCount = Object.keys(channels).length;
-  
-  const currentHeap = Math.round(memUsage.heapUsed / 1024 / 1024);
-  const heapDiff = currentHeap - lastHeapUsed;
-  
-  console.log(`[MEMORY] RSS: ${Math.round(memUsage.rss / 1024 / 1024)}MB, Heap: ${currentHeap}MB/${Math.round(memUsage.heapTotal / 1024 / 1024)}MB (${heapDiff > 0 ? '+' : ''}${heapDiff}MB), External: ${Math.round(memUsage.external / 1024 / 1024)}MB, Clients: ${clientCount}, Channels: ${channelCount}`);
-  
-  // 检测到客户端数量变化时立即触发GC
-  if (clientCount !== lastClientCount && global.gc) {
-    global.gc();
-    gcCounter++;
-    console.log(`[GC] Client change detected, triggered GC (#${gcCounter})`);
-  }
-  
-  lastHeapUsed = currentHeap;
-  lastClientCount = clientCount;
-}, 1000);
 
 // 每30秒强制触发一次垃圾回收
 setInterval(() => {

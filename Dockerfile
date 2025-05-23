@@ -81,4 +81,4 @@ ENV NODE_OPTIONS="--max-old-space-size=64" \
     NODE_ENV="production"
 
 # 使用前台运行并合并命令减少进程数
-CMD ["sh", "-c", "node --unhandled-rejections=strict /app/server/server.js & nginx -g 'daemon off;'"]
+CMD ["sh", "-c", "node --expose-gc --unhandled-rejections=strict /app/server/server.js & nginx -g 'daemon off;'"]
