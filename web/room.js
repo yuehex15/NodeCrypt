@@ -124,7 +124,7 @@ export function joinRoom(userName, roomName, password, modal = null, onResult) {
   if (sidebarUsername) sidebarUsername.textContent = userName;
   setSidebarAvatar(userName);
   
-  // 初始化 ChatCrypt
+  // 初始化 NodeCrypt
   let closed = false;
   const callbacks = {
     onServerClosed: () => {
@@ -152,7 +152,7 @@ export function joinRoom(userName, roomName, password, modal = null, onResult) {
     onClientMessage: (msg) => handleClientMessage(idx, msg)
   };
   
-  const chatInst = new window.ChatCrypt(window.config, callbacks);
+  const chatInst = new window.NodeCrypt(window.config, callbacks);
   chatInst.setCredentials(userName, roomName, password);
   chatInst.connect();
   roomsData[idx].chat = chatInst;

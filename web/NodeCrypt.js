@@ -5,7 +5,7 @@ import chacha from 'js-chacha20';
 import { Buffer } from 'buffer';
 window.Buffer = Buffer;
 
-class ChatCrypt {  constructor ( config = {}, callbacks = {} ) {
+class NodeCrypt {  constructor ( config = {}, callbacks = {} ) {
 
     // Update configuration
 
@@ -1100,5 +1100,5 @@ class ChatCrypt {  constructor ( config = {}, callbacks = {} ) {
 };
 
 if (typeof window !== 'undefined') {
-  window.ChatCrypt = ChatCrypt;
+  window.NodeCrypt = NodeCrypt;
 }
