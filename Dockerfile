@@ -1,20 +1,55 @@
-FROM docker.1ms.run/node:18-alpine
+FROM docker.1ms.run/node:18-alpine AS builder
 
 WORKDIR /app
 
+# 只复制package.json先安装依赖，利用Docker缓存层
+COPY server/package.json ./server/
+RUN cd server && npm install --production --no-package-lock --no-audit
+
+# 复制其余服务器代码
 COPY server/ ./server/
-RUN cd server && npm install
-COPY dist/ ./web/
 
-RUN apk add --no-cache nginx && \
-    mkdir -p /etc/nginx
+# 第二阶段：极小镜像
+FROM docker.1ms.run/alpine:3.16
 
+# 安装最小化版本的Node.js和Nginx
+RUN apk add --no-cache nodejs nginx && \
+    mkdir -p /app/server /app/web /run/nginx && \
+    # 清理apk缓存
+    rm -rf /var/cache/apk/*
+
+# 复制服务器文件和静态文件
+COPY --from=builder /app/server/node_modules /app/server/node_modules
+COPY --from=builder /app/server/*.js /app/server/
+COPY dist/ /app/web/
+
+# 优化的Nginx配置
 RUN cat > /etc/nginx/nginx.conf <<'EOF'
-worker_processes  1;
-events { worker_connections  1024; }
+worker_processes 1;
+worker_rlimit_nofile 512;
+events { 
+    worker_connections 128; 
+    multi_accept off;
+}
 http {
     include       mime.types;
     default_type  application/octet-stream;
+    
+    # 优化设置
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+    keepalive_timeout 15;
+    types_hash_max_size 1024;
+    client_max_body_size 1M;
+    client_body_buffer_size 128k;
+    
+    # 禁用访问日志以减少I/O
+    access_log off;
+    error_log /dev/null;
+    
+    # 禁用不需要的功能
+    server_tokens off;
 
     server {
         listen 80;
@@ -41,5 +76,9 @@ EOF
 
 EXPOSE 80
 
-# 直接启动Node.js服务和Nginx
-CMD node /app/server/server.js & nginx -g "daemon off;"
+# 设置低内存环境变量，去除不支持的选项
+ENV NODE_OPTIONS="--max-old-space-size=64" \
+    NODE_ENV="production"
+
+# 使用前台运行并合并命令减少进程数
+CMD ["sh", "-c", "node --unhandled-rejections=strict /app/server/server.js & nginx -g 'daemon off;'"]
