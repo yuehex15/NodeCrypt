@@ -45,7 +45,7 @@ const config = {
   wsHost: '127.0.0.1',
   wsPort: 8088,
   seenTimeout: 60000,
-  debug: false
+  debug: true
 };
 
 // Create websocket server
@@ -520,7 +520,7 @@ const sendMessage = ( connection, message ) => {
   }
 };
 
-// Encrypt message - 简化内存优化
+
 const encryptMessage = ( message, key ) => {
 
   let encrypted = '';
@@ -547,7 +547,7 @@ const encryptMessage = ( message, key ) => {
 
 };
 
-// Decrypt message - 简化内存优化
+
 const decryptMessage = ( message, key ) => {
 
   let decrypted = {};
@@ -613,33 +613,10 @@ const isObject = ( value ) => {
   );
 };
 
-// =================== 内存优化 ===================
-let gcCounter = 0;
-
 // 每30秒强制触发一次垃圾回收
 setInterval(() => {
   if (global.gc) {
     global.gc();
     gcCounter++;
-    console.log(`[GC] Periodic garbage collection triggered (#${gcCounter})`);
   }
 }, 30000);
-
-// 进程退出时的清理
-process.on('SIGINT', () => {
-  console.log('\n[CLEANUP] Server shutting down...');
-  if (global.gc) {
-    global.gc();
-    console.log('[CLEANUP] Final garbage collection performed');
-  }
-  process.exit(0);
-});
-
-process.on('SIGTERM', () => {
-  console.log('\n[CLEANUP] Server terminating...');
-  if (global.gc) {
-    global.gc();
-    console.log('[CLEANUP] Final garbage collection performed');
-  }
-  process.exit(0);
-});
