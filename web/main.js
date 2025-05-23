@@ -50,7 +50,7 @@ import {
  * debug: 是否开启调试模式
  */
 window.config = {
-  wsAddress: 'ws://127.0.0.1:8088',
+  wsAddress: '/ws',
   debug: true
 };
 
