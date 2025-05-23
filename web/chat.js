@@ -133,17 +133,15 @@ export function addOtherMsg(msg, userName = '', avatar = '', isHistory = false, 
         <span class="bubble-content">${contentHtml}</span>
         <span class="bubble-meta">${time}</span>
       </div>
-    </div>
-  `;
+    </div>  `;
   
-  createAvatarSVG(userName).then(svg => {
-    const avatarEl = $('.avatar', bubbleWrap);
-    if (avatarEl) {
-      // 清理SVG，移除任何可能的脚本内容
-      const cleanSvg = svg.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-      avatarEl.innerHTML = cleanSvg;
-    }
-  });
+  const svg = createAvatarSVG(userName);
+  const avatarEl = $('.avatar', bubbleWrap);
+  if (avatarEl) {
+    // 清理SVG，移除任何可能的脚本内容
+    const cleanSvg = svg.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+    avatarEl.innerHTML = cleanSvg;
+  }
   
   chatArea.appendChild(bubbleWrap);
   chatArea.scrollTop = chatArea.scrollHeight;

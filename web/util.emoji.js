@@ -1,23 +1,7 @@
 // util.emoji.js
-// 使用emoji-picker-element库的表情选择器模块
+// 使用emoji-picker-element库的表情选择器模块 (NPM模式)
 import { $, $$, createElement, on } from './util.dom.js';
-
-// 加载emoji-picker-element库
-const loadEmojiPickerScript = () => {
-  return new Promise((resolve, reject) => {
-    if (document.querySelector('script[src*="emoji-picker-element"]')) {
-      resolve(); // 如果脚本已加载，直接解析
-      return;
-    }
-    
-    const script = document.createElement('script');
-    script.type = 'module';
-    script.src = 'https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js';
-    script.onload = resolve;
-    script.onerror = reject;
-    document.head.appendChild(script);
-  });
-};
+import 'emoji-picker-element';
 
 // 添加emoji-picker元素的默认样式
 const addEmojiPickerStyles = () => {
@@ -50,13 +34,19 @@ const addEmojiPickerStyles = () => {
   document.head.appendChild(style);
 };
 
-export async function setupEmojiPicker({ btnSelector = '.chat-emoji-btn', inputSelector = '.input-message-input' } = {}) {
+/**
+ * 设置表情选择器
+ * @param {Object} options - 配置选项
+ * @param {string} options.btnSelector - 表情按钮选择器
+ * @param {string} options.inputSelector - 输入框选择器
+ * @returns {void}
+ */
+export function setupEmojiPicker({ btnSelector = '.chat-emoji-btn', inputSelector = '.input-message-input' } = {}) {
   const btn = $(btnSelector);
   const input = $(inputSelector);
   if (!btn || !input) return;
   
   try {
-    await loadEmojiPickerScript();
     addEmojiPickerStyles();
     
     // 移除可能存在的旧表情选择器
@@ -96,6 +86,12 @@ export async function setupEmojiPicker({ btnSelector = '.chat-emoji-btn', inputS
   }
 }
 
+/**
+ * 在输入框中插入表情
+ * @param {HTMLElement} input - 输入框元素
+ * @param {string} emoji - 表情Unicode字符
+ * @returns {void}
+ */
 function insertEmoji(input, emoji) {
   input.focus();
   if (document.getSelection && window.getSelection) {

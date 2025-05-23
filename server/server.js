@@ -45,7 +45,7 @@ const config = {
   wsHost: '127.0.0.1',
   wsPort: 8088,
   seenTimeout: 60000,
-  debug: true
+  debug: false
 };
 
 // Create websocket server
@@ -617,6 +617,5 @@ const isObject = ( value ) => {
 setInterval(() => {
   if (global.gc) {
     global.gc();
-    gcCounter++;
   }
 }, 30000);

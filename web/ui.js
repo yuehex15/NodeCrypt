@@ -162,17 +162,15 @@ export function createUserItem(user, isMe) {
   const isPrivateTarget = rd && user.clientId === rd.privateChatTargetId;
   
   div.className = 'member' + (isMe ? ' me' : '') + (isPrivateTarget ? ' private-chat-active' : '');
-  
-  // 兼容 userName/username/name
+    // 兼容 userName/username/name
   const rawName = user.userName || user.username || user.name || '';
   const safeUserName = escapeHTML(rawName);
     // 头像 SVG
-  createAvatarSVG(rawName).then(svg => {
-    // svg内容已经通过createAvatarSVG生成，通常是安全的
-    // 但为确保安全，仍应当清理任何可能的脚本内容
-    const cleanSvg = svg.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-    div.querySelector('.avatar').innerHTML = cleanSvg;
-  });
+  const svg = createAvatarSVG(rawName);
+  // svg内容已经通过createAvatarSVG生成，通常是安全的
+  // 但为确保安全，仍应当清理任何可能的脚本内容
+  const cleanSvg = svg.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+  div.querySelector('.avatar').innerHTML = cleanSvg;
   
   div.innerHTML = `
     <span class="avatar"></span>

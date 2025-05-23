@@ -2,7 +2,7 @@
 import { ec as elliptic } from 'elliptic';
 import { ModeOfOperation } from 'aes-js';
 import chacha from 'js-chacha20';
-import './NodeCrypt.js';import { Buffer } from 'buffer';
+import { Buffer } from 'buffer';
 window.Buffer = Buffer;
 
 class ChatCrypt {  constructor ( config = {}, callbacks = {} ) {

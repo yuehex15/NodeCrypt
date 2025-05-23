@@ -60,14 +60,13 @@ export function switchRoom(index) {
  */
 export function setSidebarAvatar(userName) {
   if (!userName) return;
-  createAvatarSVG(userName).then(svg => {
-    const el = $id('sidebar-user-avatar');
-    if (el) {
-      // 清理SVG，移除任何可能的脚本内容
-      const cleanSvg = svg.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-      el.innerHTML = cleanSvg;
-    }
-  });
+  const svg = createAvatarSVG(userName);
+  const el = $id('sidebar-user-avatar');
+  if (el) {
+    // 清理SVG，移除任何可能的脚本内容
+    const cleanSvg = svg.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+    el.innerHTML = cleanSvg;
+  }
 }
 
 /**

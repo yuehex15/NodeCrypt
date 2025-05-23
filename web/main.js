@@ -3,14 +3,15 @@
  * 负责初始化界面、绑定事件及协调各模块功能
  */
 
+// 先导入加密库依赖模块
+import './NodeCrypt.js';
+
 // === 工具模块导入 ===
 import { processImage, setupImageSend } from './util.image.js';
 import { setupEmojiPicker } from './util.emoji.js';
 import { openSettingsPanel, closeSettingsPanel, initSettings, notifyMessage } from './util.settings.js';
 import { escapeHTML, textToHTML } from './util.string.js';
 import { $, $$, $id, on, off, addClass, removeClass } from './util.dom.js';
-
-// import './NodeCrypt.js';
 
 // === 核心功能模块导入 ===
 import { 

@@ -21,15 +21,21 @@ export default defineConfig({
       output: {
         // 使用函数形式的 manualChunks 代替对象形式
         manualChunks: (id) => {
-          if (id.includes('node_modules')) {
-            if (/aes-js|elliptic|js-chacha20|js-sha256/.test(id)) {
+          if (id.includes('node_modules')) {            if (/aes-js|elliptic|js-chacha20|js-sha256/.test(id)) {
               return 'crypto-libs';
             }
             if (id.includes('buffer')) {
               return 'vendor';
             }
+            if (id.includes('emoji-picker-element')) {
+              return 'emoji-libs';
+            }
+            if (id.includes('@dicebear')) {
+              return 'avatar-libs';
+            }
             return 'vendor-deps'; // 其他依赖包
           }
+          return undefined; // 添加默认返回值，避免语法错误
         },
       },
     },
@@ -43,14 +49,13 @@ export default defineConfig({
     alias: {
       buffer: 'buffer', // 让 Vite 识别 buffer
     },
-  },
-  // 优化开发服务器
+  },  // 优化开发服务器
   server: {
     hmr: true, // 热模块替换
     open: true, // 自动打开浏览器
   },
   // 禁用不需要的功能以提高构建速度
   optimizeDeps: {
-    include: ['buffer', 'aes-js', 'elliptic', 'js-chacha20', 'js-sha256'], // 预构建这些依赖
+    include: ['buffer', 'aes-js', 'elliptic', 'js-chacha20', 'js-sha256', '@dicebear/core', '@dicebear/micah'], // 预构建这些依赖
   },
 });
