@@ -6,8 +6,8 @@ WORKDIR /app
 COPY server/package.json ./server/
 RUN cd server && npm install --production --no-package-lock --no-audit
 
-# 复制其余服务器代码
-COPY server/ ./server/
+# 只复制server.js文件
+COPY server/server.js ./server/
 
 # 前端构建阶段
 FROM docker.1ms.run/node:18-alpine AS frontend-builder
