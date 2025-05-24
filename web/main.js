@@ -1,83 +1,71 @@
 /**
- * NodeCrypt 聊天应用主入口文件
- * 负责初始化界面、绑定事件及协调各模块功能
+ * NodeCrypt Chat Application Main Entry
+ * Handles initialization, event binding and module coordination
  */
 
-// 先导入加密库依赖模块
+// Import encryption library dependencies
 import './NodeCrypt.js';
-// === 工具模块导入 ===
-import {  setupImageSend } from './util.image.js';
+// Import utility modules
+import { setupImageSend } from './util.image.js';
 import { setupEmojiPicker } from './util.emoji.js';
 import { openSettingsPanel, closeSettingsPanel, initSettings, notifyMessage } from './util.settings.js';
 import { $, $id, removeClass } from './util.dom.js';
-// === 核心功能模块导入 ===
+// Import core functionality modules
 import { roomsData, activeRoomIndex, joinRoom } from './room.js';
 import { addMsg, addSystemMsg, setupImagePreview, setupInputPlaceholder } from './chat.js';
-// === 界面相关模块导入 ===
+// Import UI-related modules
 import { renderUserList, renderMainHeader, setupMoreBtnMenu, preventSpaceInput, loginFormHandler, openLoginModal, setupTabs, autofillRoomPwd } from './ui.js';
 
 // === 全局配置 ===
 
-/**
- * 应用全局配置
- * wsAddress: WebSocket服务器地址
- * debug: 是否开启调试模式
- */
+// Global Configuration
 window.config = {
   wsAddress: 'wss://crypt.works/ws',
   //wsAddress: '/ws',
-  debug: true
+  debug: false
 };
 
 // === 全局函数导出 ===
 
-/**
- * 将核心函数暴露给全局作用域，便于跨模块调用
- */
+// Export core functions to global scope for cross-module access
 window.addSystemMsg = addSystemMsg;
 window.joinRoom = joinRoom; 
 window.notifyMessage = notifyMessage;
 window.setupEmojiPicker = setupEmojiPicker;
 
-// 页面初始化
+// Page initialization
 window.addEventListener('DOMContentLoaded', () => {
-  // 获取主要UI元素
+  // Get main UI elements
   const loginContainer = $id('login-container');
   const chatContainer = $id('chat-container');
   const loginForm = $id('login-form');
-
-  // === 登录相关初始化 ===
-  
-  // 绑定初始登录表单
+  // Login initialization
   if (loginForm) {
     loginForm.addEventListener('submit', loginFormHandler(null));
   }
   
-  // 绑定"进入新房间"按钮
+  // Bind "Enter new room" button
   const joinBtn = $('.join-room');
   if (joinBtn) {
     joinBtn.onclick = openLoginModal;
   }
 
-  // 禁止主登录页输入框输入空格
+  // Prevent space input in login fields
   preventSpaceInput($id('userName'));
   preventSpaceInput($id('roomName'));
   preventSpaceInput($id('password'));
 
-  // 自动填充URL参数中的房间信息
-  autofillRoomPwd();
-  // === 界面组件初始化 ===
-  
-  // 设置各种UI组件
+  // Auto-fill room info from URL parameters
+  autofillRoomPwd();  // Initialize UI components
   setupInputPlaceholder();
   setupMoreBtnMenu();
   setupImagePreview();
   setupEmojiPicker();
 
-  // 初始化设置
+  // Initialize settings
   initSettings();
 
-  // 设置按钮点击事件
+  // Settings button click event
   const settingsBtn = $id('settings-btn');
   if (settingsBtn) {
     settingsBtn.onclick = (e) => {
@@ -85,7 +73,8 @@ window.addEventListener('DOMContentLoaded', () => {
       openSettingsPanel();
     };
   }
-  // 点击其它区域关闭设置面板
+  
+  // Close settings panel when clicking outside
   document.addEventListener('click', (ev) => {
     const panel = $id('settings-panel');
     if (panel && panel.style.display === 'block') {
@@ -94,10 +83,7 @@ window.addEventListener('DOMContentLoaded', () => {
         closeSettingsPanel();
       }
     }
-  });
-  // === 消息收发功能 ===
-
-  // 自动聚焦到输入框并设置消息发送逻辑
+  });  // Message input and sending logic
   const input = document.querySelector('.input-message-input');
   if (input) {
     input.focus();
@@ -124,7 +110,7 @@ window.addEventListener('DOMContentLoaded', () => {
             addMsg(text);
           }
           input.innerText = '';
-          input.dispatchEvent(new Event('input')); // To update placeholder
+          input.dispatchEvent(new Event('input')); // Update placeholder
         }
       }
     });
@@ -156,42 +142,38 @@ window.addEventListener('DOMContentLoaded', () => {
         }
       }
     }
-  });
-
-    // 移动端适配辅助函数
-  const isMobile = () => {
-    return window.innerWidth <= 768;
-  };
+  });  // Mobile responsive helpers
+  const isMobile = () => window.innerWidth <= 768;
   
-  // 初始化UI组件
+  // Initialize UI components
   renderMainHeader();
   renderUserList();
   setupTabs();
   
-  // 移动端侧边栏处理
+  // Mobile sidebar handling
   const roomList = $id('room-list');
   const sidebar = $id('sidebar');
   const rightbar = $id('rightbar');
   const sidebarMask = $id('mobile-sidebar-mask');
   const rightbarMask = $id('mobile-rightbar-mask');
   
-  // 监听房间列表点击（移动端）
+  // Handle room list click (mobile)
   if (roomList) {
     roomList.addEventListener('click', () => {
       if (isMobile()) {
-        if (sidebar) sidebar.classList.remove('mobile-open');
-        if (sidebarMask) sidebarMask.classList.remove('active');
+        sidebar?.classList.remove('mobile-open');
+        sidebarMask?.classList.remove('active');
       }
     });
   }
   
-  // 监听成员标签点击（移动端）
+  // Handle member tabs click (mobile)
   const memberTabs = $id('member-tabs');
   if (memberTabs) {
     memberTabs.addEventListener('click', () => {
       if (isMobile()) {
-        if (rightbar) removeClass(rightbar, 'mobile-open');
-        if (rightbarMask) removeClass(rightbarMask, 'active');
+        removeClass(rightbar, 'mobile-open');
+        removeClass(rightbarMask, 'active');
       }
     });
   }

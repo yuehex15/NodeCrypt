@@ -1,11 +1,11 @@
-// 聊天显示逻辑管理模块
+// Chat display logic management module
 import { createAvatarSVG } from './util.avatar.js';
 import { roomsData, activeRoomIndex } from './room.js';
 import { escapeHTML, textToHTML } from './util.string.js';
 import { $, $id, createElement, on, addClass, removeClass } from './util.dom.js';
 
 /**
- * 渲染当前房间消息区
+ * Render current room message area
  */
 export function renderChatArea() {
   const chatArea = $id('chat-area');
@@ -22,30 +22,28 @@ export function renderChatArea() {
     else if (m.type === 'system') addSystemMsg(m.text, true, m.timestamp);
     else addOtherMsg(m.text, m.userName, m.avatar, true, m.msgType || 'text', m.timestamp);
   });
-    // 表情选择器已在main.js中全局初始化一次，此处不需要重复初始化
-  // if (window.setupEmojiPicker) window.setupEmojiPicker();
 }
 
 /**
- * 添加自己发送的消息
- * @param {string} text 消息文本
- * @param {boolean} isHistory 是否为历史消息
- * @param {string} msgType 消息类型
- * @param {number} timestamp 时间戳
+ * Add message sent by current user
+ * @param {string} text - Message text
+ * @param {boolean} isHistory - Whether this is a history message
+ * @param {string} msgType - Message type
+ * @param {number} timestamp - Timestamp
  */
 export function addMsg(text, isHistory = false, msgType = 'text', timestamp = null) {
-  let ts;
-  if (isHistory) {
-    ts = timestamp;
-  } else {
-    ts = timestamp || Date.now();
-    if (activeRoomIndex >= 0) {
-      roomsData[activeRoomIndex].messages.push({ type: 'me', text, msgType, timestamp: ts });
-    }
-  }
+  let ts = isHistory ? timestamp : (timestamp || Date.now());
   
-  // 只用传入的 timestamp，不再 fallback 到 Date.now()，避免多余逻辑
   if (!ts) return;
+  
+  if (!isHistory && activeRoomIndex >= 0) {
+    roomsData[activeRoomIndex].messages.push({ 
+      type: 'me', 
+      text, 
+      msgType, 
+      timestamp: ts 
+    });
+  }
   
   const chatArea = $id('chat-area');
   if (!chatArea) return;
@@ -54,9 +52,10 @@ export function addMsg(text, isHistory = false, msgType = 'text', timestamp = nu
   
   const date = new Date(ts);
   const time = date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
-    let contentHtml = '';
+  
+  let contentHtml = '';
   if (msgType === 'image' || msgType === 'image_private') {
-    // 处理图片URL，确保只允许安全的数据URL或HTTPS链接
+    // Process image URL, ensuring only safe data URLs or HTTPS links
     const safeImgSrc = escapeHTML(text).replace(/javascript:/gi, '');
     contentHtml = `<img src="${safeImgSrc}" alt="image" class="bubble-img">`;
   } else {
@@ -72,15 +71,16 @@ export function addMsg(text, isHistory = false, msgType = 'text', timestamp = nu
 }
 
 /**
- * 添加其他人发送的消息
- * @param {string|object} msg 消息内容
- * @param {string} userName 用户名
- * @param {string} avatar 头像
- * @param {boolean} isHistory 是否为历史消息
- * @param {string} msgType 消息类型
- * @param {number} timestamp 时间戳
+ * Add message from other users
+ * @param {string|object} msg - Message content
+ * @param {string} userName - Username
+ * @param {string} avatar - Avatar
+ * @param {boolean} isHistory - Whether this is a history message
+ * @param {string} msgType - Message type
+ * @param {number} timestamp - Timestamp
  */
 export function addOtherMsg(msg, userName = '', avatar = '', isHistory = false, msgType = 'text', timestamp = null) {
+  // Try to find username if not provided
   if (!userName && activeRoomIndex >= 0) {
     const rd = roomsData[activeRoomIndex];
     if (rd && msg && msg.clientId && rd.userMap[msg.clientId]) {
@@ -88,16 +88,20 @@ export function addOtherMsg(msg, userName = '', avatar = '', isHistory = false, 
     }
   }
   
-  if (!userName) userName = 'Anonymous';
+  userName = userName || 'Anonymous';
   
-  let ts;
-  if (isHistory) {
-    ts = timestamp;
-  } else {
-    ts = timestamp || Date.now();
-    if (activeRoomIndex >= 0) {
-      roomsData[activeRoomIndex].messages.push({ type: 'other', text: msg, userName, avatar, msgType, timestamp: ts });
-    }
+  // Handle timestamp and message storage
+  let ts = isHistory ? timestamp : (timestamp || Date.now());
+  
+  if (!isHistory && activeRoomIndex >= 0) {
+    roomsData[activeRoomIndex].messages.push({ 
+      type: 'other', 
+      text: msg, 
+      userName, 
+      avatar, 
+      msgType, 
+      timestamp: ts 
+    });
   }
   
   if (!ts) return;

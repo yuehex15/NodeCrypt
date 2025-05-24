@@ -5,10 +5,9 @@ import chacha from 'js-chacha20';
 import { Buffer } from 'buffer';
 window.Buffer = Buffer;
 
-class NodeCrypt {  constructor ( config = {}, callbacks = {} ) {
-
+class NodeCrypt {
+  constructor(config = {}, callbacks = {}) {
     // Update configuration
-
     this.config = {
       rsaPublic: config.rsaPublic || '',
       wsAddress: config.wsAddress || '',
@@ -18,35 +17,31 @@ class NodeCrypt {  constructor ( config = {}, callbacks = {} ) {
     };
 
     // Set callbacks
-
     this.callbacks = {
-      onServerClosed: callbacks.onServerClosed || null,     // Parameters: nothing
-      onServerSecured: callbacks.onServerSecured || null,   // Parameters: nothing
-      onClientSecured: callbacks.onClientSecured || null,   // Parameters: client => { clientId: <client id>, username: <username> }
-      onClientList: callbacks.onClientList || null,         // Parameters: clients => [ { clientId: <client id>, username: <username> } ]
-      onClientMessage: callbacks.onClientMessage || null,   // Parameters: message => { clientId: <client id>, username: <username>, type: <type>, data: <data> }
+      onServerClosed: callbacks.onServerClosed || null,
+      onServerSecured: callbacks.onServerSecured || null,
+      onClientSecured: callbacks.onClientSecured || null,
+      onClientList: callbacks.onClientList || null,
+      onClientMessage: callbacks.onClientMessage || null,
     };
     
     // Initialize server key storage
     this.SERVER_KEY_STORAGE = 'nodecrypt_server_key';
 
     // Initialize client elliptic curve
-
     try {
       this.clientEc = new elliptic('curve25519');
-    } catch ( error ) {
+    } catch (error) {
       this.logEvent('constructor', error, 'error');
     }
 
     // Declarations
-
     this.serverKeys = null;
     this.serverShared = null;
     this.credentials = null;
     this.connection = null;
     this.reconnect = null;
     this.ping = null;
-
     this.channel = {};
 
     // Bindings
