@@ -11,7 +11,7 @@ const addEmojiPickerStyles = () => {
 	if (document.querySelector('#emoji-picker-styles')) return;
 	const style = document.createElement('style');
 	style.id = 'emoji-picker-styles';
-	style.textContent = `emoji-picker{--background:#fff;--border-color:rgba(0,0,0,0.1);--border-radius:10px;--emoji-padding:0.4rem;--category-emoji-size:1.2rem;--font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;position:absolute;bottom:60px;left:22px;z-index:5;box-shadow:0 3px 12px rgba(0,0,0,0.15);animation:emoji-panel-fade-in 0.18s;width:320px;display:none}@keyframes emoji-panel-fade-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`;
+	style.textContent = `emoji-picker{--background:#fff;--border-color:rgba(0,0,0,0.1);--border-radius:10px;--emoji-padding:0.4rem;--category-emoji-size:1.2rem;--font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;position:absolute;bottom:60px;left:22px;z-index:5;box-shadow:0 3px 12px rgba(0,0,0,0.15);width:320px;display:none}`;
 	document.head.appendChild(style)
 };
 // Setup emoji picker for chat input

@@ -146,35 +146,6 @@ function openSettingsPanel() {
 	card.style.transform = 'translateX(0)';
 	removeClass(card, 'close-anim');
 	addClass(card, 'open-anim');
-
-	function onMouseMove(ev) {
-		const cardRect = card.getBoundingClientRect();
-		const safe = 60;
-		const mx = ev.clientX,
-			my = ev.clientY;
-		const inCard = mx >= cardRect.left - safe && mx <= cardRect.right + safe && my >= cardRect.top - safe && my <= cardRect.bottom + safe;
-		const btnRect = btn.getBoundingClientRect();
-		const inBtn = mx >= btnRect.left - safe && mx <= btnRect.right + safe && my >= btnRect.top - safe && my <= btnRect.bottom + safe;
-		if (!inCard && !inBtn) {
-			closeSettingsPanel()
-		}
-	}
-
-	function bindMouseMove() {
-		if (!panel._mousemoveBound) {
-			on(window, 'mousemove', onMouseMove);
-			panel._mousemoveBound = true
-		}
-	}
-
-	function unbindMouseMove() {
-		if (panel._mousemoveBound) {
-			off(window, 'mousemove', onMouseMove);
-			panel._mousemoveBound = false
-		}
-	}
-	bindMouseMove();
-	panel._unbind = unbindMouseMove
 }
 
 // Close the settings panel
@@ -186,7 +157,6 @@ function closeSettingsPanel() {
 	if (!card) return;
 	removeClass(card, 'open-anim');
 	addClass(card, 'close-anim');
-	if (panel._unbind) panel._unbind();
 	setTimeout(() => {
 		panel.style.display = 'none';
 		removeClass(card, 'close-anim')

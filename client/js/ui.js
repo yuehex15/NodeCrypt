@@ -145,42 +145,7 @@ export function setupMoreBtnMenu() {
 	const btn = $id('more-btn');
 	const menu = $id('more-menu');
 	if (!btn || !menu) return;
-	let menuRect = null;
 	let animating = false;
-	let isMouseMoveBound = false;
-
-	// Mouse move event for closing menu if mouse leaves
-	// 鼠标移出菜单区域时关闭菜单
-	function onMouseMove(ev) {
-		if (!menuRect) return;
-		const mx = ev.clientX,
-			my = ev.clientY;
-		const btnRect = btn.getBoundingClientRect();
-		const safe = 100;
-		const inMenu = mx >= menuRect.left - safe && mx <= menuRect.right + safe && my >= menuRect.top - safe && my <= menuRect.bottom + safe;
-		const inBtn = mx >= btnRect.left - safe && mx <= btnRect.right + safe && my >= btnRect.top - safe && my <= btnRect.bottom + safe;
-		if (!inMenu && !inBtn) {
-			closeMenu()
-		}
-	}
-
-	// Bind mousemove event
-	// 绑定鼠标移动事件
-	function bindMouseMove() {
-		if (!isMouseMoveBound) {
-			window.addEventListener('mousemove', onMouseMove);
-			isMouseMoveBound = true
-		}
-	}
-
-	// Unbind mousemove event
-	// 解绑鼠标移动事件
-	function unbindMouseMove() {
-		if (isMouseMoveBound) {
-			window.removeEventListener('mousemove', onMouseMove);
-			isMouseMoveBound = false
-		}
-	}
 
 	// Open the menu
 	// 打开菜单
@@ -188,8 +153,6 @@ export function setupMoreBtnMenu() {
 		menu.classList.remove('close');
 		menu.classList.add('open');
 		menu.style.display = 'block';
-		menuRect = menu.getBoundingClientRect();
-		bindMouseMove()
 	}
 
 	// Close the menu
@@ -202,9 +165,7 @@ export function setupMoreBtnMenu() {
 		setTimeout(() => {
 			if (menu.classList.contains('close')) menu.style.display = 'none';
 			animating = false;
-			unbindMouseMove()
 		}, 180);
-		menuRect = null
 	}
 	btn.onclick = function(e) {
 		e.stopPropagation();
