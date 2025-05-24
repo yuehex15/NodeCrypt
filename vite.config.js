@@ -1,61 +1,57 @@
-import { defineConfig } from 'vite';
-// 移除 splitVendorChunkPlugin 以避免与 manualChunks 冲突
-
+import {
+	defineConfig
+} from 'vite';
 export default defineConfig({
-  root: 'web',
-  base: './', // 关键配置，生成相对路径
-  plugins: [
-    // 移除了 splitVendorChunkPlugin
-  ],
-  build: {
-    outDir: '../dist',
-    emptyOutDir: true,    minify: 'terser', // 比默认的 esbuild 压缩更彻底
-    terserOptions: {
-      compress: {
-        drop_console: false, // 保留生产环境中的console语句
-        drop_debugger: false
-      }
-    },
-    rollupOptions: {
-      input: 'web/index.html',
-      output: {
-        // 使用函数形式的 manualChunks 代替对象形式
-        manualChunks: (id) => {
-          if (id.includes('node_modules')) {            if (/aes-js|elliptic|js-chacha20|js-sha256/.test(id)) {
-              return 'crypto-libs';
-            }
-            if (id.includes('buffer')) {
-              return 'vendor';
-            }
-            if (id.includes('emoji-picker-element')) {
-              return 'emoji-libs';
-            }
-            if (id.includes('@dicebear')) {
-              return 'avatar-libs';
-            }
-            return 'vendor-deps'; // 其他依赖包
-          }
-          return undefined; // 添加默认返回值，避免语法错误
-        },
-      },
-    },
-    // 启用源码映射，提升调试体验，仅开发模式下推荐
-    sourcemap: false,
-    // 启用CSS代码分割
-    cssCodeSplit: true,
-    chunkSizeWarningLimit: 1000, // 增加警告阈值，单位为KB
-  },
-  resolve: {
-    alias: {
-      buffer: 'buffer', // 让 Vite 识别 buffer
-    },
-  },  // 优化开发服务器
-  server: {
-    hmr: true, // 热模块替换
-    open: true, // 自动打开浏览器
-  },
-  // 禁用不需要的功能以提高构建速度
-  optimizeDeps: {
-    include: ['buffer', 'aes-js', 'elliptic', 'js-chacha20', 'js-sha256', '@dicebear/core', '@dicebear/micah'], // 预构建这些依赖
-  },
+	root: 'web',
+	base: './',
+	plugins: [],
+	build: {
+		outDir: '../dist',
+		emptyOutDir: true,
+		minify: 'terser',
+		terserOptions: {
+			compress: {
+				drop_console: false,
+				drop_debugger: false
+			}
+		},
+		rollupOptions: {
+			input: 'web/index.html',
+			output: {
+				manualChunks: (id) => {
+					if (id.includes('node_modules')) {
+						if (/aes-js|elliptic|js-chacha20|js-sha256/.test(id)) {
+							return 'crypto-libs'
+						}
+						if (id.includes('buffer')) {
+							return 'vendor'
+						}
+						if (id.includes('emoji-picker-element')) {
+							return 'emoji-libs'
+						}
+						if (id.includes('@dicebear')) {
+							return 'avatar-libs'
+						}
+						return 'vendor-deps'
+					}
+					return undefined
+				},
+			},
+		},
+		sourcemap: false,
+		cssCodeSplit: true,
+		chunkSizeWarningLimit: 1000,
+	},
+	resolve: {
+		alias: {
+			buffer: 'buffer',
+		},
+	},
+	server: {
+		hmr: true,
+		open: true,
+	},
+	optimizeDeps: {
+		include: ['buffer', 'aes-js', 'elliptic', 'js-chacha20', 'js-sha256', '@dicebear/core', '@dicebear/micah'],
+	},
 });
