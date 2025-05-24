@@ -9,7 +9,7 @@ import { roomsData, activeRoomIndex, togglePrivateChat, exitRoom } from './room.
  */
 // 导入工具库
 import { escapeHTML } from './util.string.js';
-import { $, $$, $id, createElement, on, off, addClass, removeClass, toggleClass } from './util.dom.js';
+import { $id } from './util.dom.js';
 
 /**
  * 渲染主面板房间头部

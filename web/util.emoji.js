@@ -1,6 +1,6 @@
 // util.emoji.js
 // 使用emoji-picker-element库的表情选择器模块 (NPM模式)
-import { $, $$, createElement, on } from './util.dom.js';
+import { $, on } from './util.dom.js';
 import 'emoji-picker-element';
 
 // 添加emoji-picker元素的默认样式

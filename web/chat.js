@@ -2,7 +2,7 @@
 import { createAvatarSVG } from './util.avatar.js';
 import { roomsData, activeRoomIndex } from './room.js';
 import { escapeHTML, textToHTML } from './util.string.js';
-import { $, $$, $id, createElement, on, off, addClass, removeClass } from './util.dom.js';
+import { $, $id, createElement, on, addClass, removeClass } from './util.dom.js';
 
 /**
  * 渲染当前房间消息区
@@ -167,16 +167,6 @@ export function addSystemMsg(text, isHistory = false, timestamp = null) {
   
   chatArea.appendChild(div);
   chatArea.scrollTop = chatArea.scrollHeight;
-}
-
-/**
- * 清空聊天区域
- */
-export function clearChat() {
-  const chatArea = document.getElementById("chat-area");
-  if (chatArea) {
-    chatArea.innerHTML = "";
-  }
 }
 
 /**

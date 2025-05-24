@@ -2,8 +2,6 @@
 import { $, on, createElement } from './util.dom.js';
 
 export async function processImage(file, callback) {
-  // 检查webp支持
-  let webpSupported = await checkWebpSupport();
   const img = new Image();
   img.onload = function() {
     // 限制最大宽高
@@ -28,19 +26,6 @@ export async function processImage(file, callback) {
     img.src = e.target.result;
   };
   reader.readAsDataURL(file);
-}
-
-function checkWebpSupport() {
-  return new Promise(resolve => {
-    const img = new window.Image();
-    img.onload = function() {
-      resolve(img.width === 1);
-    };
-    img.onerror = function() {
-      resolve(false);
-    };
-    img.src = 'data:image/webp;base64,UklGRiIAAABXRUJQVlA4TAYAAAAvAAAAAAfQ//73v/+BiOh/AAA=';
-  });
 }
 
 // 国际化提示已移除，默认英文提示

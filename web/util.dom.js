@@ -59,17 +59,7 @@ export function createElement(tag, attrs = {}, content = '') {
   } else if (content instanceof Element) {
     el.appendChild(content);
   }
-  
-  return el;
-}
-
-/**
- * 设置元素样式
- * @param {Element} el - 目标元素
- * @param {Object} styles - 样式对象
- */
-export function setStyles(el, styles) {
-  Object.assign(el.style, styles);
+    return el;
 }
 
 /**

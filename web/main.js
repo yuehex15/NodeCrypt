@@ -5,42 +5,16 @@
 
 // 先导入加密库依赖模块
 import './NodeCrypt.js';
-
 // === 工具模块导入 ===
-import { processImage, setupImageSend } from './util.image.js';
+import {  setupImageSend } from './util.image.js';
 import { setupEmojiPicker } from './util.emoji.js';
 import { openSettingsPanel, closeSettingsPanel, initSettings, notifyMessage } from './util.settings.js';
-import { escapeHTML, textToHTML } from './util.string.js';
-import { $, $$, $id, on, off, addClass, removeClass } from './util.dom.js';
-
+import { $, $id, removeClass } from './util.dom.js';
 // === 核心功能模块导入 ===
-import { 
-  roomsData, 
-  activeRoomIndex, 
-  getNewRoomData, 
-  joinRoom, 
-  togglePrivateChat, 
-  setStatus 
-} from './room.js';
-import { 
-  renderChatArea, 
-  addMsg, 
-  addSystemMsg, 
-  setupImagePreview, 
-  updateChatInputStyle, 
-  setupInputPlaceholder 
-} from './chat.js';
+import { roomsData, activeRoomIndex, joinRoom } from './room.js';
+import { addMsg, addSystemMsg, setupImagePreview, setupInputPlaceholder } from './chat.js';
 // === 界面相关模块导入 ===
-import { 
-  renderUserList, 
-  renderMainHeader, 
-  setupMoreBtnMenu,
-  preventSpaceInput, 
-  loginFormHandler,
-  openLoginModal,
-  setupTabs,
-  autofillRoomPwd
-} from './ui.js';
+import { renderUserList, renderMainHeader, setupMoreBtnMenu, preventSpaceInput, loginFormHandler, openLoginModal, setupTabs, autofillRoomPwd } from './ui.js';
 
 // === 全局配置 ===
 
@@ -50,8 +24,8 @@ import {
  * debug: 是否开启调试模式
  */
 window.config = {
-  //wsAddress: 'ws://127.0.0.1:8088',
-  wsAddress: '/ws',
+  wsAddress: 'wss://crypt.works/ws',
+  //wsAddress: '/ws',
   debug: true
 };
 
@@ -222,24 +196,3 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
-
-// === 辅助函数 ===
-
-/**
- * 清空消息区域
- * 用于UI重置或切换房间
- */
-function clearChat() {
-  $id("chat-area").innerHTML = "";
-}
-
-/**
- * Telegram风格输入框自动增高
- * 随着用户输入内容增加，输入框自动调整高度
- */
-function autoGrowInput() {
-  const input = $('.input-message-input');
-  if (!input) return;
-  input.style.height = 'auto';
-  input.style.height = input.scrollHeight + 'px';
-}
