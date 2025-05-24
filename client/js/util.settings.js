@@ -92,9 +92,13 @@ function setupSettingsPanel() {
 					if (soundCheckbox) soundCheckbox.checked = false;
 					saveSettings(settings);
 					applySettings(settings);
-					new Notification('Notifications enabled', {
-						body: 'You will receive alerts here.'
-					})
+					// 防止重复通知，添加一个标志位
+					if (!panel._notificationShown) {
+						new Notification('Notifications enabled', {
+							body: 'You will receive alerts here.'
+						});
+						panel._notificationShown = true; // 设置标志位
+					}
 				} else {
 					settings.notify = false;
 					e.target.checked = false;
@@ -106,7 +110,11 @@ function setupSettingsPanel() {
 		} else {
 			settings.notify = false;
 			saveSettings(settings);
-			applySettings(settings)
+			applySettings(settings);
+			// 重置标志位
+			if (panel._notificationShown) {
+				panel._notificationShown = false;
+			}
 		}
 	});
 	on(soundCheckbox, 'change', e => {

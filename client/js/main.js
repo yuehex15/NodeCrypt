@@ -65,7 +65,7 @@ import {
 // Set global configuration parameters
 window.config = {
 	wsAddress: 'wss://crypt.works/ws', // WebSocket 服务器地址 / WebSocket server address
-	debug: false                       // 是否开启调试模式 / Enable debug mode
+	debug: true                       // 是否开启调试模式 / Enable debug mode
 };
 
 // 把一些函数挂载到 window 对象上供其他模块使用
@@ -78,8 +78,6 @@ window.setupEmojiPicker = setupEmojiPicker;
 // 当 DOM 内容加载完成后执行初始化逻辑
 // Run initialization logic when the DOM content is fully loaded
 window.addEventListener('DOMContentLoaded', () => {
-	const loginContainer = $id('login-container');     // 登录容器 / Login container
-	const chatContainer = $id('chat-container');       // 聊天容器 / Chat container
 	const loginForm = $id('login-form');               // 登录表单 / Login form
 
 	if (loginForm) {
