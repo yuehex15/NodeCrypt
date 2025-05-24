@@ -13,7 +13,7 @@ export default defineConfig({
     terserOptions: {
       compress: {
         drop_console: false, // 保留生产环境中的console语句
-        drop_debugger: true
+        drop_debugger: false
       }
     },
     rollupOptions: {
