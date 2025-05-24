@@ -4,7 +4,7 @@ import {
 export default defineConfig({
 	// Root directory
 	// 根目录
-	root: 'web',
+	root: 'client',
 	// Base URL
 	// 基础 URL
 	base: './',
@@ -37,10 +37,9 @@ export default defineConfig({
 		},
 		// Rollup options
 		// Rollup 选项
-		rollupOptions: {
-			// Input file
+		rollupOptions: {			// Input file
 			// 输入文件
-			input: 'web/index.html',
+			input: 'client/index.html',
 			// Output options
 			// 输出选项
 			output: {

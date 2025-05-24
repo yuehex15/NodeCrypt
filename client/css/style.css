@@ -330,11 +330,10 @@ body {
 	flex: 2.5;
 }
 
-.main::before {
-	content: "";
+.main::before {	content: "";
 	position: absolute;
 	inset: 0;
-	background: url(./wallpaper.png) left top / auto 100% no-repeat;
+	background: url(../assets/wallpaper.png) left top / auto 100% no-repeat;
 	opacity: 0.15;
 	mix-blend-mode: multiply;
 	pointer-events: none;

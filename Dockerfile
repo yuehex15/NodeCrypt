@@ -31,7 +31,7 @@ RUN npm ci --no-audit || npm install --no-audit
 # Copy source code and configuration files
 # 复制源代码和配置文件
 COPY vite.config.js ./
-COPY web/ ./web/
+COPY client/ ./client/
 
 # Build the frontend
 # 构建前端
@@ -44,7 +44,7 @@ FROM docker.1ms.run/alpine:3.16
 # Install minimal Node.js and Nginx
 # 安装最小化版本的 Node.js 和 Nginx
 RUN apk add --no-cache nodejs nginx && \
-    mkdir -p /app/server /app/web /run/nginx && \
+    mkdir -p /app/server /app/client /run/nginx && \
     # Clean up apk cache
     # 清理 apk 缓存
     rm -rf /var/cache/apk/*
@@ -55,7 +55,7 @@ COPY --from=backend-builder /app/server/node_modules /app/server/node_modules
 COPY --from=backend-builder /app/server/*.js /app/server/
 # Copy built frontend files from the frontend build stage
 # 从前端构建阶段复制构建好的文件，而不是复制 dist 目录
-COPY --from=frontend-builder /app/dist/ /app/web/
+COPY --from=frontend-builder /app/dist/ /app/client/
 
 # Optimized Nginx configuration
 # 优化的 Nginx 配置
@@ -91,12 +91,10 @@ http {
 
     server {
         listen 80;
-        server_name localhost;
-
-        # Serve static files
+        server_name localhost;        # Serve static files
         # 提供静态文件服务
         location / {
-            root /app/web;
+            root /app/client;
             index index.html;
             try_files $uri $uri/ /index.html;
         }
