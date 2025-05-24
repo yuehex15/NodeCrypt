@@ -140,7 +140,7 @@ export function createUserItem(user, isMe) {
 }
 
 // Setup the 'more' button menu
-// 设置“更多”按钮菜单
+// 设置"更多"按钮菜单
 export function setupMoreBtnMenu() {
 	const btn = $id('more-btn');
 	const menu = $id('more-menu');
@@ -150,9 +150,11 @@ export function setupMoreBtnMenu() {
 	// Open the menu
 	// 打开菜单
 	function openMenu() {
-		menu.classList.remove('close');
-		menu.classList.add('open');
 		menu.style.display = 'block';
+		menu.classList.remove('close');
+		// 强制触发重绘，然后添加打开动画
+		menu.offsetHeight; // 强制重绘
+		menu.classList.add('open');
 	}
 
 	// Close the menu
@@ -165,7 +167,7 @@ export function setupMoreBtnMenu() {
 		setTimeout(() => {
 			if (menu.classList.contains('close')) menu.style.display = 'none';
 			animating = false;
-		}, 180);
+		}, 300);
 	}
 	btn.onclick = function(e) {
 		e.stopPropagation();

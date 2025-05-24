@@ -19,6 +19,7 @@ body {
 	display: flex;
 	flex-direction: column;
 	box-shadow: 2px 0 8px #e0e0e0a0;
+	transition: width 0.3s ease;
 }
 
 .sidebar-user {
@@ -40,6 +41,7 @@ body {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	transition: background-color 0.2s ease;
 }
 
 .settings-btn:hover {
@@ -73,8 +75,9 @@ body {
 	flex-direction: column;
 	gap: 10px;
 	pointer-events: auto;
-	opacity: 1;
-	transform: translateY(0) scale(1);
+	opacity: 0;
+	transform: translateY(-10px) scale(0.95);
+	transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .settings-panel-card.open-anim {
@@ -84,7 +87,7 @@ body {
 
 .settings-panel-card.close-anim {
 	opacity: 0;
-	transform: translateY(-16px) scale(0.98);
+	transform: translateY(-10px) scale(0.95);
 }
 
 .settings-title {
@@ -111,6 +114,7 @@ body {
 	padding: 4px 10px;
 	background: #fafbfc;
 	outline: none;
+	transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .settings-item select:focus {
@@ -140,6 +144,7 @@ body {
 	bottom: 0;
 	background: #e0e0e0;
 	border-radius: 22px;
+	transition: background-color 0.3s ease;
 }
 
 .slider:before {
@@ -152,6 +157,7 @@ body {
 	background: #fff;
 	border-radius: 50%;
 	box-shadow: 0 1px 4px #0001;
+	transition: transform 0.3s ease;
 }
 
 .switch input:checked+.slider {
@@ -174,6 +180,7 @@ body {
 	z-index: 3;
 	line-height: 1;
 	border-radius: 50%;
+	transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .settings-close:hover {
@@ -193,6 +200,7 @@ body {
 	letter-spacing: 1px;
 	cursor: pointer;
 	user-select: none;
+	transition: background-color 0.2s ease;
 }
 
 .sidebar .join-room input,
@@ -222,6 +230,7 @@ body {
 	box-sizing: border-box;
 	position: relative;
 	box-shadow: none;
+	transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .room.active {
@@ -286,23 +295,22 @@ body {
 	z-index: 2;
 	user-select: none;
 	pointer-events: none;
+	transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
 .room:not(.active) .room-unread-badge {
-	animation: badge-pop 0.22s cubic-bezier(.4, 1.6, .6, 1) 1;
+	animation: badge-pop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 @keyframes badge-pop {
 	0% {
-		transform: scale(0.7) translateY(-50%);
-		opacity: 0.5;
+		transform: scale(0.3) translateY(-50%);
+		opacity: 0;
 	}
-
-	80% {
-		transform: scale(1.15) translateY(-50%);
+	50% {
+		transform: scale(1.1) translateY(-50%);
 		opacity: 1;
 	}
-
 	100% {
 		transform: scale(1) translateY(-50%);
 		opacity: 1;
@@ -554,10 +562,15 @@ body {
 	align-items: center;
 	justify-content: center;
 	border-radius: 50%;
+	transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
 .btn-icon.toggle-emoticons:hover {
 	background: #f5f5f5;
+}
+
+.btn-icon.toggle-emoticons:active {
+	transform: scale(0.95);
 }
 
 .chat-emoji-btn {
@@ -571,12 +584,17 @@ body {
 	margin: 0px 10px 3px 10px;
 	padding-left: unset;
 	padding-right: unset;
+	transition: color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
 }
 
 .chat-emoji-btn:hover {
 	color: #007bff;
 	background: #f5f5f5;
 	border-radius: 50%;
+}
+
+.chat-emoji-btn:active {
+	transform: scale(0.95);
 }
 
 .btn-icon.rp.btn-menu-toggle {
@@ -591,6 +609,7 @@ body {
 	justify-content: center;
 	cursor: pointer;
 	overflow: hidden;
+	transition: background-color 0.2s ease;
 }
 
 .btn-icon.rp.btn-menu-toggle:hover {
@@ -609,6 +628,7 @@ body {
 	opacity: 0;
 	transform: scale(0.5);
 	z-index: 1;
+	transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .btn-icon.rp.btn-menu-toggle:active .c-ripple {
@@ -669,6 +689,7 @@ body {
 	display: flex;
 	align-items: center;
 	opacity: 1;
+	transition: opacity 0.2s ease;
 }
 
 .input-message-input:not(:empty)+.input-field-placeholder {
@@ -701,10 +722,15 @@ body {
 	position: relative;
 	overflow: hidden;
 	gap: 3px;
+	transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
 .more-btn:hover {
 	background: #f5f5f5;
+}
+
+.more-btn:active {
+	transform: scale(0.95);
 }
 
 .more-menu {
@@ -729,19 +755,21 @@ body {
 	transform: var(--transform-extra);
 	opacity: 0;
 	pointer-events: none;
+	transform: translateY(-10px) scale(0.95);
+	transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .more-menu.open {
 	display: block;
 	opacity: 1;
 	pointer-events: auto;
-	transform: translateY(0);
+	transform: translateY(0) scale(1);
 }
 
 .more-menu.close {
 	opacity: 0;
 	pointer-events: none;
-	transform: translateY(-10px);
+	transform: translateY(-10px) scale(0.95);
 }
 
 .more-menu-item {
@@ -751,10 +779,12 @@ body {
 	font-size: 15px;
 	color: #222;
 	margin: 5px 5px;
+	transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
 .more-menu-item:hover {
 	background: #f5f5f5;
+	transform: translateX(2px);
 }
 
 .rightbar {
@@ -764,6 +794,7 @@ body {
 	display: flex;
 	flex-direction: column;
 	box-shadow: -2px 0 8px #e0e0e0a0;
+	transition: width 0.3s ease;
 }
 
 .rightbar-header {
@@ -811,6 +842,7 @@ body {
 	border-bottom: 1px solid #f3f3f3;
 	border-radius: 8px 8px 0 0;
 	margin-right: 8px;
+	transition: background-color 0.2s ease, color 0.2s ease, border-bottom-color 0.2s ease;
 }
 
 .rightbar .tabs .active {
@@ -832,10 +864,12 @@ body {
 	padding: 10px 18px;
 	border-radius: 8px;
 	margin: 6px 8px;
+	transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
 .member:hover {
 	background: #f5f5f5;
+	transform: translateX(2px);
 }
 
 .member .member-info {
@@ -924,11 +958,13 @@ body {
 	font-size: 1.1rem;
 	outline: none;
 	background: #fafbfc;
+	transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .input-group input:focus {
 	border-color: #30a8f7;
 	background: #fff;
+	box-shadow: 0 0 0 3px rgba(48, 168, 247, 0.1);
 }
 
 .login-btn {
@@ -942,11 +978,17 @@ body {
 	padding: 14px 0;
 	cursor: pointer;
 	letter-spacing: 1px;
+	transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .login-btn:hover,
 .login-btn:focus {
 	background: #2196e3;
+	box-shadow: 0 4px 12px rgba(48, 168, 247, 0.3);
+}
+
+.login-btn:active {
+	transform: translateY(1px);
 }
 
 .login-modal {
@@ -1001,10 +1043,12 @@ body {
 	cursor: pointer;
 	z-index: 3;
 	line-height: 1;
+	transition: color 0.2s ease, transform 0.2s ease;
 }
 
 .login-modal-close:hover {
 	color: #30a8f7;
+	transform: scale(1.1);
 }
 
 .avatar {
@@ -1099,11 +1143,13 @@ body {
 	z-index: 10000;
 	line-height: 1;
 	box-shadow: none;
+	transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
 .img-modal-close:hover {
 	background: rgba(80, 80, 80, 0.25);
 	color: #fff;
+	transform: scale(1.1);
 }
 
 .bubble.system {
@@ -1150,6 +1196,12 @@ body {
 	right: -20px;
 	top: 50%;
 	transform: translateY(-50%);
+	transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.chat-attach-btn-abs:hover {
+	transform: translateY(-50%) scale(1.1);
+	color: #30a8f7;
 }
 
 .input-message-input-init {
@@ -1282,6 +1334,7 @@ body {
 		height: 100dvh;
 		background: #fff;
 		box-shadow: 2px 0 16px #0002;
+		transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 	}
 
 	.sidebar {
@@ -1336,6 +1389,7 @@ body {
 		opacity: 1;
 		will-change: transform, opacity;
 		color: #707070;
+		transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 	}
 
 	.mobile-menu-btn:active,
@@ -1351,6 +1405,7 @@ body {
 
 .member.private-chat-active {
 	background-color: #e0d0ff !important;
+	transition: background-color 0.2s ease;
 }
 
 .member.private-chat-active:hover {
@@ -1359,6 +1414,7 @@ body {
 
 .chat-input-area.private-mode .chat-input-wrapper::before {
 	background-color: #f0e8ff !important;
+	transition: background-color 0.3s ease;
 }
 
 .bubble.other.private-message {

@@ -11,7 +11,7 @@ const addEmojiPickerStyles = () => {
 	if (document.querySelector('#emoji-picker-styles')) return;
 	const style = document.createElement('style');
 	style.id = 'emoji-picker-styles';
-	style.textContent = `emoji-picker{--background:#fff;--border-color:rgba(0,0,0,0.1);--border-radius:10px;--emoji-padding:0.4rem;--category-emoji-size:1.2rem;--font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;position:absolute;bottom:60px;left:22px;z-index:5;box-shadow:0 3px 12px rgba(0,0,0,0.15);width:320px;display:none}`;
+	style.textContent = `emoji-picker{--background:#fff;--border-color:rgba(0,0,0,0.1);--border-radius:10px;--emoji-padding:0.4rem;--category-emoji-size:1.2rem;--font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;position:absolute;bottom:60px;left:22px;z-index:5;box-shadow:0 3px 12px rgba(0,0,0,0.15);width:320px;display:none;opacity:0;transform:translateY(-10px) scale(0.95);transition:opacity 0.3s ease,transform 0.3s ease}emoji-picker.show{opacity:1;transform:translateY(0) scale(1)}`;
 	document.head.appendChild(style)
 };
 // Setup emoji picker for chat input
@@ -35,19 +35,38 @@ export function setupEmojiPicker({
 		// 监听 emoji 点击事件
 		picker.addEventListener('emoji-click', event => {
 			insertEmoji(input, event.detail.unicode);
-			picker.style.display = 'none'
+			hidePickerWithAnimation();
 		});
+		
+		function showPickerWithAnimation() {
+			picker.style.display = 'block';
+			// 强制触发重绘，然后添加打开动画
+			picker.offsetHeight; // 强制重绘
+			picker.classList.add('show');
+		}
+		
+		function hidePickerWithAnimation() {
+			picker.classList.remove('show');
+			setTimeout(() => {
+				picker.style.display = 'none';
+			}, 300);
+		}
+		
 		// Button click toggles picker
 		// 按钮点击切换选择器显示
 		on(btn, 'click', (ev) => {
 			ev.stopPropagation();
-			picker.style.display = picker.style.display === 'none' ? 'block' : 'none'
+			if (picker.style.display === 'none') {
+				showPickerWithAnimation();
+			} else {
+				hidePickerWithAnimation();
+			}
 		});
 		// Hide picker when clicking outside
 		// 点击外部隐藏选择器
 		on(document, 'click', (ev) => {
 			if (!picker.contains(ev.target) && ev.target !== btn) {
-				picker.style.display = 'none'
+				hidePickerWithAnimation();
 			}
 		});
 		console.log('Emoji picker initialized successfully')

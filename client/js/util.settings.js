@@ -145,6 +145,8 @@ function openSettingsPanel() {
 	card.style.top = (btnRect.bottom + 8) + 'px';
 	card.style.transform = 'translateX(0)';
 	removeClass(card, 'close-anim');
+	// 强制触发重绘，然后添加打开动画
+	card.offsetHeight; // 强制重绘
 	addClass(card, 'open-anim');
 }
 
@@ -160,7 +162,7 @@ function closeSettingsPanel() {
 	setTimeout(() => {
 		panel.style.display = 'none';
 		removeClass(card, 'close-anim')
-	}, 180)
+	}, 300)
 }
 
 // Initialize settings on page load
