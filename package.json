@@ -31,6 +31,7 @@
     "@dicebear/micah": "^9.2.2",
     "aes-js": "^3.1.2",
     "buffer": "^6.0.3",
+    "dompurify": "^3.2.6",
     "elliptic": "^6.6.1",
     "emoji-picker-element": "^1.26.3",
     "js-chacha20": "^1.1.0",
