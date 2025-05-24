@@ -1,3 +1,5 @@
+// Import DOM utility functions
+// 导入 DOM 工具函数
 import {
 	$,
 	$$,
@@ -8,11 +10,15 @@ import {
 	addClass,
 	removeClass
 } from './util.dom.js';
+// Default settings
+// 默认设置
 const DEFAULT_SETTINGS = {
 	notify: false,
 	sound: false
 };
 
+// Load settings from localStorage
+// 从 localStorage 加载设置
 function loadSettings() {
 	let s = localStorage.getItem('settings');
 	try {
@@ -26,6 +32,8 @@ function loadSettings() {
 	}
 }
 
+// Save settings to localStorage
+// 保存设置到 localStorage
 function saveSettings(settings) {
 	const {
 		notify,
@@ -37,10 +45,14 @@ function saveSettings(settings) {
 	}))
 }
 
+// Apply settings to the document
+// 应用设置到文档
 function applySettings(settings) {
 	document.documentElement.lang = 'en'
 }
 
+// Ask for browser notification permission
+// 请求浏览器通知权限
 function askNotificationPermission(callback) {
 	if (Notification.requestPermission.length === 0) {
 		Notification.requestPermission().then(callback)
@@ -49,6 +61,8 @@ function askNotificationPermission(callback) {
 	}
 }
 
+// Setup the settings panel UI
+// 设置设置面板 UI
 function setupSettingsPanel() {
 	let panel = $id('settings-panel');
 	if (!panel) {
@@ -99,13 +113,15 @@ function setupSettingsPanel() {
 		settings.sound = e.target.checked;
 		if (settings.sound) {
 			settings.notify = false;
-			if (notifyCheckbox) notifyCheckbox.checked = false
+			if (notifyCheckbox) notifyCheckbox.checked = false;
 		}
 		saveSettings(settings);
 		applySettings(settings)
-	})
+	});
 }
 
+// Open the settings panel
+// 打开设置面板
 function openSettingsPanel() {
 	setupSettingsPanel();
 	const panel = $id('settings-panel');
@@ -129,6 +145,7 @@ function openSettingsPanel() {
 		const mx = ev.clientX,
 			my = ev.clientY;
 		const inCard = mx >= cardRect.left - safe && mx <= cardRect.right + safe && my >= cardRect.top - safe && my <= cardRect.bottom + safe;
+		const btnRect = btn.getBoundingClientRect();
 		const inBtn = mx >= btnRect.left - safe && mx <= btnRect.right + safe && my >= btnRect.top - safe && my <= btnRect.bottom + safe;
 		if (!inCard && !inBtn) {
 			closeSettingsPanel()
@@ -152,6 +169,8 @@ function openSettingsPanel() {
 	panel._unbind = unbindMouseMove
 }
 
+// Close the settings panel
+// 关闭设置面板
 function closeSettingsPanel() {
 	const panel = $id('settings-panel');
 	if (!panel) return;
@@ -166,16 +185,25 @@ function closeSettingsPanel() {
 	}, 180)
 }
 
+// Initialize settings on page load
+// 页面加载时初始化设置
 function initSettings() {
 	const settings = loadSettings();
 	applySettings(settings)
 }
+
+// Maximum notification text length
+// 通知文本最大长度
 const MAX_NOTIFY_TEXT_LEN = 100;
 
+// Truncate text for notifications
+// 截断通知文本
 function truncateText(text) {
 	return text.length > MAX_NOTIFY_TEXT_LEN ? text.slice(0, MAX_NOTIFY_TEXT_LEN) + '...' : text
 }
 
+// Play sound notification
+// 播放声音通知
 function playSoundNotification() {
 	try {
 		const ctx = new(window.AudioContext || window.webkitAudioContext)();
@@ -195,6 +223,8 @@ function playSoundNotification() {
 	}
 }
 
+// Show desktop notification
+// 显示桌面通知
 function showDesktopNotification(roomName, text, msgType, sender) {
 	if (!('Notification' in window) || Notification.permission !== 'granted') return;
 	let body;
@@ -216,6 +246,9 @@ function showDesktopNotification(roomName, text, msgType, sender) {
 		body
 	})
 }
+
+// Notify message entry point
+// 通知消息主入口
 export function notifyMessage(roomName, msgType, text, sender) {
 	const settings = loadSettings();
 	if (settings.notify) {

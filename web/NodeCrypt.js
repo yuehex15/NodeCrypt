@@ -1,4 +1,7 @@
-﻿import {
+﻿// NodeCrypt core cryptographic client for secure chat
+// NodeCrypt 安全聊天的核心加密客户端
+
+import {
 	sha256
 } from 'js-sha256';
 import {
@@ -12,7 +15,12 @@ import {
 	Buffer
 } from 'buffer';
 window.Buffer = Buffer;
+
+// Main NodeCrypt class for secure communication
+// 用于安全通信的 NodeCrypt 主类
 class NodeCrypt {
+	// Initialize NodeCrypt instance
+	// 初始化 NodeCrypt 实例
 	constructor(config = {}, callbacks = {}) {
 		this.config = {
 			rsaPublic: config.rsaPublic || '',
@@ -63,6 +71,9 @@ class NodeCrypt {
 		this.encryptClientMessage = this.encryptClientMessage.bind(this);
 		this.decryptClientMessage = this.decryptClientMessage.bind(this)
 	}
+
+	// Set user credentials (username, channel, password)
+	// 设置用户凭证（用户名、频道、密码）
 	setCredentials(username, channel, password) {
 		this.logEvent('setCredentials');
 		try {
@@ -77,6 +88,9 @@ class NodeCrypt {
 		}
 		return (true)
 	}
+
+	// Connect to the server
+	// 连接到服务器
 	connect() {
 		if (!this.credentials) {
 			return (false)
@@ -99,6 +113,9 @@ class NodeCrypt {
 		}
 		return (true)
 	}
+
+	// Clean up and disconnect
+	// 清理并断开连接
 	destruct() {
 		this.logEvent('destruct');
 		this.stopReconnect();
@@ -139,6 +156,9 @@ class NodeCrypt {
 		this.channel = {};
 		return (true)
 	}
+
+	// WebSocket open event handler
+	// WebSocket 连接打开事件处理
 	async onOpen() {
 		this.logEvent('onOpen');
 		this.startPing();
@@ -153,6 +173,9 @@ class NodeCrypt {
 			this.logEvent('onOpen', error, 'error')
 		}
 	}
+
+	// WebSocket message event handler
+	// WebSocket 消息事件处理
 	async onMessage(event) {
 		if (!event || !this.isString(event.data)) {
 			return
@@ -330,6 +353,9 @@ class NodeCrypt {
 			}
 		}
 	}
+
+	// WebSocket error event handler
+	// WebSocket 错误事件处理
 	async onError(event) {
 		this.logEvent('onError', event, 'error');
 		this.disconnect();
@@ -344,6 +370,9 @@ class NodeCrypt {
 			}
 		}
 	}
+
+	// WebSocket close event handler
+	// WebSocket 关闭事件处理
 	async onClose(event) {
 		this.logEvent('onClose', event);
 		this.disconnect();
@@ -358,6 +387,9 @@ class NodeCrypt {
 			}
 		}
 	}
+
+	// Log events for debugging
+	// 记录事件日志用于调试
 	logEvent(source, message, level) {
 		if (this.config.debug) {
 			const date = new Date(),
@@ -365,12 +397,21 @@ class NodeCrypt {
 			console.log('[' + dateString + ']', (level ? level.toUpperCase() : 'INFO'), source + (message ? ':' : ''), (message ? message : ''))
 		}
 	}
+
+	// Check if connection is open
+	// 检查连接是否已打开
 	isOpen() {
 		return (this.connection && this.connection.readyState && this.connection.readyState === WebSocket.OPEN ? true : false)
 	}
+
+	// Check if connection is closed
+	// 检查连接是否已关闭
 	isClosed() {
 		return (!this.connection || !this.connection.readyState || this.connection.readyState === WebSocket.CLOSED ? true : false)
 	}
+
+	// Start reconnect timer
+	// 启动重连定时器
 	startReconnect() {
 		this.stopReconnect();
 		this.logEvent('startReconnect');
@@ -379,6 +420,9 @@ class NodeCrypt {
 			this.connect()
 		}, this.config.reconnectDelay)
 	}
+
+	// Stop reconnect timer
+	// 停止重连定时器
 	stopReconnect() {
 		if (this.reconnect) {
 			this.logEvent('stopReconnect');
@@ -386,6 +430,9 @@ class NodeCrypt {
 			this.reconnect = null
 		}
 	}
+
+	// Start ping timer
+	// 启动心跳定时器
 	startPing() {
 		this.stopPing();
 		this.logEvent('startPing');
@@ -393,6 +440,9 @@ class NodeCrypt {
 			this.sendMessage('ping')
 		}, this.config.pingInterval)
 	}
+
+	// Stop ping timer
+	// 停止心跳定时器
 	stopPing() {
 		if (this.ping) {
 			this.logEvent('stopPing');
@@ -400,6 +450,9 @@ class NodeCrypt {
 			this.ping = null
 		}
 	}
+
+	// Disconnect from server
+	// 从服务器断开连接
 	disconnect() {
 		this.stopReconnect();
 		this.stopPing();
@@ -412,6 +465,9 @@ class NodeCrypt {
 			}
 		}
 	}
+
+	// Send a message to the server
+	// 向服务器发送消息
 	sendMessage(message) {
 		try {
 			if (this.isOpen()) {
@@ -423,6 +479,9 @@ class NodeCrypt {
 		}
 		return (false)
 	}
+
+	// Send a message to all channels
+	// 向所有频道发送消息
 	sendChannelMessage(type, data) {
 		if (this.serverShared) {
 			try {
@@ -456,6 +515,9 @@ class NodeCrypt {
 		}
 		return (false)
 	}
+
+	// Encrypt a message for the server
+	// 加密发送给服务器的消息
 	encryptServerMessage(message, key) {
 		let encrypted = '';
 		try {
@@ -471,6 +533,9 @@ class NodeCrypt {
 		}
 		return (encrypted)
 	}
+
+	// Decrypt a message from the server
+	// 解密来自服务器的消息
 	decryptServerMessage(message, key) {
 		let decrypted = {};
 		try {
@@ -482,6 +547,9 @@ class NodeCrypt {
 		}
 		return (decrypted)
 	}
+
+	// Encrypt a message for a client
+	// 加密发送给客户端的消息
 	encryptClientMessage(message, key) {
 		let encrypted = '';
 		try {
@@ -498,6 +566,9 @@ class NodeCrypt {
 		}
 		return (encrypted)
 	}
+
+	// Decrypt a message from a client
+	// 解密来自客户端的消息
 	decryptClientMessage(message, key) {
 		let decrypted = {};
 		try {
@@ -509,6 +580,9 @@ class NodeCrypt {
 		}
 		return (decrypted)
 	}
+
+	// XOR two hex strings
+	// 对两个十六进制字符串进行异或
 	xorHex(a, b) {
 		let result = '',
 			hexLength = Math.min(a.length, b.length);
@@ -517,15 +591,27 @@ class NodeCrypt {
 		}
 		return (result)
 	}
+
+	// Check if value is a string
+	// 检查值是否为字符串
 	isString(value) {
 		return (value && Object.prototype.toString.call(value) === '[object String]' ? true : false)
 	}
+
+	// Check if value is an array
+	// 检查值是否为数组
 	isArray(value) {
 		return (value && Object.prototype.toString.call(value) === '[object Array]' ? true : false)
 	}
+
+	// Check if value is an object
+	// 检查值是否为对象
 	isObject(value) {
 		return (value && Object.prototype.toString.call(value) === '[object Object]' ? true : false)
 	}
+
+	// Handle server public key
+	// 处理服务器公钥
 	async handleServerKey(serverKey) {
 		this.logEvent('handleServerKey', 'Received server key');
 		localStorage.removeItem(this.SERVER_KEY_STORAGE);
@@ -534,6 +620,7 @@ class NodeCrypt {
 		return true
 	}
 };
+
 if (typeof window !== 'undefined') {
 	window.NodeCrypt = NodeCrypt
 }

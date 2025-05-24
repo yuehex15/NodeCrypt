@@ -1,3 +1,6 @@
+// Room management logic for NodeCrypt web client
+// NodeCrypt 网页客户端的房间管理逻辑
+
 import {
 	createAvatarSVG
 } from './util.avatar.js';
@@ -19,6 +22,9 @@ import {
 } from './util.dom.js';
 let roomsData = [];
 let activeRoomIndex = -1;
+
+// Get a new room data object
+// 获取一个新的房间数据对象
 export function getNewRoomData() {
 	return {
 		roomName: '',
@@ -35,6 +41,9 @@ export function getNewRoomData() {
 		privateChatTargetName: null
 	}
 }
+
+// Switch to another room by index
+// 切换到指定索引的房间
 export function switchRoom(index) {
 	if (index < 0 || index >= roomsData.length) return;
 	activeRoomIndex = index;
@@ -49,6 +58,9 @@ export function switchRoom(index) {
 	renderChatArea();
 	updateChatInputStyle()
 }
+
+// Set the sidebar avatar
+// 设置侧边栏头像
 export function setSidebarAvatar(userName) {
 	if (!userName) return;
 	const svg = createAvatarSVG(userName);
@@ -58,6 +70,9 @@ export function setSidebarAvatar(userName) {
 		el.innerHTML = cleanSvg
 	}
 }
+
+// Render the room list
+// 渲染房间列表
 export function renderRooms(activeId = 0) {
 	const roomList = $id('room-list');
 	roomList.innerHTML = '';
@@ -75,6 +90,9 @@ export function renderRooms(activeId = 0) {
 		roomList.appendChild(div)
 	})
 }
+
+// Join a room
+// 加入一个房间
 export function joinRoom(userName, roomName, password, modal = null, onResult) {
 	const newRd = getNewRoomData();
 	newRd.roomName = roomName;
@@ -120,6 +138,9 @@ export function joinRoom(userName, roomName, password, modal = null, onResult) {
 	chatInst.connect();
 	roomsData[idx].chat = chatInst
 }
+
+// Handle the client list update
+// 处理客户端列表更新
 export function handleClientList(idx, list, selfId) {
 	const rd = roomsData[idx];
 	if (!rd) return;
@@ -146,6 +167,9 @@ export function handleClientList(idx, list, selfId) {
 		rd.knownUserIds = new Set(list.map(u => u.clientId))
 	}
 }
+
+// Handle client secured event
+// 处理客户端安全连接事件
 export function handleClientSecured(idx, user) {
 	const rd = roomsData[idx];
 	if (!rd) return;
@@ -178,6 +202,9 @@ export function handleClientSecured(idx, user) {
 		}
 	}
 }
+
+// Handle client left event
+// 处理客户端离开事件
 export function handleClientLeft(idx, clientId) {
 	const rd = roomsData[idx];
 	if (!rd) return;
@@ -203,6 +230,9 @@ export function handleClientLeft(idx, clientId) {
 		renderMainHeader()
 	}
 }
+
+// Handle client message event
+// 处理客户端消息事件
 export function handleClientMessage(idx, msg) {
 	const newRd = roomsData[idx];
 	if (!newRd) return;
@@ -239,6 +269,9 @@ export function handleClientMessage(idx, msg) {
 		renderChatArea()
 	}
 }
+
+// Toggle private chat with a user
+// 切换与某用户的私聊
 export function togglePrivateChat(targetId, targetName) {
 	const rd = roomsData[activeRoomIndex];
 	if (!rd) return;
@@ -252,6 +285,9 @@ export function togglePrivateChat(targetId, targetName) {
 	renderUserList();
 	updateChatInputStyle()
 }
+
+// Set the status bar text
+// 设置状态栏文本
 export function setStatus(text) {
 	let statusBar = $id('status-bar');
 	if (!statusBar) {
@@ -263,6 +299,9 @@ export function setStatus(text) {
 	}
 	statusBar.innerText = text
 }
+
+// Exit the current room
+// 退出当前房间
 export function exitRoom() {
 	if (activeRoomIndex >= 0 && roomsData[activeRoomIndex]) {
 		const chatInst = roomsData[activeRoomIndex].chat;
@@ -282,6 +321,7 @@ export function exitRoom() {
 	}
 	return false
 }
+
 export {
 	roomsData,
 	activeRoomIndex

@@ -1,3 +1,5 @@
+// Import necessary modules
+// 导入必要的模块
 import {
 	createAvatarSVG
 } from './util.avatar.js';
@@ -17,6 +19,9 @@ import {
 	addClass,
 	removeClass
 } from './util.dom.js';
+
+// Render the chat area
+// 渲染聊天区域
 export function renderChatArea() {
 	const chatArea = $id('chat-area');
 	if (!chatArea) return;
@@ -31,6 +36,9 @@ export function renderChatArea() {
 		else addOtherMsg(m.text, m.userName, m.avatar, true, m.msgType || 'text', m.timestamp)
 	})
 }
+
+// Add a message to the chat area
+// 添加消息到聊天区域
 export function addMsg(text, isHistory = false, msgType = 'text', timestamp = null) {
 	let ts = isHistory ? timestamp : (timestamp || Date.now());
 	if (!ts) return;
@@ -60,6 +68,9 @@ export function addMsg(text, isHistory = false, msgType = 'text', timestamp = nu
 	chatArea.appendChild(div);
 	chatArea.scrollTop = chatArea.scrollHeight
 }
+
+// Add a message from another user to the chat area
+// 添加来自其他用户的消息到聊天区域
 export function addOtherMsg(msg, userName = '', avatar = '', isHistory = false, msgType = 'text', timestamp = null) {
 	if (!userName && activeRoomIndex >= 0) {
 		const rd = roomsData[activeRoomIndex];
@@ -109,6 +120,9 @@ export function addOtherMsg(msg, userName = '', avatar = '', isHistory = false, 
 	chatArea.appendChild(bubbleWrap);
 	chatArea.scrollTop = chatArea.scrollHeight
 }
+
+// Add a system message to the chat area
+// 添加系统消息到聊天区域
 export function addSystemMsg(text, isHistory = false, timestamp = null) {
 	if (!isHistory && activeRoomIndex >= 0) {
 		const ts = timestamp || Date.now();
@@ -127,6 +141,9 @@ export function addSystemMsg(text, isHistory = false, timestamp = null) {
 	chatArea.appendChild(div);
 	chatArea.scrollTop = chatArea.scrollHeight
 }
+
+// Update the style of the chat input area
+// 更新聊天输入区域的样式
 export function updateChatInputStyle() {
 	const rd = roomsData[activeRoomIndex];
 	const chatInputArea = $('.chat-input-area');
@@ -145,6 +162,9 @@ export function updateChatInputStyle() {
 	const html = inputMessageInput.innerHTML.replace(/<br\s*\/?>(\s*)?/gi, '').replace(/&nbsp;/g, '').replace(/\u200B/g, '').trim();
 	placeholder.style.opacity = (html === '') ? '1' : '0'
 }
+
+// Setup image preview functionality
+// 设置图片预览功能
 export function setupImagePreview() {
 	on($id('chat-area'), 'click', function(e) {
 		const target = e.target;
@@ -153,6 +173,9 @@ export function setupImagePreview() {
 		}
 	})
 }
+
+// Show the image modal
+// 显示图片模态框
 export function showImageModal(src) {
 	const modal = createElement('div', {
 		class: 'img-modal-bg'
@@ -230,6 +253,9 @@ export function showImageModal(src) {
 	on($('.img-modal-close', modal), 'click', cleanup);
 	updateTransform()
 }
+
+// Automatically adjust the height of the input area
+// 自动调整输入区域的高度
 export function autoGrowInput() {
 	const input = $('.input-message-input');
 	if (!input) return;
@@ -237,6 +263,8 @@ export function autoGrowInput() {
 	input.style.height = input.scrollHeight + 'px'
 }
 
+// Handle pasting text as plain text
+// 处理粘贴为纯文本
 function handlePasteAsPlainText(element) {
 	if (!element) return;
 	on(element, 'paste', function(e) {
@@ -262,6 +290,9 @@ function handlePasteAsPlainText(element) {
 		}
 	})
 }
+
+// Setup input placeholder functionality
+// 设置输入框占位符功能
 export function setupInputPlaceholder() {
 	const input = $('.input-message-input');
 	const placeholder = $('.input-field-placeholder');

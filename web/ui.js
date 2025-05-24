@@ -1,3 +1,6 @@
+// UI logic for NodeCrypt web client
+// NodeCrypt 网页客户端的 UI 逻辑
+
 import {
 	createAvatarSVG
 } from './util.avatar.js';
@@ -13,6 +16,9 @@ import {
 import {
 	$id
 } from './util.dom.js';
+
+// Render the main header
+// 渲染主标题栏
 export function renderMainHeader() {
 	const rd = roomsData[activeRoomIndex];
 	let roomName = rd ? rd.roomName : 'Room';
@@ -25,6 +31,9 @@ export function renderMainHeader() {
 	setupMoreBtnMenu();
 	setupMobileUIHandlers()
 }
+
+// Setup mobile UI event handlers
+// 设置移动端 UI 事件处理
 export function setupMobileUIHandlers() {
 	const sidebar = document.getElementById('sidebar');
 	const rightbar = document.getElementById('rightbar');
@@ -90,6 +99,9 @@ export function setupMobileUIHandlers() {
 		}
 	})
 }
+
+// Render the user/member list
+// 渲染用户/成员列表
 export function renderUserList(updateHeader = false) {
 	const userListEl = $id('member-list');
 	if (!userListEl) return;
@@ -104,6 +116,9 @@ export function renderUserList(updateHeader = false) {
 		renderMainHeader()
 	}
 }
+
+// Create a user list item
+// 创建一个用户列表项
 export function createUserItem(user, isMe) {
 	const div = document.createElement('div');
 	const rd = roomsData[activeRoomIndex];
@@ -123,6 +138,9 @@ export function createUserItem(user, isMe) {
 	}
 	return div
 }
+
+// Setup the 'more' button menu
+// 设置“更多”按钮菜单
 export function setupMoreBtnMenu() {
 	const btn = $id('more-btn');
 	const menu = $id('more-menu');
@@ -131,6 +149,8 @@ export function setupMoreBtnMenu() {
 	let animating = false;
 	let isMouseMoveBound = false;
 
+	// Mouse move event for closing menu if mouse leaves
+	// 鼠标移出菜单区域时关闭菜单
 	function onMouseMove(ev) {
 		if (!menuRect) return;
 		const mx = ev.clientX,
@@ -144,6 +164,8 @@ export function setupMoreBtnMenu() {
 		}
 	}
 
+	// Bind mousemove event
+	// 绑定鼠标移动事件
 	function bindMouseMove() {
 		if (!isMouseMoveBound) {
 			window.addEventListener('mousemove', onMouseMove);
@@ -151,6 +173,8 @@ export function setupMoreBtnMenu() {
 		}
 	}
 
+	// Unbind mousemove event
+	// 解绑鼠标移动事件
 	function unbindMouseMove() {
 		if (isMouseMoveBound) {
 			window.removeEventListener('mousemove', onMouseMove);
@@ -158,6 +182,8 @@ export function setupMoreBtnMenu() {
 		}
 	}
 
+	// Open the menu
+	// 打开菜单
 	function openMenu() {
 		menu.classList.remove('close');
 		menu.classList.add('open');
@@ -166,6 +192,8 @@ export function setupMoreBtnMenu() {
 		bindMouseMove()
 	}
 
+	// Close the menu
+	// 关闭菜单
 	function closeMenu() {
 		if (animating) return;
 		animating = true;
@@ -226,6 +254,9 @@ export function setupMoreBtnMenu() {
 		animating = false
 	})
 }
+
+// Prevent space and special character input
+// 禁止输入空格和特殊字符
 export function preventSpaceInput(input) {
 	if (!input) return;
 	input.addEventListener('keydown', function(e) {
@@ -239,6 +270,9 @@ export function preventSpaceInput(input) {
 		})
 	})
 }
+
+// Login form submit handler
+// 登录表单提交处理函数
 export function loginFormHandler(modal) {
 	return function(e) {
 		e.preventDefault();
@@ -296,6 +330,9 @@ export function loginFormHandler(modal) {
 		})
 	}
 }
+
+// Open the login modal dialog
+// 打开登录弹窗
 export function openLoginModal() {
 	const modal = document.createElement('div');
 	modal.className = 'login-modal';
@@ -309,6 +346,9 @@ export function openLoginModal() {
 	form.addEventListener('submit', loginFormHandler(modal));
 	autofillRoomPwd('userName-modal')
 }
+
+// Setup member list tabs
+// 设置成员列表标签页
 export function setupTabs() {
 	const tabs = document.getElementById("member-tabs").children;
 	for (let i = 0; i < tabs.length; i++) {
@@ -318,6 +358,9 @@ export function setupTabs() {
 		}
 	}
 }
+
+// Autofill room and password from URL
+// 从 URL 自动填充房间和密码
 export function autofillRoomPwd(formPrefix = '') {
 	const params = new URLSearchParams(window.location.search);
 	const room = params.get('node');
