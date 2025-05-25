@@ -14,7 +14,7 @@
   display: inline-block;
   font-size: 1.1rem;
   color: #888;
-  transition: 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  transition: 0.25s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   min-width: 5px;
 }
 

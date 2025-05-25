@@ -50,15 +50,16 @@ import {
 
 // 从 ui.js 中导入 UI 界面相关的功能
 // Import user interface functions from ui.js
-import {
-	renderUserList,       // 渲染用户列表 / Render user list
+import {	renderUserList,       // 渲染用户列表 / Render user list
 	renderMainHeader,     // 渲染主标题栏 / Render main header
 	setupMoreBtnMenu,     // 设置更多按钮的下拉菜单 / Setup "more" button menu
 	preventSpaceInput,    // 防止输入空格 / Prevent space input in form fields
 	loginFormHandler,     // 登录表单提交处理器 / Login form handler
 	openLoginModal,       // 打开登录窗口 / Open login modal
 	setupTabs,            // 设置页面标签切换 / Setup tab switching
-	autofillRoomPwd       // 自动填充房间密码 / Autofill room password
+	autofillRoomPwd,      // 自动填充房间密码 / Autofill room password
+	generateLoginForm,    // 生成登录表单HTML / Generate login form HTML
+	initLoginForm         // 初始化登录表单 / Initialize login form
 } from './ui.js';
 
 // 设置全局配置参数
@@ -78,6 +79,9 @@ window.setupEmojiPicker = setupEmojiPicker;
 // 当 DOM 内容加载完成后执行初始化逻辑
 // Run initialization logic when the DOM content is fully loaded
 window.addEventListener('DOMContentLoaded', () => {
+	// 初始化登录表单 / Initialize login form
+	initLoginForm();
+
 	const loginForm = $id('login-form');               // 登录表单 / Login form
 
 	if (loginForm) {

@@ -294,12 +294,36 @@ export function loginFormHandler(modal) {
 	}
 }
 
-// Open the login modal dialog
-// 打开登录弹窗
+// 生成登录表单HTML
+// Generate login form HTML
+export function generateLoginForm(isModal = false) {
+	const idPrefix = isModal ? '-modal' : '';
+	return `
+		<div class="input-group">
+			<input id="userName${idPrefix}" type="text" autocomplete="username" required minlength="1" maxlength="15" placeholder="">
+			<label for="userName${idPrefix}" class="floating-label">
+				<span style="transition-delay:0ms">U</span><span style="transition-delay:40ms">s</span><span style="transition-delay:80ms">e</span><span style="transition-delay:120ms">r</span><span style="transition-delay:160ms">n</span><span style="transition-delay:200ms">a</span><span style="transition-delay:240ms">m</span><span style="transition-delay:280ms">e</span>
+			</label>
+		</div>
+		<div class="input-group">
+			<input id="roomName${idPrefix}" type="text" required minlength="1" maxlength="15" placeholder="">
+			<label for="roomName${idPrefix}" class="floating-label">
+				<span style="transition-delay:0ms">N</span><span style="transition-delay:40ms">o</span><span style="transition-delay:80ms">d</span><span style="transition-delay:120ms">e</span><span style="transition-delay:160ms"> </span><span style="transition-delay:200ms">N</span><span style="transition-delay:240ms">a</span><span style="transition-delay:280ms">m</span><span style="transition-delay:320ms">e</span>
+			</label>
+		</div>
+		<div class="input-group">
+			<input id="password${idPrefix}" type="password" autocomplete="${isModal ? 'off' : 'current-password'}" minlength="1" maxlength="15" placeholder="">
+			<label for="password${idPrefix}" class="floating-label">
+				<span style="transition-delay:0ms">N</span><span style="transition-delay:40ms">o</span><span style="transition-delay:80ms">d</span><span style="transition-delay:120ms">e</span><span style="transition-delay:160ms"> </span><span style="transition-delay:200ms">P</span><span style="transition-delay:240ms">a</span><span style="transition-delay:280ms">s</span><span style="transition-delay:320ms">s</span><span style="transition-delay:360ms">w</span><span style="transition-delay:400ms">o</span><span style="transition-delay:440ms">r</span><span style="transition-delay:480ms">d</span><span style="transition-delay:520ms"> </span><span style="transition-delay:560ms" class="optional">(optional)</span>
+			</label>
+		</div>
+		<button type="submit" class="login-btn">ENTER</button>
+	`;
+}
 export function openLoginModal() {
 	const modal = document.createElement('div');
 	modal.className = 'login-modal';
-	modal.innerHTML = `<div class="login-modal-bg"></div><div class="login-modal-card"><button class="login-modal-close login-modal-close-abs">&times;</button><h1>Enter a Node</h1><form id="login-form-modal"><div class="input-group"><label for="userName-modal">Username</label><input id="userName-modal"type="text"autocomplete="username"required minlength="1"maxlength="15"></div><div class="input-group"><label for="roomName-modal">Node Name</label><input id="roomName-modal"type="text"required minlength="1"maxlength="15"></div><div class="input-group"><label for="password-modal">Node Password<span class="optional">(optional)</span></label><input id="password-modal"type="password"autocomplete="off"minlength="1"maxlength="15"></div><button type="submit"class="login-btn">ENTER</button></form></div>`;
+	modal.innerHTML = `<div class="login-modal-bg"></div><div class="login-modal-card"><button class="login-modal-close login-modal-close-abs">&times;</button><h1>Enter a Node</h1><form id="login-form-modal">${generateLoginForm(true)}</form></div>`;
 	document.body.appendChild(modal);
 	modal.querySelector('.login-modal-close').onclick = () => modal.remove();
 	preventSpaceInput(modal.querySelector('#userName-modal'));
@@ -346,5 +370,14 @@ export function autofillRoomPwd(formPrefix = '') {
 	}
 	if (room || pwd) {
 		window.history.replaceState({}, '', location.pathname)
+	}
+}
+
+// 初始化登录表单
+// Initialize login form
+export function initLoginForm() {
+	const loginFormContainer = document.getElementById('login-form');
+	if (loginFormContainer) {
+		loginFormContainer.innerHTML = generateLoginForm(false);
 	}
 }
