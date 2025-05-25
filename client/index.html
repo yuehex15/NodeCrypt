@@ -4,15 +4,28 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>NodeCrypt</title>
 	<link rel="stylesheet" href="css/style.css">
+	<link rel="stylesheet" href="css/form-animation.css">
 	<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 </head>
-<body>
-	<div class="login-container" id="login-container">
+<body>	<div class="login-container" id="login-container">
 		<h1>Enter a Node</h1>
-		<form id="login-form">
-			<div class="input-group"> <label for="userName">Username</label> <input id="userName" type="text" autocomplete="username" required minlength="1" maxlength="15"> </div>
-			<div class="input-group"> <label for="roomName">Node Name</label> <input id="roomName" type="text" required minlength="1" maxlength="15"> </div>
-			<div class="input-group"> <label for="password">Node Password <span class="optional">(optional)</span></label> <input id="password" type="password" autocomplete="current-password" minlength="1" maxlength="15"> </div> <button type="submit" class="login-btn">ENTER</button>
+		<form id="login-form">			<div class="input-group"> 
+				<input id="userName" type="text" autocomplete="username" required minlength="1" maxlength="15" placeholder=""> 
+				<label for="userName" class="floating-label">
+					<span style="transition-delay:0ms">U</span><span style="transition-delay:50ms">s</span><span style="transition-delay:100ms">e</span><span style="transition-delay:150ms">r</span><span style="transition-delay:200ms">n</span><span style="transition-delay:250ms">a</span><span style="transition-delay:300ms">m</span><span style="transition-delay:350ms">e</span>
+				</label>
+			</div>			<div class="input-group"> 
+				<input id="roomName" type="text" required minlength="1" maxlength="15" placeholder=""> 
+				<label for="roomName" class="floating-label">
+					<span style="transition-delay:0ms">N</span><span style="transition-delay:50ms">o</span><span style="transition-delay:100ms">d</span><span style="transition-delay:150ms">e</span><span style="transition-delay:200ms"> </span><span style="transition-delay:250ms">N</span><span style="transition-delay:300ms">a</span><span style="transition-delay:350ms">m</span><span style="transition-delay:400ms">e</span>
+				</label>
+			</div>			<div class="input-group"> 
+				<input id="password" type="password" autocomplete="current-password" minlength="1" maxlength="15" placeholder=""> 
+				<label for="password" class="floating-label">
+					<span style="transition-delay:0ms">N</span><span style="transition-delay:50ms">o</span><span style="transition-delay:100ms">d</span><span style="transition-delay:150ms">e</span><span style="transition-delay:200ms"> </span><span style="transition-delay:250ms">P</span><span style="transition-delay:300ms">a</span><span style="transition-delay:350ms">s</span><span style="transition-delay:400ms">s</span><span style="transition-delay:450ms">w</span><span style="transition-delay:500ms">o</span><span style="transition-delay:550ms">r</span><span style="transition-delay:600ms">d</span><span style="transition-delay:650ms"> </span><span style="transition-delay:700ms" class="optional">(optional)</span>
+				</label>
+			</div>
+			<button type="submit" class="login-btn">ENTER</button>
 		</form>
 	</div>
 	<div class="container" id="chat-container" style="display:none;">

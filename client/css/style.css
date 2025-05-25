@@ -935,9 +935,11 @@ body {
 	display: flex;
 	flex-direction: column;
 	align-items: flex-start;
+	position: relative;
+	margin-bottom: 10px;
 }
 
-.input-group label {
+.input-group label:not(.floating-label) {
 	font-size: 0.98rem;
 	color: #888;
 	margin-bottom: 6px;
