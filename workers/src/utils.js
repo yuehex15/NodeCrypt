@@ -40,40 +40,31 @@ export const encryptMessage = async (message, key) => {
   let encrypted = '';
 
   try {
+    // Import aes-js for compatibility with client
+    const { ModeOfOperation } = await import('aes-js');
+    
+    // Convert message to Buffer exactly like client
     const messageString = JSON.stringify(message);
-    const messageBuffer = new TextEncoder().encode(messageString);
+    let messageBuffer = new TextEncoder().encode(messageString);
     
-    // Manual padding exactly like Node.js server: pad to 16-byte boundary with null bytes
-    const paddingLength = 16 - (messageBuffer.length % 16);
-    const finalPaddingLength = paddingLength === 16 ? 0 : paddingLength;
-    
-    const paddedBuffer = new Uint8Array(messageBuffer.length + finalPaddingLength);
-    paddedBuffer.set(messageBuffer);
-    // Remaining bytes are already zero (null padding), matching Node.js Buffer.alloc()
+    // Pad to 16-byte boundary with zeros exactly like client: Buffer.alloc(16 - (message.length % 16))
+    if ((messageBuffer.length % 16) !== 0) {
+      const paddingLength = 16 - (messageBuffer.length % 16);
+      const paddedBuffer = new Uint8Array(messageBuffer.length + paddingLength);
+      paddedBuffer.set(messageBuffer);
+      // Remaining bytes are already zero (null padding)
+      messageBuffer = paddedBuffer;
+    }
     
     const iv = crypto.getRandomValues(new Uint8Array(16));
     
-    // Use AES in manual mode to match Node.js setAutoPadding(false)
-    const cryptoKey = await crypto.subtle.importKey(
-      'raw',
-      key.slice(0, 32), // Ensure exactly 32 bytes for AES-256
-      { name: 'AES-CBC' },
-      false,
-      ['encrypt']
-    );
-
-    const encryptedBuffer = await crypto.subtle.encrypt(
-      {
-        name: 'AES-CBC',
-        iv: iv
-      },
-      cryptoKey,
-      paddedBuffer
-    );
-
-    // Encode to Base64 exactly like Node.js server
+    // Use aes-js CBC mode exactly like client
+    const cipher = new ModeOfOperation.cbc(key.slice(0, 32), iv);
+    const encryptedBytes = cipher.encrypt(messageBuffer);
+    
+    // Encode to Base64 exactly like client
     const ivBase64 = btoa(String.fromCharCode(...iv));
-    const encryptedBase64 = btoa(String.fromCharCode(...new Uint8Array(encryptedBuffer)));
+    const encryptedBase64 = btoa(String.fromCharCode(...encryptedBytes));
     
     encrypted = ivBase64 + '|' + encryptedBase64;
 
@@ -88,6 +79,9 @@ export const decryptMessage = async (message, key) => {
   let decrypted = {};
 
   try {
+    // Import aes-js for compatibility with client
+    const { ModeOfOperation } = await import('aes-js');
+    
     const parts = message.split('|');
     if (parts.length !== 2) {
       throw new Error(`Invalid message format: expected 2 parts, got ${parts.length}`);
@@ -98,26 +92,12 @@ export const decryptMessage = async (message, key) => {
     
     logEvent('decryptMessage', `IV length: ${iv.length}, encrypted data length: ${encryptedData.length}, key length: ${key.length}`, 'debug');
     
-    // Import key for decryption
-    const cryptoKey = await crypto.subtle.importKey(
-      'raw',
-      key.slice(0, 32), // Ensure exactly 32 bytes for AES-256
-      { name: 'AES-CBC' },
-      false,
-      ['decrypt']
-    );
+    // Use aes-js CBC mode exactly like client
+    const decipher = new ModeOfOperation.cbc(key.slice(0, 32), iv);
+    const decryptedBytes = decipher.decrypt(encryptedData);
 
-    const decryptedBuffer = await crypto.subtle.decrypt(
-      {
-        name: 'AES-CBC',
-        iv: iv
-      },
-      cryptoKey,
-      encryptedData
-    );
-
-    // Convert to string and remove null padding (same as original .replace(/\0+$/, ''))
-    const decryptedText = new TextDecoder().decode(decryptedBuffer);
+    // Convert to string and remove null padding exactly like client: .replace(/\0+$/, '')
+    const decryptedText = new TextDecoder().decode(decryptedBytes);
     const cleanText = decryptedText.replace(/\0+$/, '');
     
     logEvent('decryptMessage', `Decrypted text length: ${decryptedText.length}, clean text: "${cleanText}"`, 'debug');
