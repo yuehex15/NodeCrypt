@@ -301,21 +301,15 @@ export function generateLoginForm(isModal = false) {
 	return `
 		<div class="input-group">
 			<input id="userName${idPrefix}" type="text" autocomplete="username" required minlength="1" maxlength="15" placeholder="">
-			<label for="userName${idPrefix}" class="floating-label">
-				<span style="transition-delay:0ms">U</span><span style="transition-delay:40ms">s</span><span style="transition-delay:80ms">e</span><span style="transition-delay:120ms">r</span><span style="transition-delay:160ms">n</span><span style="transition-delay:200ms">a</span><span style="transition-delay:240ms">m</span><span style="transition-delay:280ms">e</span>
-			</label>
+			<label for="userName${idPrefix}" class="floating-label">Username</label>
 		</div>
 		<div class="input-group">
 			<input id="roomName${idPrefix}" type="text" required minlength="1" maxlength="15" placeholder="">
-			<label for="roomName${idPrefix}" class="floating-label">
-				<span style="transition-delay:0ms">N</span><span style="transition-delay:40ms">o</span><span style="transition-delay:80ms">d</span><span style="transition-delay:120ms">e</span><span style="transition-delay:160ms"> </span><span style="transition-delay:200ms">N</span><span style="transition-delay:240ms">a</span><span style="transition-delay:280ms">m</span><span style="transition-delay:320ms">e</span>
-			</label>
+			<label for="roomName${idPrefix}" class="floating-label">Node Name</label>
 		</div>
 		<div class="input-group">
 			<input id="password${idPrefix}" type="password" autocomplete="${isModal ? 'off' : 'current-password'}" minlength="1" maxlength="15" placeholder="">
-			<label for="password${idPrefix}" class="floating-label">
-				<span style="transition-delay:0ms">N</span><span style="transition-delay:40ms">o</span><span style="transition-delay:80ms">d</span><span style="transition-delay:120ms">e</span><span style="transition-delay:160ms"> </span><span style="transition-delay:200ms">P</span><span style="transition-delay:240ms">a</span><span style="transition-delay:280ms">s</span><span style="transition-delay:320ms">s</span><span style="transition-delay:360ms">w</span><span style="transition-delay:400ms">o</span><span style="transition-delay:440ms">r</span><span style="transition-delay:480ms">d</span><span style="transition-delay:520ms"> </span><span style="transition-delay:560ms" class="optional">(optional)</span>
-			</label>
+			<label for="password${idPrefix}" class="floating-label">Node Password <span class="optional">(optional)</span></label>
 		</div>
 		<button type="submit" class="login-btn">ENTER</button>
 	`;
