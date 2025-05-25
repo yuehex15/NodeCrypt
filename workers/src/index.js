@@ -15,11 +15,13 @@ export default {
   }
 };
 
-export class ChatRoom {
-  constructor(state, env) {
+export class ChatRoom {  constructor(state, env) {
     this.state = state;
-    this.clients = new Map();
-    this.channels = new Map();
+    
+    // Use objects like original server.js instead of Maps
+    this.clients = {};
+    this.channels = {};
+    
     this.config = {
       seenTimeout: 60000,
       debug: false
@@ -27,11 +29,14 @@ export class ChatRoom {
     
     // Initialize RSA key pair
     this.initRSAKeyPair();
-  }  async initRSAKeyPair() {
+  }
+
+  async initRSAKeyPair() {
     try {
       let stored = await this.state.storage.get('rsaKeyPair');
       if (!stored) {
-        console.log('Generating new RSA keypair...');        const keyPair = await crypto.subtle.generateKey(
+        console.log('Generating new RSA keypair...');
+          const keyPair = await crypto.subtle.generateKey(
           {
             name: 'RSASSA-PKCS1-v1_5',
             modulusLength: 2048,
@@ -42,12 +47,16 @@ export class ChatRoom {
           ['sign', 'verify']
         );
 
-        const publicKeyBuffer = await crypto.subtle.exportKey('spki', keyPair.publicKey);
-        const privateKeyBuffer = await crypto.subtle.exportKey('pkcs8', keyPair.privateKey);
+        // 并行导出公钥和私钥以提高性能
+        const [publicKeyBuffer, privateKeyBuffer] = await Promise.all([
+          crypto.subtle.exportKey('spki', keyPair.publicKey),
+          crypto.subtle.exportKey('pkcs8', keyPair.privateKey)
+        ]);
         
         stored = {
           rsaPublic: btoa(String.fromCharCode(...new Uint8Array(publicKeyBuffer))),
-          rsaPrivateData: Array.from(new Uint8Array(privateKeyBuffer))
+          rsaPrivateData: Array.from(new Uint8Array(privateKeyBuffer)),
+          createdAt: Date.now() // 记录密钥创建时间，用于后续判断是否需要轮换
         };
         
         await this.state.storage.put('rsaKeyPair', stored);
@@ -56,7 +65,9 @@ export class ChatRoom {
       
       // Reconstruct the private key
       if (stored.rsaPrivateData) {
-        const privateKeyBuffer = new Uint8Array(stored.rsaPrivateData);        stored.rsaPrivate = await crypto.subtle.importKey(
+        const privateKeyBuffer = new Uint8Array(stored.rsaPrivateData);
+        
+        stored.rsaPrivate = await crypto.subtle.importKey(
           'pkcs8',
           privateKeyBuffer,
           {
@@ -65,15 +76,29 @@ export class ChatRoom {
           },
           false,
           ['sign']
-        );
-      }
+        );      }
+        this.keyPair = stored;
       
-      this.keyPair = stored;
+      // 检查密钥是否需要轮换（如果已创建超过24小时）
+      if (stored.createdAt && (Date.now() - stored.createdAt > 24 * 60 * 60 * 1000)) {
+        // 如果没有任何客户端，则执行密钥轮换
+        if (Object.keys(this.clients).length === 0) {
+          console.log('密钥已使用24小时，进行轮换...');
+          await this.state.storage.delete('rsaKeyPair');
+          this.keyPair = null;
+          await this.initRSAKeyPair();
+        } else {
+          // 否则标记需要在客户端全部断开后进行轮换
+          await this.state.storage.put('pendingKeyRotation', true);
+        }
+      }
     } catch (error) {
       console.error('Error initializing RSA key pair:', error);
       throw error;
     }
-  }  async fetch(request) {
+  }
+
+  async fetch(request) {
     // Check for WebSocket upgrade
     const upgradeHeader = request.headers.get('Upgrade');
     if (!upgradeHeader || upgradeHeader !== 'websocket') {
@@ -95,150 +120,161 @@ export class ChatRoom {
       status: 101,
       webSocket: client,
     });
-  }
+  }  // WebSocket connection event handler
+  async handleSession(connection) {    connection.accept();
 
-  async handleSession(webSocket) {
-    webSocket.accept();
-
-    // Clean up old connections
+    // 清理旧连接
     await this.cleanupOldConnections();
 
     const clientId = generateClientId();
-    
-    if (!clientId || this.clients.has(clientId)) {
-      webSocket.close();
+
+    if (!clientId || this.clients[clientId]) {
+      this.closeConnection(connection);
       return;
     }
 
-    logEvent('connection', clientId, 'debug');
-
-    // Store client information
-    const clientInfo = {
-      webSocket: webSocket,
+    logEvent('connection', clientId, 'debug');    // Store client information
+    this.clients[clientId] = {
+      connection: connection,
       seen: getTime(),
+      key: null,
       shared: null,
       channel: null
     };
-    
-    this.clients.set(clientId, clientInfo);
 
     // Send RSA public key
     try {
       logEvent('sending-public-key', clientId, 'debug');
-      webSocket.send(JSON.stringify({
+      this.sendMessage(connection, JSON.stringify({
         type: 'server-key',
         key: this.keyPair.rsaPublic
       }));
     } catch (error) {
       logEvent('sending-public-key', error, 'error');
-    }
+    }    // Handle messages
+    connection.addEventListener('message', async (event) => {
+      const message = event.data;
 
-    // Handle messages
-    webSocket.addEventListener('message', async (event) => {
-      await this.handleMessage(clientId, event.data);
-    });
-
-    // Handle connection close
-    webSocket.addEventListener('close', async (event) => {
-      await this.handleClose(clientId, event);
-    });
-  }
-  async handleMessage(clientId, message) {
-    const client = this.clients.get(clientId);
-    
-    if (!isString(message) || !client) {
-      return;
-    }
-
-    client.seen = getTime();
-
-    if (message === 'ping') {
-      this.sendMessage(client.webSocket, 'pong');
-      return;
-    }
-
-    logEvent('message', [clientId, message], 'debug');    // Handle key exchange
-    if (!client.shared && message.length < 2048) {
-      try {        // Generate ECDH key pair using P-384 curve (equivalent to secp384r1)
-        const keys = await crypto.subtle.generateKey(
-          {
-            name: 'ECDH',
-            namedCurve: 'P-384'
-          },
-          true,
-          ['deriveBits', 'deriveKey']
-        );
-
-        const publicKeyBuffer = await crypto.subtle.exportKey('raw', keys.publicKey);
-        
-        // Sign the public key using PKCS1 padding (compatible with original)
-        const signature = await crypto.subtle.sign(
-          {
-            name: 'RSASSA-PKCS1-v1_5'
-          },
-          this.keyPair.rsaPrivate,
-          publicKeyBuffer
-        );        // Convert hex string to Uint8Array for client public key
-        const clientPublicKeyHex = message;
-        console.log('Client public key length:', clientPublicKeyHex.length);
-        
-        // P-384 uncompressed point: 1 + 48 + 48 = 97 bytes = 194 hex chars
-        // But secp384r1 might be compressed, so let's be more flexible
-        if (clientPublicKeyHex.length < 96 || clientPublicKeyHex.length > 200) {
-          throw new Error(`Invalid client public key length: ${clientPublicKeyHex.length}`);
-        }
-        
-        const clientPublicKeyBytes = new Uint8Array(clientPublicKeyHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-        
-        // Import client's public key
-        const clientPublicKey = await crypto.subtle.importKey(
-          'raw',
-          clientPublicKeyBytes,
-          { name: 'ECDH', namedCurve: 'P-384' },
-          false,
-          []
-        );
-
-        // Derive shared secret bits (equivalent to computeSecret in Node.js)
-        const sharedSecretBits = await crypto.subtle.deriveBits(
-          {
-            name: 'ECDH',
-            public: clientPublicKey
-          },
-          keys.privateKey,
-          384 // P-384 produces 48 bytes (384 bits)
-        );        // Take bytes 8-40 (32 bytes) for AES-256 key, same as original .slice(8, 40)
-        client.shared = new Uint8Array(sharedSecretBits).slice(8, 40);
-
-        logEvent('ECDH-shared-secret', `Full secret length: ${new Uint8Array(sharedSecretBits).length}, key length: ${client.shared.length}, key: ${Array.from(client.shared).map(b => b.toString(16).padStart(2, '0')).join('')}`, 'debug');
-
-        const response = Array.from(new Uint8Array(publicKeyBuffer))
-          .map(b => b.toString(16).padStart(2, '0')).join('') + 
-          '|' + btoa(String.fromCharCode(...new Uint8Array(signature)));
-        
-        this.sendMessage(client.webSocket, response);
-
-        logEvent('key-exchange-success', clientId, 'debug');
-
-      } catch (error) {
-        logEvent('message-key', [clientId, error.message], 'error');
-        client.webSocket.close();
+      if (!isString(message) || !this.clients[clientId]) {
+        return;
       }
-      return;
-    }
 
-    // Handle encrypted messages
-    if (client.shared && message.length <= (8 * 1024 * 1024)) {
-      await this.processEncryptedMessage(clientId, message);
-    }
+      this.clients[clientId].seen = getTime();
+
+      if (message === 'ping') {
+        this.sendMessage(connection, 'pong');
+        return;
+      }
+
+      logEvent('message', [clientId, message], 'debug');      // Handle key exchange
+      if (!this.clients[clientId].shared && message.length < 2048) {
+        try {
+          // Generate ECDH key pair using P-384 curve (equivalent to secp384r1)
+          const keys = await crypto.subtle.generateKey(
+            {
+              name: 'ECDH',
+              namedCurve: 'P-384'
+            },
+            true,
+            ['deriveBits', 'deriveKey']
+          );
+
+          const publicKeyBuffer = await crypto.subtle.exportKey('raw', keys.publicKey);
+          
+          // Sign the public key using PKCS1 padding (compatible with original)
+          const signature = await crypto.subtle.sign(
+            {
+              name: 'RSASSA-PKCS1-v1_5'
+            },
+            this.keyPair.rsaPrivate,
+            publicKeyBuffer
+          );
+
+          // Convert hex string to Uint8Array for client public key
+          const clientPublicKeyHex = message;
+          const clientPublicKeyBytes = new Uint8Array(clientPublicKeyHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+          
+          // Import client's public key
+          const clientPublicKey = await crypto.subtle.importKey(
+            'raw',
+            clientPublicKeyBytes,
+            { name: 'ECDH', namedCurve: 'P-384' },
+            false,
+            []
+          );
+
+          // Derive shared secret bits (equivalent to computeSecret in Node.js)
+          const sharedSecretBits = await crypto.subtle.deriveBits(
+            {
+              name: 'ECDH',
+              public: clientPublicKey
+            },
+            keys.privateKey,
+            384 // P-384 produces 48 bytes (384 bits)
+          );          // Take bytes 8-40 (32 bytes) for AES-256 key
+          this.clients[clientId].shared = new Uint8Array(sharedSecretBits).slice(8, 40);
+
+          const response = Array.from(new Uint8Array(publicKeyBuffer))
+            .map(b => b.toString(16).padStart(2, '0')).join('') + 
+            '|' + btoa(String.fromCharCode(...new Uint8Array(signature)));
+          
+          this.sendMessage(connection, response);
+
+        } catch (error) {
+          logEvent('message-key', [clientId, error], 'error');
+          this.closeConnection(connection);
+        }
+
+        return;
+      }
+
+      // Handle encrypted messages
+      if (this.clients[clientId].shared && message.length <= (8 * 1024 * 1024)) {
+        this.processEncryptedMessage(clientId, message);
+      }
+    });    // Handle connection close
+    connection.addEventListener('close', async (event) => {
+      logEvent('close', [clientId, event], 'debug');
+
+      const channel = this.clients[clientId].channel;
+
+      if (channel && this.channels[channel]) {
+        this.channels[channel].splice(this.channels[channel].indexOf(clientId), 1);
+
+        if (this.channels[channel].length === 0) {
+          delete(this.channels[channel]);
+        } else {
+          try {
+            const members = this.channels[channel];
+
+            for (const member of members) {
+              const client = this.clients[member];              if (this.isClientInChannel(client, channel)) {
+                this.sendMessage(client.connection, encryptMessage({
+                  a: 'l',
+                  p: members.filter((value) => {
+                    return (value !== member ? true : false);
+                  })
+                }, client.shared));
+              }
+            }
+
+          } catch (error) {
+            logEvent('close-list', [clientId, error], 'error');
+          }
+        }
+      }
+
+      if (this.clients[clientId]) {
+        delete(this.clients[clientId]);
+      }
+    });
   }
-
-  async processEncryptedMessage(clientId, message) {
+  // Process encrypted messages
+  processEncryptedMessage(clientId, message) {
     let decrypted = null;
 
     try {
-      const client = this.clients.get(clientId);
-      decrypted = await decryptMessage(message, client.shared);
+      decrypted = decryptMessage(message, this.clients[clientId].shared);
 
       logEvent('message-decrypted', [clientId, decrypted], 'debug');
 
@@ -249,11 +285,11 @@ export class ChatRoom {
       const action = decrypted.a;
 
       if (action === 'j') {
-        await this.handleJoinChannel(clientId, decrypted);
+        this.handleJoinChannel(clientId, decrypted);
       } else if (action === 'c') {
-        await this.handleClientMessage(clientId, decrypted);
+        this.handleClientMessage(clientId, decrypted);
       } else if (action === 'w') {
-        await this.handleChannelMessage(clientId, decrypted);
+        this.handleChannelMessage(clientId, decrypted);
       }
 
     } catch (error) {
@@ -262,41 +298,38 @@ export class ChatRoom {
       decrypted = null;
     }
   }
-
-  async handleJoinChannel(clientId, decrypted) {
-    const client = this.clients.get(clientId);
-    
-    if (!isString(decrypted.p) || client.channel) {
+  // Handle channel join requests
+  handleJoinChannel(clientId, decrypted) {
+    if (!isString(decrypted.p) || this.clients[clientId].channel) {
       return;
     }
 
     try {
       const channel = decrypted.p;
-      client.channel = channel;
 
-      if (!this.channels.has(channel)) {
-        this.channels.set(channel, [clientId]);
+      this.clients[clientId].channel = channel;
+
+      if (!this.channels[channel]) {
+        this.channels[channel] = [clientId];
       } else {
-        this.channels.get(channel).push(clientId);
+        this.channels[channel].push(clientId);
       }
 
-      await this.broadcastMemberList(channel);
+      this.broadcastMemberList(channel);
 
     } catch (error) {
       logEvent('message-join', [clientId, error], 'error');
     }
   }
-
-  async handleClientMessage(clientId, decrypted) {
-    const client = this.clients.get(clientId);
-    
-    if (!isString(decrypted.p) || !isString(decrypted.c) || !client.channel) {
+  // Handle client messages
+  handleClientMessage(clientId, decrypted) {
+    if (!isString(decrypted.p) || !isString(decrypted.c) || !this.clients[clientId].channel) {
       return;
     }
 
     try {
-      const channel = client.channel;
-      const targetClient = this.clients.get(decrypted.c);
+      const channel = this.clients[clientId].channel;
+      const targetClient = this.clients[decrypted.c];
 
       if (this.isClientInChannel(targetClient, channel)) {
         const messageObj = {
@@ -305,8 +338,8 @@ export class ChatRoom {
           c: clientId
         };
 
-        const encrypted = await encryptMessage(messageObj, targetClient.shared);
-        this.sendMessage(targetClient.webSocket, encrypted);
+        const encrypted = encryptMessage(messageObj, targetClient.shared);
+        this.sendMessage(targetClient.connection, encrypted);
 
         messageObj.p = null;
       }
@@ -314,140 +347,125 @@ export class ChatRoom {
     } catch (error) {
       logEvent('message-client', [clientId, error], 'error');
     }
-  }
-
-  async handleChannelMessage(clientId, decrypted) {
-    const client = this.clients.get(clientId);
-    
-    if (!isObject(decrypted.p) || !client.channel) {
+  }  // Handle channel messages
+  handleChannelMessage(clientId, decrypted) {
+    if (!isObject(decrypted.p) || !this.clients[clientId].channel) {
       return;
     }
-
+    
     try {
-      const channel = client.channel;
+      const channel = this.clients[clientId].channel;
+      // 过滤有效的目标成员
+      const validMembers = Object.keys(decrypted.p).filter(member => {
+        const targetClient = this.clients[member];
+        return isString(decrypted.p[member]) && this.isClientInChannel(targetClient, channel);
+      });
 
-      for (const member in decrypted.p) {
-        const targetClient = this.clients.get(member);
+      // 处理所有有效的目标成员
+      for (const member of validMembers) {
+        const targetClient = this.clients[member];
+        const messageObj = {
+          a: 'c',
+          p: decrypted.p[member],
+          c: clientId
+        };        const encrypted = encryptMessage(messageObj, targetClient.shared);
+        this.sendMessage(targetClient.connection, encrypted);
 
-        if (isString(decrypted.p[member]) && this.isClientInChannel(targetClient, channel)) {
-          const messageObj = {
-            a: 'c',
-            p: decrypted.p[member],
-            c: clientId
-          };
-
-          const encrypted = await encryptMessage(messageObj, targetClient.shared);
-          this.sendMessage(targetClient.webSocket, encrypted);
-
-          messageObj.p = null;
-        }
+        messageObj.p = null;
       }
 
     } catch (error) {
       logEvent('message-channel', [clientId, error], 'error');
     }
   }
-
-  async broadcastMemberList(channel) {
+  // Broadcast member list to channel
+  broadcastMemberList(channel) {
     try {
-      const members = this.channels.get(channel);
+      const members = this.channels[channel];
 
       for (const member of members) {
-        const client = this.clients.get(member);
+        const client = this.clients[member];
 
         if (this.isClientInChannel(client, channel)) {
-          const filteredMembers = members.filter(value => value !== member);
-
-          const listObj = {
+          const messageObj = {
             a: 'l',
-            p: filteredMembers
+            p: members.filter((value) => {
+              return (value !== member ? true : false);
+            })
           };
 
-          const encrypted = await encryptMessage(listObj, client.shared);
-          this.sendMessage(client.webSocket, encrypted);
+          const encrypted = encryptMessage(messageObj, client.shared);
+          this.sendMessage(client.connection, encrypted);
 
-          listObj.p = null;
+          messageObj.p = null;
         }
       }
     } catch (error) {
       logEvent('broadcast-member-list', error, 'error');
     }
-  }
-
-  async handleClose(clientId, event) {
-    logEvent('close', [clientId, event], 'debug');
-
-    const client = this.clients.get(clientId);
-    if (!client) return;
-
-    const channel = client.channel;
-
-    if (channel && this.channels.has(channel)) {
-      const members = this.channels.get(channel);
-      const index = members.indexOf(clientId);
-      
-      if (index > -1) {
-        members.splice(index, 1);
-      }
-
-      if (members.length === 0) {
-        this.channels.delete(channel);
-      } else {
-        try {
-          for (const member of members) {
-            const memberClient = this.clients.get(member);
-
-            if (this.isClientInChannel(memberClient, channel)) {
-              const listObj = {
-                a: 'l',
-                p: members.filter(value => value !== member)
-              };
-
-              const encrypted = await encryptMessage(listObj, memberClient.shared);
-              this.sendMessage(memberClient.webSocket, encrypted);
-            }
-          }
-        } catch (error) {
-          logEvent('close-list', [clientId, error], 'error');
-        }
-      }
-    }
-
-    this.clients.delete(clientId);
-  }
-
-  async cleanupOldConnections() {
-    const seenThreshold = getTime() - this.config.seenTimeout;
-
-    for (const [clientId, client] of this.clients) {
-      if (client.seen < seenThreshold) {
-        try {
-          logEvent('connection-seen', clientId, 'debug');
-          client.webSocket.close();
-          this.clients.delete(clientId);
-        } catch (error) {
-          logEvent('connection-seen', error, 'error');
-        }
-      }
-    }
-  }
-
+  }  // Check if client is in channel
   isClientInChannel(client, channel) {
     return (
       client &&
-      client.webSocket &&
+      client.connection &&
       client.shared &&
       client.channel &&
-      client.channel === channel
+      client.channel === channel ?
+      true :
+      false
     );
-  }  sendMessage(webSocket, message) {
+  }
+  // Send message helper
+  sendMessage(connection, message) {
     try {
       // In Cloudflare Workers, WebSocket.READY_STATE_OPEN is 1
-      if (webSocket.readyState === 1) {
-        webSocket.send(message);
+      if (connection.readyState === 1) {
+        connection.send(message);
       }
     } catch (error) {
       logEvent('sendMessage', error, 'error');
     }
+  }  // Close connection helper
+  closeConnection(connection) {
+    try {
+      connection.close();    } catch (error) {
+      logEvent('closeConnection', error, 'error');
+    }
+  }
+  
+  // 连接清理方法
+  async cleanupOldConnections() {
+    const seenThreshold = getTime() - this.config.seenTimeout;
+    const clientsToRemove = [];
+
+    // 先收集需要移除的客户端，避免在迭代时修改对象
+    for (const clientId in this.clients) {
+      if (this.clients[clientId].seen < seenThreshold) {
+        clientsToRemove.push(clientId);
+      }
+    }
+
+    // 然后一次性移除所有过期客户端
+    for (const clientId of clientsToRemove) {
+      try {
+        logEvent('connection-seen', clientId, 'debug');
+        this.clients[clientId].connection.close();
+        delete this.clients[clientId];
+      } catch (error) {
+        logEvent('connection-seen', error, 'error');      }
+    }
+    
+    // 如果没有任何客户端和房间，检查是否需要轮换密钥
+    if (Object.keys(this.clients).length === 0 && Object.keys(this.channels).length === 0) {
+      const pendingRotation = await this.state.storage.get('pendingKeyRotation');
+      if (pendingRotation) {
+        console.log('没有活跃客户端或房间，执行密钥轮换...');
+        await this.state.storage.delete('rsaKeyPair');        await this.state.storage.delete('pendingKeyRotation');
+        this.keyPair = null;
+        await this.initRSAKeyPair();
+      }
+    }
+    
+    return clientsToRemove.length; // 返回清理的连接数量
   }
 }

@@ -3,6 +3,8 @@ import crypto from 'node:crypto';
 // Generate a new RSA key pair using Node.js crypto API
 export const generateRSAKeyPair = async () => {
   try {
+    console.log('Generating new RSA keypair...');
+
     return new Promise((resolve, reject) => {
       crypto.generateKeyPair('rsa', {
         modulusLength: 2048,
@@ -39,82 +41,74 @@ export const generateRSAKeyPair = async () => {
 
 export const generateClientId = () => {
   try {
-    return crypto.randomBytes(8).toString('hex');
+    return (crypto.randomBytes(8).toString('hex'));
   } catch (error) {
     logEvent('generateClientId', error, 'error');
-    return null;
+    return (null);
   }
 };
 
-export const encryptMessage = async (message, key) => {
+export const encryptMessage = (message, key) => {
+
+  let encrypted = '';
+
   try {
-    const messageString = JSON.stringify(message);
+
+    const messageBuffer = Buffer.from(JSON.stringify(message), 'utf8');
+    
+    // Match server.js padding logic exactly
+    const paddedBuffer = (messageBuffer.length % 16) !== 0 ?
+      Buffer.concat([messageBuffer, Buffer.alloc(16 - (messageBuffer.length % 16))]) :
+      messageBuffer;
+
     const iv = crypto.randomBytes(16);
-    
-    // Use createCipheriv instead of createCipher for better compatibility
-    const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(key), iv);
+    const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
     cipher.setAutoPadding(false);
-    
-    // Manual padding to 16-byte boundary with zeros
-    const messageBuffer = Buffer.from(messageString, 'utf8');
-    const paddingLength = 16 - (messageBuffer.length % 16);
-    const paddedBuffer = Buffer.concat([messageBuffer, Buffer.alloc(paddingLength)]);
-    
-    const encrypted = Buffer.concat([
-      cipher.update(paddedBuffer),
-      cipher.final()
-    ]);
-    
-    // Format: iv|encrypted (base64 encoded)
-    const ivBase64 = iv.toString('base64');
-    const encryptedBase64 = encrypted.toString('base64');
-    
-    return ivBase64 + '|' + encryptedBase64;
-    
+
+    encrypted = iv.toString('base64') + '|' + cipher.update(paddedBuffer, '', 'base64') + cipher.final('base64');
+
   } catch (error) {
     logEvent('encryptMessage', error, 'error');
-    return '';
   }
+
+  return (encrypted);
+
 };
 
-export const decryptMessage = async (message, key) => {
+export const decryptMessage = (message, key) => {
+
+  let decrypted = {};
+
   try {
+
     const parts = message.split('|');
-    if (parts.length !== 2) {
-      throw new Error(`Invalid message format: expected 2 parts, got ${parts.length}`);
-    }
-    
-    const iv = Buffer.from(parts[0], 'base64');
-    const encryptedData = Buffer.from(parts[1], 'base64');
-    
-    logEvent('decryptMessage', `IV length: ${iv.length}, encrypted data length: ${encryptedData.length}, key length: ${key.length}`, 'debug');
-    
-    // Use createDecipheriv instead of createDecipher for better compatibility
-    const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(key), iv);
+    const decipher = crypto.createDecipheriv(
+      'aes-256-cbc',
+      key,
+      Buffer.from(parts[0], 'base64')
+    );
+
     decipher.setAutoPadding(false);
-    
-    const decrypted = Buffer.concat([
-      decipher.update(encryptedData),
-      decipher.final()
-    ]);
-    
-    // Remove null padding and convert to string
-    const decryptedText = decrypted.toString('utf8').replace(/\0+$/, '');
-    
-    logEvent('decryptMessage', `Decrypted text: "${decryptedText}"`, 'debug');
-    
-    return JSON.parse(decryptedText);
-    
+
+    const decryptedText = decipher.update(parts[1], 'base64', 'utf8') + decipher.final('utf8');
+    decrypted = JSON.parse(decryptedText.replace(/\0+$/, ''));
+
   } catch (error) {
     logEvent('decryptMessage', error, 'error');
-    return {};
   }
+
+  return (decrypted);
+
 };
 
 export const logEvent = (source, message, level) => {
-  if (level !== 'debug' || true) { // Always show debug for now
-    const date = new Date();
-    const dateString = date.getFullYear() + '-' +
+  if (
+    level !== 'debug' ||
+    true // config.debug would go here
+  ) {
+
+    const date = new Date(),
+      dateString = date.getFullYear() + '-' +
       ('0' + (date.getMonth() + 1)).slice(-2) + '-' +
       ('0' + date.getDate()).slice(-2) + ' ' +
       ('0' + date.getHours()).slice(-2) + ':' +
@@ -122,21 +116,45 @@ export const logEvent = (source, message, level) => {
       ('0' + date.getSeconds()).slice(-2);
 
     console.log('[' + dateString + ']', (level ? level.toUpperCase() : 'INFO'), source + (message ? ':' : ''), (message ? message : ''));
+
   }
 };
 
 export const getTime = () => {
-  return new Date().getTime();
+  return (new Date().getTime());
 };
 
 export const isString = (value) => {
-  return value && Object.prototype.toString.call(value) === '[object String]';
+  return (
+    value &&
+    Object.prototype.toString.call(value) === '[object String]' ?
+    true :
+    false
+  );
 };
 
 export const isArray = (value) => {
-  return value && Object.prototype.toString.call(value) === '[object Array]';
+  return (
+    value &&
+    Object.prototype.toString.call(value) === '[object Array]' ?
+    true :
+    false
+  );
 };
 
 export const isObject = (value) => {
-  return value && Object.prototype.toString.call(value) === '[object Object]';
+  return (
+    value &&
+    Object.prototype.toString.call(value) === '[object Object]' ?
+    true :
+    false
+  );
 };
+
+// Note: Since Cloudflare Workers don't have access to global.gc,
+// we're not including the garbage collection interval that's in server.js
+// setInterval(() => {
+//   if (global.gc) {
+//     global.gc();
+//   }
+// }, 30000);
