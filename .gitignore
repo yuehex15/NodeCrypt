@@ -34,7 +34,7 @@ build/
 *.swo
 
 # Cloudflare Workers
-wrangler.toml
+/workers/.wrangler
 
 # Ignore by folder
 server/node_modules/
@@ -47,3 +47,4 @@ client/build/
 
 # Ignore coverage
 coverage/
+dist/
