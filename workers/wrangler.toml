@@ -3,6 +3,10 @@ main = "src/index.js"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
+# 配置静态资源
+[site]
+bucket = "./public"
+
 [durable_objects]
 bindings = [
   { name = "CHAT_ROOM", class_name = "ChatRoom" }

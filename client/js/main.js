@@ -65,7 +65,7 @@ import {	renderUserList,       // 渲染用户列表 / Render user list
 // 设置全局配置参数
 // Set global configuration parameters
 window.config = {
-	wsAddress: 'ws://127.0.0.1:8787', // WebSocket 服务器地址 / WebSocket server address
+	wsAddress: `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`, // WebSocket 服务器地址 / WebSocket server address
 	debug: true                       // 是否开启调试模式 / Enable debug mode
 };
 
