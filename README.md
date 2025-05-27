@@ -1,209 +1,153 @@
 # NodeCrypt
 
-A modern real-time chat system with **true end-to-end encryption**, ensuring that neither the server nor any potential man-in-the-middle can access your conversation content.
+🌐 **[English README](README_EN.md)**
 
-[中文文档](./README.zh-CN.md)
-
-## 一键部署到 Cloudflare Workers
+本项目支持一键部署到cloudflare
 
 [![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button?projectName=NodeCrypt)](https://deploy.workers.cloudflare.com/?url=https://github.com/shuaiplus/NodeCrypt)
 
-## Core Concept
+## 📝 项目简介
 
-NodeCrypt implements a secure communication channel where:
+NodeCrypt 是一个真正的端到端加密聊天系统，实现完全的零知识架构。整个系统设计确保服务器、网络中间人、甚至系统管理员都无法获取任何明文消息内容。所有加密和解密操作都在客户端本地进行，服务器仅作为加密数据的盲中继。
 
-1. **Only the intended recipients can decrypt messages**
-2. **The server merely relays encrypted data without access to content**
-3. **All cryptographic operations happen client-side**
-4. **No encryption keys are ever transmitted in plain text**
+### 系统架构
+- **前端**：ES6+ 模块化 JavaScript，无框架依赖
+- **后端**：Cloudflare Workers + Durable Objects
+- **通信**：WebSocket 实时双向通信
+- **构建**：Vite 现代化构建工具
 
-### Security Architecture
+## 🔐 零知识架构设计
 
-```
-   Client A                 Server                 Client B
-     |                        |                       |
-     |-- Generate Key Pair -->|                       |
-     |                        |---- Key Exchange ---->|
-     |<---------------------- Secure Channel -------->|
-     |                        |                       |
-     |-- Encrypted Message -->|-- Encrypted Message ->|
-     |                        |    (Cannot Read)      |
-```
+### 核心原则
+- **服务器盲转**：服务器永远无法解密消息内容，仅负责加密数据中转
+- **无数据库存储**：系统不使用任何持久化存储，所有数据仅在内存中临时存在
+- **端到端加密**：消息从发送方到接收方全程加密，中间任何节点都无法解密
+- **前向安全性**：即使密钥泄露，也无法解密历史消息，因为根本就没有历史消息
+- **匿名通信**：用户无需注册真实身份，支持临时匿名聊天
 
-## Technology Stack
+### 隐私保护机制
 
-### Frontend
-- **Framework**: Native JavaScript (ES6+ modules)
-- **Build Tool**: Vite 
-- **Encryption**: Custom NodeCrypt.js implementation
-- **UI Design**: Responsive interface with modern design
+- **实时成员提醒**：房间在线列表完全透明，内任何人加入或离开都会实时通知所有成员，
+- **无历史消息**：新加入的用户无法看到任何历史聊天记录
+- **私聊加密**：点击用户头像可发起端到端加密的私密对话，房间内其他成员完全无法看到私聊内容
 
-### Backend
-- **Runtime**: Node.js
-- **Communication**: WebSocket protocol
-- **Encryption**: RSA + AES-256-CBC hybrid encryption
-- **Deployment**: Docker + Nginx
+### 房间密码机制
 
-### Core Encryption Mechanism
-- **Key Exchange**: Elliptic Curve Diffie-Hellman (ECDH)
-- **Symmetric Encryption**: AES-256-CBC 
-- **Asymmetric Encryption**: RSA (server authentication)
-- **End-to-End**: Direct encrypted communication between clients
+房间密码作为**密钥派生因子**参与端到端加密：`最终共享密钥 = ECDH_共享密钥 XOR SHA256(房间密码)`
 
-## Encryption Workflow
+- **密码错误隔离**：不同密码的房间无法解密彼此的消息
+- **服务器盲区**：服务器永远无法获知房间密码
 
-1. **Initial Setup**:
-   - Each client generates a unique elliptic curve key pair (public/private)
-   - Server authenticates itself using RSA signatures
+### 三层安全体系
 
-2. **Secure Channel Establishment**:
-   - Client A and Client B exchange public keys via the server
-   - Both clients independently compute the same shared secret using ECDH
-   - This shared secret is never transmitted over the network
+#### 第一层：RSA-2048 服务器身份验证
+- 服务器启动时生成临时 RSA-2048 密钥对，每24小时自动轮换
+- 客户端连接时验证服务器公钥，防止中间人攻击
+- 私钥仅在服务器内存中存在，从不持久化存储
 
-3. **Message Encryption**:
-   - Messages are encrypted with AES-256-CBC using the shared secret
-   - Each message includes a unique initialization vector
-   - Message authenticity is verified with HMAC
+#### 第二层：ECDH-P384 密钥协商
+- 每个客户端生成独立的椭圆曲线密钥对（P-384曲线）
+- 通过椭圆曲线 Diffie-Hellman 密钥交换协议建立共享密钥
+- 每个客户端与服务器之间拥有独立的加密通道
 
-4. **Private Messaging**:
-   - Unique shared keys are established between each pair of users
-   - Messages are specifically encrypted for the intended recipient only
-   - Server cannot determine message content, only routing information
+#### 第三层：混合对称加密
+- **服务器通信**：使用 AES-256-CBC 加密客户端与服务器间的控制消息
+- **客户端通信**：使用 ChaCha20 加密客户端之间的实际聊天内容
+- 每条消息使用独立的初始化向量（IV）和随机数（Nonce）
 
-## Key Features
+## 🔄 完整加密流程详解
 
-### 🔒 Security
-- **True End-to-End Encryption**: Only intended recipients can decrypt messages
-- **Zero-Knowledge Server**: Server only handles encrypted data packets
-- **Perfect Forward Secrecy**: New session keys for each conversation
-- **Man-in-the-Middle Protection**: RSA server authentication
-- **Secure Key Exchange**: ECDH for secure shared key generation
-- **XSS Protection**: Content sanitization and HTML escaping
+```mermaid
+sequenceDiagram
+    participant C as 客户端
+    participant S as 服务器
+    participant O as 其他客户端
 
-### 💬 Chat Functionality
-- Multi-room support (join multiple chat rooms simultaneously)
-- Private chat mode (click user avatar to start private chat)
-- Image sharing and preview (with drag and zoom support)
-- Emoji support
-- System notification messages
-
-### 🎨 User Experience
-- **Auto Avatar Generation**: SVG avatars based on username
-- **Responsive Design**: Works perfectly on desktop and mobile
-- **Adjustable Layout**: Resizable sidebar
-- **Smart Input**: Auto-height adjustment, multi-line support
-- **Unread Notifications**: Badge showing unread count
-
-### 📱 Mobile Optimization
-- Touch-friendly UI interactions
-- Mobile-specific sidebar with overlay
-- Adaptive layout and font sizes
-- Prevents page drag and zoom on touch devices
-
-## Implementation Details
-
-### Encryption Class (NodeCrypt.js)
-
-The core encryption logic is implemented in the `NodeCrypt.js` file:
-
-```javascript
-// Sample code showing the encryption process (simplified)
-class NodeCrypt {
-  constructor() {
-    // Initialize elliptic curve for ECDH
-    this.clientEc = new elliptic('curve25519');
+    Note over C,S: 阶段1: 服务器身份验证 (RSA-2048)
+    C->>S: WebSocket连接
+    S->>C: RSA-2048公钥
     
-    // Generate client keypair
-    this.clientKeys = this.clientEc.genKeyPair();
-    this.clientPublic = this.clientKeys.getPublic('hex');
-    this.clientPrivate = this.clientKeys.getPrivate('hex');
-  }
-  
-  // Establish shared secret with another client
-  establishSharedSecret(otherClientPublic) {
-    const sharedSecret = this.clientKeys.derive(
-      this.clientEc.keyFromPublic(otherClientPublic, 'hex').getPublic()
-    );
-    return sha256(sharedSecret.toString(16));
-  }
-  
-  // Encrypt message for specific recipient
-  encryptClientMessage(message, sharedSecret) {
-    const iv = crypto.randomBytes(16);
-    const cipher = new ModeOfOperation.cbc(sharedSecret, iv);
-    const encrypted = cipher.encrypt(message);
-    return { iv: iv.toString('hex'), data: encrypted.toString('hex') };
-  }
-  
-  // Decrypt message from specific sender
-  decryptClientMessage(encryptedMessage, sharedSecret) {
-    const iv = Buffer.from(encryptedMessage.iv, 'hex');
-    const decipher = new ModeOfOperation.cbc(sharedSecret, iv);
-    const decrypted = decipher.decrypt(Buffer.from(encryptedMessage.data, 'hex'));
-    return decrypted;
-  }
-}
+    Note over C,S: 阶段2: 客户端-服务器密钥交换 (P-384 ECDH)
+    C->>S: P-384 ECDH公钥
+    S->>C: P-384公钥 + RSA签名
+    Note over C: 验证RSA签名并派生AES-256密钥
+    Note over S: 从P-384 ECDH派生AES-256密钥
+    
+    Note over C,S: 阶段3: 房间认证
+    C->>S: 加入请求 (房间哈希，AES-256加密)
+    Note over S: 将客户端添加到房间/频道
+    S->>C: 成员列表 (其他客户端ID，加密)
+      Note over C,O: 阶段4: 客户端间密钥交换 (Curve25519)
+    Note over C: 为每个成员生成Curve25519密钥对
+    C->>S: Curve25519公钥包 (AES-256加密)
+    S->>O: 转发客户端C的公钥
+    O->>S: 返回其他客户端的Curve25519公钥
+    S->>C: 转发其他客户端的公钥
+    
+    Note over C,O: 阶段5: 密码增强密钥派生
+    Note over C: 客户端密钥 = ECDH_Curve25519(自己私钥, 对方公钥) XOR SHA256(密码)
+    Note over O: 客户端密钥 = ECDH_Curve25519(自己私钥, 对方公钥) XOR SHA256(密码)
+    
+    Note over C,O: 阶段6: 身份验证
+    C->>S: 用户名 (用客户端密钥ChaCha20加密)
+    S->>O: 转发加密用户名
+    O->>S: 用户名 (用客户端密钥ChaCha20加密)
+    S->>C: 转发加密用户名
+    Note over C,O: 双方客户端现在验证彼此身份    Note over C,O: 阶段7: 安全消息传输 (双层加密)
+    Note over C: 1. ChaCha20加密(消息内容)<br/>2. AES-256加密(传输层包装)
+    C->>S: 双层加密消息
+    Note over S: 解密AES-256传输层<br/>提取ChaCha20加密数据<br/>无法解密消息内容
+    S->>O: 转发ChaCha20加密数据
+    Note over O: 解密AES-256传输层<br/>ChaCha20解密获得消息内容
 ```
 
-### Client-to-Client Secure Channel
 
-When two clients want to communicate securely:
+## 🛠️ 技术实现
 
-1. Client A sends its public key to the server
-2. Server relays Client A's public key to Client B
-3. Client B computes shared secret using Client A's public key and its own private key
-4. Client B sends its public key to Client A (via server)
-5. Client A computes the same shared secret using Client B's public key and its own private key
-6. Both clients now have identical shared secrets without ever transmitting the secret itself
+- **Web Cryptography API**：浏览器原生加密实现，提供硬件加速
+- **elliptic.js**：椭圆曲线密码学库，实现 Curve25519 和 P-384
+- **aes-js**：纯 JavaScript AES 实现，支持多种模式
+- **js-chacha20**：ChaCha20 流加密算法的 JavaScript 实现
+- **js-sha256**：SHA-256 哈希算法实现
 
-### Message Flow with Encryption
+## 🚀 部署说明
 
-### 2. Chat Display (chat.js)
-- Message rendering and type handling
-- Image preview modal
-- Input field placeholder and auto-height
-- Paste plain text processing
+### 本地开发
+克隆项目并安装依赖后，使用 `npm run dev` 启动开发服务器。
 
-### 3. User Interface (ui.js)
-- User list rendering
-- Mobile UI adaptation
-- Login modal management
-- Settings panel interaction
+使用 `npm run deploy` 部署到 Cloudflare Workers。
 
-### 4. Utility Libraries
-- **util.dom.js**: DOM operation wrappers
-- **util.string.js**: String handling and HTML escaping
-- **util.avatar.js**: Avatar generation
-- **util.image.js**: Image processing
-- **util.emoji.js**: Emoji picker
-- **util.settings.js**: Settings management
+## 🔬 安全验证
 
-## Deployment
+### 加密过程验证
+用户可通过浏览器开发者工具观察完整的加密解密过程，验证消息在传输过程中确实处于加密状态。
 
-### Docker Deployment
-- **Dockerfile**: Container configuration
-- **start.sh**: Startup script (dynamic RSA key pair generation)
-- **Nginx**: Static file serving and WebSocket proxy
+### 网络流量分析
+使用网络抓包工具可以验证所有 WebSocket 传输的数据都是不可读的加密内容。
 
-## Project Highlights
+### 代码安全审计
+所有加密相关代码完全开源，使用标准密码学算法，欢迎安全研究者进行独立审计。
 
-1. **Security**: True end-to-end encryption where even the server cannot decrypt message content
-2. **User Experience**: Modern UI with smooth interactions
-3. **Modularity**: Clean separation of concerns with well-organized code modules
-4. **Responsiveness**: Fully functional on all device sizes
-5. **Extensibility**: Clear module separation, easy to extend functionality
+## ⚠️ 安全建议
 
-## Getting Started
+- **使用强房间密码**：房间密码直接影响端到端加密强度，建议使用复杂密码
+- **密码保密性**：房间密码一旦泄露，该房间所有通信内容都可能被解密
+- **使用最新版本的现代浏览器**：确保密码学API的安全性和性能
 
-```bash
-# Development mode
-npm run dev
+## 🤝 安全贡献
 
-# Production build
-npm run build
+欢迎安全研究者报告漏洞和进行安全审计。严重安全问题将在24小时内修复。
 
-# Docker deployment
-docker build -t nodecrypt .
-docker run -p 80:80 nodecrypt
-```
+## 📄 开源协议
+
+本项目采用 ISC 开源协议。
+
+## ⚠️ 免责声明
+
+本项目仅供学习和技术研究使用，不得用于任何违法犯罪活动。使用者应遵守所在国家和地区的相关法律法规。项目作者不承担因使用本软件而产生的任何法律责任。请在合法合规的前提下使用本项目。
+
+---
+
+**NodeCrypt** - 真正的端到端加密通信 🔐
+
+*"在数字时代，加密是保护隐私的最后一道防线"*
