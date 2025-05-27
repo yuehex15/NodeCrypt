@@ -38,9 +38,9 @@ build/
 .wrangler
 
 # Ignore by folder
-server/node_modules/
-workers/node_modules/
-node_modules/
+/node_modules/
+/server/node_modules/
+
 
 # Ignore output in client (if any)
 client/dist/

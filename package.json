@@ -4,6 +4,7 @@
   "description": "端到端加密节点",
   "main": "worker/index.js",
   "scripts": {
+    "build": "vite build",
     "dev": "vite build && wrangler dev",
     "deploy": "vite build && wrangler deploy",
     "publish": "vite build && wrangler publish"
