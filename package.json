@@ -5,7 +5,8 @@
   "main": "worker/index.js",
   "scripts": {
     "dev": "vite build && wrangler dev",
-    "deploy": "vite build && wrangler publish"
+    "deploy": "vite build && wrangler deploy",
+    "publish": "vite build && wrangler publish"
   },
   "repository": {
     "type": "git",
