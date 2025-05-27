@@ -2,12 +2,10 @@
   "name": "nodecrypt",
   "version": "1.0.0",
   "description": "端到端加密节点",
-  "main": "index.js",
+  "main": "worker/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "vite build",
-    "build:docker": "vite build",
-    "dev": "vite"
+    "dev": "vite build && wrangler dev",
+    "deploy": "vite build && wrangler publish"
   },
   "repository": {
     "type": "git",
@@ -24,7 +22,8 @@
     "autoprefixer": "^10.4.21",
     "cssnano": "^7.0.7",
     "terser": "^5.39.2",
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "wrangler": "^4.16.1"
   },
   "dependencies": {
     "@dicebear/core": "^9.2.2",

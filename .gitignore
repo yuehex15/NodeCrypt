@@ -35,6 +35,7 @@ build/
 
 # Cloudflare Workers
 /workers/.wrangler
+.wrangler
 
 # Ignore by folder
 server/node_modules/
