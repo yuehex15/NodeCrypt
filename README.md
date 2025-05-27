@@ -4,6 +4,10 @@ A modern real-time chat system with **true end-to-end encryption**, ensuring tha
 
 [中文文档](./README.zh-CN.md)
 
+## 一键部署到 Cloudflare Workers
+
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button?projectName=NodeCrypt)](https://deploy.workers.cloudflare.com/?url=https://github.com/shuaiplus/NodeCrypt)
+
 ## Core Concept
 
 NodeCrypt implements a secure communication channel where:
