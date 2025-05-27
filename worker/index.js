@@ -1,74 +1,25 @@
 import { generateClientId, encryptMessage, decryptMessage, logEvent, isString, isObject, getTime } from './utils.js';
 
-// 定义Content-Type映射
-const contentTypeMap = {
-  'html': 'text/html',
-  'css': 'text/css',
-  'js': 'text/javascript',
-  'json': 'application/json',
-  'png': 'image/png',
-  'jpg': 'image/jpeg',
-  'jpeg': 'image/jpeg',
-  'gif': 'image/gif',
-  'svg': 'image/svg+xml',
-  'ico': 'image/x-icon'
-};
-
-// 获取文件的Content-Type
-function getContentType(filename) {
-  const ext = filename.split('.').pop().toLowerCase();
-  return contentTypeMap[ext] || 'text/plain';
-}
-
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    const path = url.pathname;
-    
+
     // 处理WebSocket请求
     const upgradeHeader = request.headers.get('Upgrade');
     if (upgradeHeader && upgradeHeader === 'websocket') {
-      // Get or create a Durable Object instance
       const id = env.CHAT_ROOM.idFromName('chat-room');
       const stub = env.CHAT_ROOM.get(id);
-      
       return stub.fetch(request);
     }
-    
-    // 处理静态文件请求
-    try {
-      // 根路径重定向到index.html
-      if (path === '/' || path === '') {
-        return new Response('', {
-          status: 302,
-          headers: {
-            'Location': '/index.html'
-          }
-        });
-      }
-      
-      // 从KV存储或Assets中获取静态文件
-      let contentPath = path;
-      if (contentPath.startsWith('/')) {
-        contentPath = contentPath.substring(1);
-      }
-      
-      // 这里使用了Cloudflare Workers的__STATIC_CONTENT变量来获取静态资源
-      // 在实际部署时，您需要将静态文件上传到Cloudflare Workers的Assets中
-      const staticContent = await env.__STATIC_CONTENT.get(contentPath, 'stream');
-      
-      if (staticContent === null) {
-        return new Response('Not Found', { status: 404 });
-      }
-      
-      return new Response(staticContent, {
-        headers: {
-          'Content-Type': getContentType(contentPath)
-        }
-      });
-    } catch (error) {
-      return new Response('Server Error: ' + error.message, { status: 500 });
+
+    // 处理API请求
+    if (url.pathname.startsWith('/api/')) {
+      // ...API 逻辑...
+      return new Response(JSON.stringify({ ok: true }), { headers: { "Content-Type": "application/json" } });
     }
+
+    // 其余全部交给 ASSETS 处理（自动支持 hash 文件名和 SPA fallback）
+    return env.ASSETS.fetch(request);
   }
 };
 
