@@ -20,6 +20,142 @@ import {
 	closeSettingsPanel
 } from './util.settings.js';
 
+// Utility functions for security and error handling
+// 安全和错误处理工具函数
+
+// Simple encryption/decryption using base64 and character shifting
+// 使用base64和字符偏移的简单加密/解密
+function simpleEncrypt(text) {
+	if (!text) return '';
+	// Convert to base64 and shift characters
+	const base64 = btoa(unescape(encodeURIComponent(text)));
+	return base64.split('').map(char => {
+		const code = char.charCodeAt(0);
+		return String.fromCharCode(code + 3);
+	}).join('');
+}
+
+function simpleDecrypt(encrypted) {
+	if (!encrypted) return '';
+	try {
+		// Reverse character shifting and decode base64
+		const shifted = encrypted.split('').map(char => {
+			const code = char.charCodeAt(0);
+			return String.fromCharCode(code - 3);
+		}).join('');
+		return decodeURIComponent(escape(atob(shifted)));
+	} catch (error) {
+		console.warn('Failed to decrypt data:', error);
+		return '';
+	}
+}
+
+// Validate room data
+// 验证房间数据
+function validateRoomData(roomData) {
+	if (!roomData) {
+		return { valid: false, error: 'No room data available' };
+	}
+	if (!roomData.roomName || roomData.roomName.trim() === '') {
+		return { valid: false, error: 'Room name is required' };
+	}
+	return { valid: true };
+}
+
+// Copy text to clipboard with fallback
+// 复制文本到剪贴板（含降级处理）
+function copyToClipboard(text, successMessage = 'Copied to clipboard!', errorPrefix = 'Copy failed, text:') {
+	if (!text) {
+		window.addSystemMsg && window.addSystemMsg('Nothing to copy');
+		return;
+	}
+
+	if (navigator.clipboard && navigator.clipboard.writeText) {
+		navigator.clipboard.writeText(text).then(() => {
+			window.addSystemMsg && window.addSystemMsg(successMessage);
+		}).catch((error) => {
+			console.error('Clipboard write failed:', error);
+			showFallbackCopy(text, errorPrefix);
+		});
+	} else {
+		showFallbackCopy(text, errorPrefix);
+	}
+}
+
+// Show fallback copy method
+// 显示降级复制方法
+function showFallbackCopy(text, prefix) {
+	if (typeof prompt === 'function') {
+		prompt(prefix, text);
+	} else {
+		// For environments where prompt is not available
+		window.addSystemMsg && window.addSystemMsg('Copy not supported in this environment');
+	}
+}
+
+// Execute menu action with error handling
+// 执行菜单操作并处理错误
+function executeMenuAction(action, closeMenuCallback) {
+	try {
+		switch (action) {
+			case 'share':
+				handleShareAction();
+				break;
+			case 'exit':
+				handleExitAction();
+				break;
+			default:
+				console.warn('Unknown menu action:', action);
+		}
+	} catch (error) {
+		console.error('Menu action failed:', error);
+		window.addSystemMsg && window.addSystemMsg('Action failed. Please try again.');
+	} finally {
+		closeMenuCallback && closeMenuCallback();
+	}
+}
+
+// Handle share action
+// 处理分享操作
+function handleShareAction() {
+	const validation = validateRoomData(roomsData[activeRoomIndex]);
+	if (!validation.valid) {
+		window.addSystemMsg && window.addSystemMsg(`Cannot share: ${validation.error}`);
+		return;
+	}
+
+	const rd = roomsData[activeRoomIndex];
+	const roomName = rd.roomName.trim();
+	const password = rd.password || '';
+	
+	// Encrypt room name and password
+	const encryptedRoom = simpleEncrypt(roomName);
+	const encryptedPwd = password ? simpleEncrypt(password) : '';
+	
+	// Create share URL with encrypted data
+	let url = `${location.origin}${location.pathname}?r=${encodeURIComponent(encryptedRoom)}`;
+	if (encryptedPwd) {
+		url += `&p=${encodeURIComponent(encryptedPwd)}`;
+	}
+	
+	copyToClipboard(url, 'Share link copied!', 'Copy failed, url:');
+}
+
+// Handle exit action
+// 处理退出操作
+function handleExitAction() {
+	try {
+		const result = exitRoom();
+		if (!result) {
+			location.reload();
+		}
+	} catch (error) {
+		console.error('Exit room failed:', error);
+		// Force reload as fallback
+		location.reload();
+	}
+}
+
 // Render the main header
 // 渲染主标题栏
 export function renderMainHeader() {
@@ -181,53 +317,36 @@ export function setupMoreBtnMenu() {
 			animating = false;
 		}, 300);
 	}
+
 	btn.onclick = function(e) {
 		e.stopPropagation();
 		if (menu.classList.contains('open')) {
-			closeMenu()
+			closeMenu();
 		} else {
-			openMenu()
+			openMenu();
 		}
 	};
+
 	menu.onclick = function(e) {
 		if (e.target.classList.contains('more-menu-item')) {
-			if (e.target.dataset.action === 'share') {
-				if (activeRoomIndex >= 0 && roomsData[activeRoomIndex]) {
-					const rd = roomsData[activeRoomIndex];
-					const room = encodeURIComponent(rd.roomName || '');
-					const pwd = encodeURIComponent(rd.password || '');
-					const url = `${location.origin}${location.pathname}?node=${room}&pwd=${pwd}`;
-					if (navigator.clipboard) {
-						navigator.clipboard.writeText(url).then(() => {
-							window.addSystemMsg('Share link copied!')
-						}, () => {
-							prompt('Copy failed, url:', url)
-						})
-					} else {
-						prompt('Copy failed, url:', url)
-					}
-				}
-				closeMenu()
-			} else if (e.target.dataset.action === 'exit') {
-				const result = exitRoom();
-				if (!result) {
-					location.reload()
-				}
-				closeMenu()
-			}
+			const action = e.target.dataset.action;
+			executeMenuAction(action, closeMenu);
 		}
 	};
+
 	document.addEventListener('click', function hideMenu(ev) {
 		if (!menu.contains(ev.target) && ev.target !== btn) {
-			closeMenu()
+			closeMenu();
 		}
 	});
+
 	menu.addEventListener('animationend', function(e) {
-		animating = false
+		animating = false;
 	});
+
 	menu.addEventListener('transitionend', function(e) {
-		animating = false
-	})
+		animating = false;
+	});
 }
 
 // Prevent space and special character input
@@ -334,10 +453,9 @@ export function openLoginModal() {
 	modal.querySelector('.login-modal-close').onclick = () => modal.remove();
 	preventSpaceInput(modal.querySelector('#userName-modal'));
 	preventSpaceInput(modal.querySelector('#roomName-modal'));
-	preventSpaceInput(modal.querySelector('#password-modal'));
-	const form = modal.querySelector('#login-form-modal');
+	preventSpaceInput(modal.querySelector('#password-modal'));	const form = modal.querySelector('#login-form-modal');
 	form.addEventListener('submit', loginFormHandler(modal));
-	autofillRoomPwd('userName-modal')
+	autofillRoomPwd('-modal')
 }
 
 // Setup member list tabs
@@ -356,26 +474,67 @@ export function setupTabs() {
 // 从 URL 自动填充房间和密码
 export function autofillRoomPwd(formPrefix = '') {
 	const params = new URLSearchParams(window.location.search);
-	const room = params.get('node');
-	const pwd = params.get('pwd');
-	if (room) {
+	
+	// Check for new encrypted format first
+	const encryptedRoom = params.get('r');
+	const encryptedPwd = params.get('p');
+	
+	// Check for old plaintext format (for backward compatibility)
+	const plaintextRoom = params.get('node');
+	const plaintextPwd = params.get('pwd');
+	
+	let roomValue = '';
+	let pwdValue = '';
+	let isPlaintext = false;
+	
+	if (encryptedRoom) {
+		// New encrypted format
+		roomValue = simpleDecrypt(decodeURIComponent(encryptedRoom));
+		if (encryptedPwd) {
+			pwdValue = simpleDecrypt(decodeURIComponent(encryptedPwd));
+		}
+	} else if (plaintextRoom) {
+		// Old plaintext format - show security warning
+		roomValue = decodeURIComponent(plaintextRoom);
+		if (plaintextPwd) {
+			pwdValue = decodeURIComponent(plaintextPwd);
+		}
+		isPlaintext = true;
+		
+		// Show security warning for plaintext URLs
+		if (window.addSystemMsg) {
+			window.addSystemMsg('⚠️ This link uses an old format. Room data is not encrypted.', true);
+		}
+	}
+		// Fill in the form fields
+	if (roomValue) {
 		const roomInput = document.getElementById(formPrefix + 'roomName');
 		if (roomInput) {
-			roomInput.value = decodeURIComponent(room);
+			roomInput.value = roomValue;
 			roomInput.readOnly = true;
-			roomInput.style.background = '#f5f5f5'
+			roomInput.style.background = isPlaintext ? '#fff9e6' : '#f5f5f5'; // Yellow tint for plaintext
 		}
-	}
-	if (pwd) {
+				// Always lock password field when coming from a share link
 		const pwdInput = document.getElementById(formPrefix + 'password');
 		if (pwdInput) {
-			pwdInput.value = decodeURIComponent(pwd);
+			pwdInput.value = pwdValue; // Will be empty string if no password
 			pwdInput.readOnly = true;
-			pwdInput.style.background = '#f5f5f5'
+			pwdInput.style.background = isPlaintext ? '#fff9e6' : '#f5f5f5'; // Yellow tint for plaintext
+			
+			// Add visual indicator for no password and keep label floating
+			if (!pwdValue) {
+				pwdInput.placeholder = 'No password required';
+				// Add a space to make the input appear "filled" so the label stays floating
+				pwdInput.value = ' ';
+				// Make the text invisible but keep the label floating behavior
+				pwdInput.style.color = 'transparent';
+			}
 		}
 	}
-	if (room || pwd) {
-		window.history.replaceState({}, '', location.pathname)
+	
+	// Clear URL parameters for security
+	if (roomValue || pwdValue) {
+		window.history.replaceState({}, '', location.pathname);
 	}
 }
 
