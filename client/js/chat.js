@@ -268,10 +268,22 @@ function renderFileMessage(fileData, isSender) {
 		fileId,
 		fileName,
 		originalSize,
-		totalVolumes
+		totalVolumes,
+		fileCount,
+		isArchive
 	} = fileData;
-	const safeFileName = escapeHTML(fileName);
-	const formattedSize = formatFileSize(originalSize);
+	
+	// For archive files, show file count and total size
+	let displayName, displayMeta;
+	if (isArchive && fileCount) {
+		displayName = `${fileCount} files`;
+		displayMeta = `Total: ${formatFileSize(originalSize)}`;
+	} else {
+		displayName = fileName;
+		displayMeta = formatFileSize(originalSize);
+	}
+	
+	const safeDisplayName = escapeHTML(displayName);
 
 	// Check actual file transfer status
 	const transfer = window.fileTransfers ? window.fileTransfers.get(fileId) : null;
@@ -306,13 +318,18 @@ function renderFileMessage(fileData, isSender) {
 		downloadBtnStyle = 'display: inline-block;';
 	}
 
+	// Different icon for archives vs single files
+	const fileIcon = isArchive ? '📦' : '📄';
+	const downloadText = isArchive ? 'Download All' : 'Download';
+
 	return `
 		<div class="file-message" data-file-id="${fileId}">
 			<div class="file-info">
+				<div class="file-icon">${fileIcon}</div>
 				<div class="file-details">
-					<div class="file-name" title="${safeFileName}">${safeFileName}</div>
+					<div class="file-name" title="${safeDisplayName}">${safeDisplayName}</div>
 					<div class="file-meta">
-						<span class="file-size">${formattedSize}</span>
+						<span class="file-size">${displayMeta}</span>
 					</div>
 				</div>
 			</div>
@@ -323,7 +340,7 @@ function renderFileMessage(fileData, isSender) {
 				<div class="file-status">${statusText}</div>
 			</div>
 			<button class="file-download-btn" style="${downloadBtnStyle}" onclick="window.downloadFile('${fileId}')">
-				📥 Download
+				📥 ${downloadText}
 			</button>
 		</div>
 	`;
