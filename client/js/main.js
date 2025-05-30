@@ -112,7 +112,6 @@ window.addEventListener('DOMContentLoaded', () => {
 	setupImagePreview();
 	setupEmojiPicker();
 	initSettings();
-
 	const settingsBtn = $id('settings-btn'); // 设置按钮 / Settings button
 	if (settingsBtn) {
 		settingsBtn.onclick = (e) => {
@@ -121,17 +120,16 @@ window.addEventListener('DOMContentLoaded', () => {
 		}
 	}
 
-	// 点击其他地方时关闭设置面板
-	// Close settings panel when clicking outside
-	document.addEventListener('click', (ev) => {
-		const panel = $id('settings-panel');
-		if (panel && panel.style.display === 'block') {
-			const card = panel.querySelector('.settings-panel-card');
-			if (card && !card.contains(ev.target) && ev.target.id !== 'settings-btn') {
-				closeSettingsPanel();
-			}
+	// 设置返回按钮事件处理 / Settings back button event handler
+	const settingsBackBtn = $id('settings-back-btn');
+	if (settingsBackBtn) {
+		settingsBackBtn.onclick = (e) => {
+			e.stopPropagation();
+			closeSettingsPanel(); // 关闭设置面板 / Close settings panel
 		}
-	});
+	}
+	// 点击其他地方时关闭设置面板 (已移除，因为现在使用侧边栏形式)
+	// Close settings panel when clicking outside (removed since we now use sidebar format)
 
 	const input = document.querySelector('.input-message-input'); // 消息输入框 / Message input box
 	if (input) {

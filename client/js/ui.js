@@ -16,6 +16,9 @@ import {
 import {
 	$id
 } from './util.dom.js';
+import {
+	closeSettingsPanel
+} from './util.settings.js';
 
 // Render the main header
 // 渲染主标题栏
@@ -37,6 +40,7 @@ export function renderMainHeader() {
 export function setupMobileUIHandlers() {
 	const sidebar = document.getElementById('sidebar');
 	const rightbar = document.getElementById('rightbar');
+	const settingsSidebar = document.getElementById('settings-sidebar');
 	const mobileMenuBtn = document.getElementById('mobile-menu-btn');
 	const mobileInfoBtn = document.getElementById('mobile-info-btn');
 	const sidebarMask = document.getElementById('mobile-sidebar-mask');
@@ -66,10 +70,14 @@ export function setupMobileUIHandlers() {
 			e.stopPropagation();
 			sidebar.classList.add('mobile-open');
 			sidebarMask.classList.add('active')
-		};
-		sidebarMask.onclick = function() {
-			sidebar.classList.remove('mobile-open');
-			sidebarMask.classList.remove('active')
+		};		sidebarMask.onclick = function() {
+			// Check if settings sidebar is open
+			if (settingsSidebar && settingsSidebar.classList.contains('mobile-open')) {
+				closeSettingsPanel();
+			} else {
+				sidebar.classList.remove('mobile-open');
+				sidebarMask.classList.remove('active');
+			}
 		}
 	}
 	if (mobileInfoBtn && rightbar && rightbarMask) {
@@ -82,13 +90,17 @@ export function setupMobileUIHandlers() {
 			rightbar.classList.remove('mobile-open');
 			rightbarMask.classList.remove('active')
 		}
-	}
-	document.addEventListener('click', function(ev) {
+	}	document.addEventListener('click', function(ev) {
 		if (!isMobile()) return;
 		if (sidebar && sidebar.classList.contains('mobile-open')) {
 			if (!sidebar.contains(ev.target) && ev.target !== mobileMenuBtn) {
 				sidebar.classList.remove('mobile-open');
 				if (sidebarMask) sidebarMask.classList.remove('active')
+			}
+		}
+		if (settingsSidebar && settingsSidebar.classList.contains('mobile-open')) {
+			if (!settingsSidebar.contains(ev.target)) {
+				closeSettingsPanel();
 			}
 		}
 		if (rightbar && rightbar.classList.contains('mobile-open')) {

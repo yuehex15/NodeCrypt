@@ -64,19 +64,38 @@ function askNotificationPermission(callback) {
 // Setup the settings panel UI
 // 设置设置面板 UI
 function setupSettingsPanel() {
-	let panel = $id('settings-panel');
-	if (!panel) {
-		panel = createElement('div', {
-			id: 'settings-panel',
-			class: 'settings-panel'
-		}, `<div class="settings-panel-card"><div class="settings-title">Settings</div><div class="settings-item"><span>Desktop Notification</span><label class="switch"><input type="checkbox"id="settings-notify"><span class="slider"></span></label></div><div class="settings-item"><span>Sound Notification</span><label class="switch"><input type="checkbox"id="settings-sound"><span class="slider"></span></label></div></div>`);
-		document.body.appendChild(panel)
-	}
+	const settingsSidebar = $id('settings-sidebar');
+	const settingsContent = $id('settings-content');
+	if (!settingsSidebar || !settingsContent) return;
+
 	const settings = loadSettings();
-	const notifyCheckbox = $('#settings-notify', panel);
-	const soundCheckbox = $('#settings-sound', panel);
-	if (notifyCheckbox) notifyCheckbox.checked = !!settings.notify;
-	if (soundCheckbox) soundCheckbox.checked = !!settings.sound;
+	// Create settings content HTML
+	settingsContent.innerHTML = `
+		<div class="settings-section">
+			<div class="settings-section-title">通知设置</div>
+			<div class="settings-item">
+				<div class="settings-item-label">
+					<div>桌面通知</div>
+				</div>
+				<label class="switch">
+					<input type="checkbox" id="settings-notify" ${settings.notify ? 'checked' : ''}>
+					<span class="slider"></span>
+				</label>
+			</div>
+			<div class="settings-item">
+				<div class="settings-item-label">
+					<div>声音通知</div>
+				</div>
+				<label class="switch">
+					<input type="checkbox" id="settings-sound" ${settings.sound ? 'checked' : ''}>
+					<span class="slider"></span>
+				</label>
+			</div>
+		</div>
+	`;
+
+	const notifyCheckbox = $('#settings-notify', settingsContent);
+	const soundCheckbox = $('#settings-sound', settingsContent);
 	on(notifyCheckbox, 'change', e => {
 		const checked = e.target.checked;
 		if (checked) {
@@ -91,13 +110,12 @@ function setupSettingsPanel() {
 					settings.sound = false;
 					if (soundCheckbox) soundCheckbox.checked = false;
 					saveSettings(settings);
-					applySettings(settings);
-					// 防止重复通知，添加一个标志位
-					if (!panel._notificationShown) {
+					applySettings(settings);					// 防止重复通知，添加一个标志位
+					if (!settingsSidebar._notificationShown) {
 						new Notification('Notifications enabled', {
 							body: 'You will receive alerts here.'
 						});
-						panel._notificationShown = true; // 设置标志位
+						settingsSidebar._notificationShown = true; // 设置标志位
 					}
 				} else {
 					settings.notify = false;
@@ -110,10 +128,9 @@ function setupSettingsPanel() {
 		} else {
 			settings.notify = false;
 			saveSettings(settings);
-			applySettings(settings);
-			// 重置标志位
-			if (panel._notificationShown) {
-				panel._notificationShown = false;
+			applySettings(settings);			// 重置标志位
+			if (settingsSidebar._notificationShown) {
+				settingsSidebar._notificationShown = false;
 			}
 		}
 	});
@@ -128,41 +145,62 @@ function setupSettingsPanel() {
 	});
 }
 
+// Check if device is mobile
+function isMobile() {
+	return window.innerWidth <= 768;
+}
+
 // Open the settings panel
 // 打开设置面板
 function openSettingsPanel() {
+	const settingsSidebar = $id('settings-sidebar');
+	const sidebar = $id('sidebar');
+	const sidebarMask = $id('mobile-sidebar-mask');
+	
+	if (!settingsSidebar || !sidebar) return;
+	
+	if (isMobile()) {
+		// Mobile: hide main sidebar and show settings sidebar with mask
+		sidebar.classList.remove('mobile-open');
+		settingsSidebar.style.display = 'flex';
+		settingsSidebar.classList.add('mobile-open');
+		if (sidebarMask) {
+			sidebarMask.classList.add('active');
+		}
+	} else {
+		// Desktop: hide main sidebar and show settings sidebar
+		sidebar.style.display = 'none';
+		settingsSidebar.style.display = 'flex';
+	}
+	
+	// Setup settings content
 	setupSettingsPanel();
-	const panel = $id('settings-panel');
-	const btn = $id('settings-btn');
-	if (!btn || !panel) return;
-	if (panel.style.display === 'block') return;
-	const btnRect = btn.getBoundingClientRect();
-	panel.style.display = 'block';
-	const card = $('.settings-panel-card', panel);
-	if (!card) return;
-	card.style.position = 'fixed';
-	card.style.left = btnRect.left + 'px';
-	card.style.top = (btnRect.bottom + 8) + 'px';
-	card.style.transform = 'translateX(0)';
-	removeClass(card, 'close-anim');
-	// 强制触发重绘，然后添加打开动画
-	card.offsetHeight; // 强制重绘
-	addClass(card, 'open-anim');
 }
 
 // Close the settings panel
 // 关闭设置面板
 function closeSettingsPanel() {
-	const panel = $id('settings-panel');
-	if (!panel) return;
-	const card = $('.settings-panel-card', panel);
-	if (!card) return;
-	removeClass(card, 'open-anim');
-	addClass(card, 'close-anim');
-	setTimeout(() => {
-		panel.style.display = 'none';
-		removeClass(card, 'close-anim')
-	}, 300)
+	const settingsSidebar = $id('settings-sidebar');
+	const sidebar = $id('sidebar');
+	const sidebarMask = $id('mobile-sidebar-mask');
+	
+	if (!settingsSidebar || !sidebar) return;
+	
+	if (isMobile()) {
+		// Mobile: hide settings sidebar and mask, show main sidebar if needed
+		settingsSidebar.classList.remove('mobile-open');
+		if (sidebarMask) {
+			sidebarMask.classList.remove('active');
+		}
+		// Don't auto-show main sidebar on mobile - let user click menu button
+		setTimeout(() => {
+			settingsSidebar.style.display = 'none';
+		}, 300); // Wait for animation to complete
+	} else {
+		// Desktop: hide settings sidebar and show main sidebar
+		settingsSidebar.style.display = 'none';
+		sidebar.style.display = 'flex';
+	}
 }
 
 // Initialize settings on page load

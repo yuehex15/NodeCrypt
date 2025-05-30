@@ -70,10 +70,9 @@
 
 	* {
 		touch-action: pan-y;
-	}
-
-	.sidebar,
-	.rightbar {
+	}	.sidebar,
+	.rightbar,
+	.settings-sidebar {
 		position: fixed;
 		top: 0;
 		bottom: 0;
@@ -92,6 +91,19 @@
 	}
 
 	.sidebar.mobile-open {
+		transform: translateX(0);
+	}
+
+	.settings-sidebar {
+		left: 0;
+		max-width: 80vw;
+		width: 80vw !important;
+		transform: translateX(-100%);
+		border-right: 1px solid #e0e0e0;
+		z-index: 1001; /* Higher than normal sidebar */
+	}
+
+	.settings-sidebar.mobile-open {
 		transform: translateX(0);
 	}
 
@@ -143,11 +155,11 @@
 	.mobile-info-btn:active {
 		background: #e0e0e0;
 		transform: scale(0.93);
-	}
-
-	.settings-panel-card {
+	}	.settings-panel-card {
 		left: 2vw !important;
 	}
+	
+	/* Settings sidebar mobile styles - removed duplicate rules since they are above */
 }
 
 .member.private-chat-active {
