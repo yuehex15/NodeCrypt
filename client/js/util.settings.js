@@ -10,11 +10,16 @@ import {
 	addClass,
 	removeClass
 } from './util.dom.js';
+
+// Import theme utilities
+// 导入主题工具函数
+import { THEMES, getCurrentTheme, applyTheme } from './util.theme.js';
 // Default settings
 // 默认设置
 const DEFAULT_SETTINGS = {
 	notify: false,
-	sound: false
+	sound: false,
+	theme: 'theme1'
 };
 
 // Load settings from localStorage
@@ -37,11 +42,13 @@ function loadSettings() {
 function saveSettings(settings) {
 	const {
 		notify,
-		sound
+		sound,
+		theme
 	} = settings;
 	localStorage.setItem('settings', JSON.stringify({
 		notify,
-		sound
+		sound,
+		theme
 	}))
 }
 
@@ -68,8 +75,7 @@ function setupSettingsPanel() {
 	const settingsContent = $id('settings-content');
 	if (!settingsSidebar || !settingsContent) return;
 
-	const settings = loadSettings();
-	// Create settings content HTML
+	const settings = loadSettings();	// Create settings content HTML
 	settingsContent.innerHTML = `
 		<div class="settings-section">
 			<div class="settings-section-title">通知设置</div>
@@ -90,6 +96,14 @@ function setupSettingsPanel() {
 					<input type="checkbox" id="settings-sound" ${settings.sound ? 'checked' : ''}>
 					<span class="slider"></span>
 				</label>
+			</div>
+		</div>		<div class="settings-section">
+			<div class="settings-section-title">主题设置</div>
+			<div class="theme-selector" id="theme-selector">
+				${THEMES.map(theme => `
+					<div class="theme-item ${settings.theme === theme.id ? 'active' : ''}" data-theme-id="${theme.id}" style="background: ${theme.background}; background-size: cover; background-position: center;">
+					</div>
+				`).join('')}
 			</div>
 		</div>
 	`;
@@ -133,8 +147,7 @@ function setupSettingsPanel() {
 				settingsSidebar._notificationShown = false;
 			}
 		}
-	});
-	on(soundCheckbox, 'change', e => {
+	});	on(soundCheckbox, 'change', e => {
 		settings.sound = e.target.checked;
 		if (settings.sound) {
 			settings.notify = false;
@@ -143,6 +156,154 @@ function setupSettingsPanel() {
 		saveSettings(settings);
 		applySettings(settings)
 	});
+	// Theme selection event handlers
+	// 主题选择事件处理
+	const themeSelector = $('#theme-selector', settingsContent);
+	if (themeSelector) {
+		// Custom scrolling functionality
+		// 自定义滚动功能
+		let isDragging = false;
+		let startX = 0;
+		let scrollLeft = 0;
+
+		// Mouse wheel scrolling (vertical -> horizontal)
+		// 鼠标滚轮滚动（垂直转水平）
+		on(themeSelector, 'wheel', e => {
+			e.preventDefault();
+			const scrollAmount = e.deltaY * 0.5; // Adjust scroll sensitivity
+			themeSelector.scrollLeft += scrollAmount;
+		});
+		// Mouse drag scrolling
+		// 鼠标拖拽滚动
+		let dragStartTime = 0;
+		let hasDragged = false;
+		
+		on(themeSelector, 'mousedown', e => {
+			isDragging = true;
+			hasDragged = false;
+			dragStartTime = Date.now();
+			startX = e.pageX - themeSelector.offsetLeft;
+			scrollLeft = themeSelector.scrollLeft;
+			themeSelector.classList.add('dragging');
+			e.preventDefault(); // Prevent text selection
+		});
+		on(document, 'mousemove', e => {
+			if (!isDragging) return;
+			e.preventDefault();
+			const x = e.pageX - themeSelector.offsetLeft;
+			const walk = (x - startX) * 2; // Scroll speed multiplier
+			const moved = Math.abs(walk);
+			
+			// If moved more than 5px, consider it a drag
+			if (moved > 5) {
+				hasDragged = true;
+			}
+			
+			themeSelector.scrollLeft = scrollLeft - walk;
+		});
+
+		on(document, 'mouseup', () => {
+			if (isDragging) {
+				isDragging = false;
+				themeSelector.classList.remove('dragging');
+			}
+		});
+		// Touch support for mobile
+		// 移动端触摸支持
+		let touchStartX = 0;
+		let touchScrollLeft = 0;
+		let touchStartTime = 0;
+		let touchHasMoved = false;
+
+		on(themeSelector, 'touchstart', e => {
+			touchStartX = e.touches[0].clientX;
+			touchScrollLeft = themeSelector.scrollLeft;
+			touchStartTime = Date.now();
+			touchHasMoved = false;
+		});
+
+		on(themeSelector, 'touchmove', e => {
+			e.preventDefault();
+			const touchX = e.touches[0].clientX;
+			const walk = (touchStartX - touchX) * 1.5; // Touch scroll sensitivity
+			
+			// If moved more than 10px, consider it a swipe
+			if (Math.abs(walk) > 10) {
+				touchHasMoved = true;
+			}
+			
+			themeSelector.scrollLeft = touchScrollLeft + walk;
+		});
+
+		// Handle touch end for theme selection
+		// 处理触摸结束的主题选择
+		on(themeSelector, 'touchend', e => {
+			// If user swiped, don't trigger theme selection
+			// 如果用户滑动过，不触发主题选择
+			if (touchHasMoved) {
+				touchHasMoved = false;
+				return;
+			}
+			
+			// Check if it was a quick tap
+			// 检查是否是快速点击
+			const tapDuration = Date.now() - touchStartTime;
+			if (tapDuration > 300) {
+				return;
+			}
+			
+			const themeItem = e.target.closest('.theme-item');
+			if (themeItem) {
+				const themeId = themeItem.dataset.themeId;
+				if (themeId && themeId !== settings.theme) {
+					// Update active state
+					$$('.theme-item', themeSelector).forEach(item => {
+						item.classList.remove('active');
+					});
+					themeItem.classList.add('active');
+					
+					// Apply theme and save settings
+					settings.theme = themeId;
+					applyTheme(themeId);
+					saveSettings(settings);
+				}
+			}
+		});
+		// Theme selection click handler
+		// 主题选择点击处理器
+		on(themeSelector, 'click', e => {
+			// If user just dragged, don't trigger theme selection
+			// 如果用户刚刚拖拽过，不触发主题选择
+			if (hasDragged) {
+				hasDragged = false;
+				return;
+			}
+			
+			// Also check if it was a quick click (less than 200ms and minimal movement)
+			// 同时检查是否是快速点击（少于200ms且移动很少）
+			const clickDuration = Date.now() - dragStartTime;
+			if (clickDuration > 200) {
+				return;
+			}
+			
+			const themeItem = e.target.closest('.theme-item');
+			if (themeItem) {
+				const themeId = themeItem.dataset.themeId;
+				if (themeId && themeId !== settings.theme) {
+					// Update active state
+					$$('.theme-item', themeSelector).forEach(item => {
+						item.classList.remove('active');
+					});
+					themeItem.classList.add('active');
+					
+					// Apply theme and save settings
+					settings.theme = themeId;
+					applyTheme(themeId);
+					saveSettings(settings);
+				}
+			}
+		});
+	}
 }
 
 // Check if device is mobile
@@ -207,7 +368,13 @@ function closeSettingsPanel() {
 // 页面加载时初始化设置
 function initSettings() {
 	const settings = loadSettings();
-	applySettings(settings)
+	applySettings(settings);
+	
+	// Apply theme from settings
+	// 从设置中应用主题
+	if (settings.theme) {
+		applyTheme(settings.theme);
+	}
 }
 
 // Maximum notification text length

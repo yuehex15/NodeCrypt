@@ -70,11 +70,13 @@
 
 	* {
 		touch-action: pan-y;
-	}	.sidebar,
+	}	
+	.sidebar,
 	.rightbar,
 	.settings-sidebar {
 		position: fixed;
 		top: 0;
+		width: 60vw !important;
 		bottom: 0;
 		z-index: 1000;
 		height: 100dvh;
@@ -85,7 +87,6 @@
 
 	.sidebar {
 		left: 0;
-		max-width: 70vw;
 		transform: translateX(-100%);
 		border-right: 1px solid #e0e0e0;
 	}
@@ -95,9 +96,6 @@
 	}
 
 	.settings-sidebar {
-		left: 0;
-		max-width: 80vw;
-		width: 80vw !important;
 		transform: translateX(-100%);
 		border-right: 1px solid #e0e0e0;
 		z-index: 1001; /* Higher than normal sidebar */
@@ -206,4 +204,32 @@
 .bubble.me.private-message .bubble-content {
 	color: white !important;
 	background-color: transparent !important;
+}
+
+/* Mobile theme selector styles */
+/* 移动端主题选择器样式 */
+.theme-selector {
+	gap: 8px;
+	padding: 6px 2px;
+	/* Ensure scrollbars are hidden on mobile too */
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+	/* Improve touch scrolling */
+	-webkit-overflow-scrolling: touch;
+}
+
+.theme-selector::-webkit-scrollbar {
+	display: none;
+}
+
+.theme-item {
+	width: 70px;
+	height: 70px;
+	/* Prevent text selection on mobile */
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	/* Prevent touch callouts */
+	-webkit-touch-callout: none;
 }

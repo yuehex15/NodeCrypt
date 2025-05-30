@@ -25,6 +25,12 @@ import {
 	notifyMessage         // 通知信息提示 / Display notification message
 } from './util.settings.js';
 
+// 从 util.theme.js 中导入主题功能函数
+// Import theme functions from util.theme.js
+import {
+	initTheme            // 初始化主题 / Initialize theme
+} from './util.theme.js';
+
 // 从 util.dom.js 中导入常用 DOM 操作函数
 // Import common DOM manipulation functions from util.dom.js
 import {
@@ -67,7 +73,8 @@ import {	renderUserList,       // 渲染用户列表 / Render user list
 // 设置全局配置参数
 // Set global configuration parameters
 window.config = {
-	wsAddress: `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`, // WebSocket 服务器地址 / WebSocket server address
+	//wsAddress: `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`, // WebSocket 服务器地址 / WebSocket server address
+	wsAddress: `ws://127.0.0.1:8787`,
 	debug: true                       // 是否开启调试模式 / Enable debug mode
 };
 
@@ -103,7 +110,6 @@ window.addEventListener('DOMContentLoaded', () => {
 	preventSpaceInput($id('userName'));
 	preventSpaceInput($id('roomName'));
 	preventSpaceInput($id('password'));
-
 	// 初始化辅助功能和界面设置
 	// Initialize autofill, input placeholders, and menus
 	autofillRoomPwd();
@@ -112,6 +118,7 @@ window.addEventListener('DOMContentLoaded', () => {
 	setupImagePreview();
 	setupEmojiPicker();
 	initSettings();
+	initTheme(); // 初始化主题 / Initialize theme
 	const settingsBtn = $id('settings-btn'); // 设置按钮 / Settings button
 	if (settingsBtn) {
 		settingsBtn.onclick = (e) => {
