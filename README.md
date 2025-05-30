@@ -149,7 +149,7 @@ sequenceDiagram
 ---
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=shuaiplus/NodeCrypt&type=Date)](https://www.star-history.com/#shuaiplus/NodeCrypt&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=shuaiplus/NodeCrypt&type=Timeline)](https://www.star-history.com/#shuaiplus/NodeCrypt&Timeline
 
 **NodeCrypt** - 真正的端到端加密通信 🔐
 
