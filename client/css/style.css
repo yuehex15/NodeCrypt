@@ -915,12 +915,6 @@ body {
 	margin-bottom: 8px;
 }
 
-.file-icon {
-	font-size: 24px;
-	margin-right: 10px;
-	flex-shrink: 0;
-}
-
 .file-details {
 	flex: 1;
 	min-width: 0;

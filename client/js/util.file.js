@@ -314,20 +314,30 @@ function updateFileProgress(fileId) {
 		const statusText = element.querySelector('.file-status');
 		const downloadBtn = element.querySelector('.file-download-btn');
 		
+		// 判断是否为发送方（发送方没有volumeData）
+		const isSender = !transfer.volumeData || transfer.volumeData.length === 0;
+		
 		if (transfer.status === 'sending') {
 			const progress = (transfer.sentVolumes / transfer.totalVolumes) * 100;
 			if (progressBar) progressBar.style.width = `${progress}%`;
 			if (statusText) statusText.textContent = `Sending ${transfer.sentVolumes}/${transfer.totalVolumes}`;
+			if (downloadBtn) downloadBtn.style.display = 'none';
 		} else if (transfer.status === 'receiving') {
 			const progress = (transfer.receivedVolumes.size / transfer.totalVolumes) * 100;
 			if (progressBar) progressBar.style.width = `${progress}%`;
 			if (statusText) statusText.textContent = `Receiving ${transfer.receivedVolumes.size}/${transfer.totalVolumes}`;
+			if (downloadBtn) downloadBtn.style.display = 'none';
 		} else if (transfer.status === 'completed') {
 			if (progressBar) progressBar.style.width = '100%';
 			if (statusText) statusText.textContent = '✓ Completed';
 			if (downloadBtn) {
-				downloadBtn.style.display = 'inline-block';
-				downloadBtn.disabled = false;
+				// 只有接收方才显示下载按钮
+				if (isSender) {
+					downloadBtn.style.display = 'none';
+				} else {
+					downloadBtn.style.display = 'inline-block';
+					downloadBtn.disabled = false;
+				}
 			}
 		}
 	});

@@ -273,71 +273,6 @@ function renderFileMessage(fileData, isSender) {
 	const safeFileName = escapeHTML(fileName);
 	const formattedSize = formatFileSize(originalSize);
 
-	// Determine file icon based on extension
-	// 根据扩展名确定文件图标
-	const fileExtension = fileName.split('.').pop().toLowerCase();
-	let fileIcon = '📄'; // Default document icon 默认文档图标
-
-	const iconMap = {
-		// Images
-		'jpg': '🖼️',
-		'jpeg': '🖼️',
-		'png': '🖼️',
-		'gif': '🖼️',
-		'bmp': '🖼️',
-		'svg': '🖼️',
-		'webp': '🖼️',
-		// Videos
-		'mp4': '🎬',
-		'avi': '🎬',
-		'mov': '🎬',
-		'mkv': '🎬',
-		'wmv': '🎬',
-		'flv': '🎬',
-		'webm': '🎬',
-		// Audio
-		'mp3': '🎵',
-		'wav': '🎵',
-		'flac': '🎵',
-		'aac': '🎵',
-		'ogg': '🎵',
-		'm4a': '🎵',
-		// Documents
-		'pdf': '📕',
-		'doc': '📄',
-		'docx': '📄',
-		'txt': '📄',
-		'rtf': '📄',
-		'xls': '📊',
-		'xlsx': '📊',
-		'csv': '📊',
-		'ppt': '📈',
-		'pptx': '📈',
-		// Archives
-		'zip': '🗜️',
-		'rar': '🗜️',
-		'7z': '🗜️',
-		'tar': '🗜️',
-		'gz': '🗜️',
-		// Code
-		'js': '💻',
-		'html': '💻',
-		'css': '💻',
-		'py': '💻',
-		'java': '💻',
-		'cpp': '💻',
-		'c': '💻',
-		'php': '💻',
-		'rb': '💻',
-		'go': '💻',
-		'ts': '💻',
-		'json': '💻',
-		'xml': '💻'
-	};
-	if (iconMap[fileExtension]) {
-		fileIcon = iconMap[fileExtension];
-	}
-
 	// Check actual file transfer status
 	const transfer = window.fileTransfers ? window.fileTransfers.get(fileId) : null;
 	let statusText = 'Waiting...';
@@ -356,22 +291,28 @@ function renderFileMessage(fileData, isSender) {
 		} else if (transfer.status === 'completed') {
 			progressWidth = '100%';
 			statusText = '✓ Completed';
+			// 只有接收方才显示下载按钮
 			downloadBtnStyle = isSender ? 'display: none;' : 'display: inline-block;';
 		}
 	} else if (isSender) {
 		statusText = 'Sent';
 		progressWidth = '100%';
+		// 发送方不显示下载按钮
+		downloadBtnStyle = 'display: none;';
+	} else {
+		// 接收方历史消息
+		statusText = 'Ready to download';
+		progressWidth = '100%';
+		downloadBtnStyle = 'display: inline-block;';
 	}
 
 	return `
 		<div class="file-message" data-file-id="${fileId}">
 			<div class="file-info">
-				<div class="file-icon">${fileIcon}</div>
 				<div class="file-details">
 					<div class="file-name" title="${safeFileName}">${safeFileName}</div>
 					<div class="file-meta">
 						<span class="file-size">${formattedSize}</span>
-						<span class="file-volumes">${totalVolumes} volumes</span>
 					</div>
 				</div>
 			</div>
