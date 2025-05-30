@@ -19,6 +19,9 @@ import {
 	addClass,
 	removeClass
 } from './util.dom.js';
+import {
+	formatFileSize
+} from './util.file.js';
 
 // Render the chat area
 // 渲染聊天区域
@@ -54,11 +57,13 @@ export function addMsg(text, isHistory = false, msgType = 'text', timestamp = nu
 	if (!chatArea) return;
 	const className = 'bubble me' + (msgType.includes('_private') ? ' private-message' : '');
 	const date = new Date(ts);
-	const time = date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
-	let contentHtml = '';
+	const time = date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');	let contentHtml = '';
 	if (msgType === 'image' || msgType === 'image_private') {
 		const safeImgSrc = escapeHTML(text).replace(/javascript:/gi, '');
 		contentHtml = `<img src="${safeImgSrc}"alt="image"class="bubble-img">`
+	} else if (msgType === 'file' || msgType === 'file_private') {
+		// Handle file messages
+		contentHtml = renderFileMessage(text, true);
 	} else {
 		contentHtml = textToHTML(text)
 	}
@@ -95,11 +100,13 @@ export function addOtherMsg(msg, userName = '', avatar = '', isHistory = false, 
 	if (!chatArea) return;
 	const bubbleWrap = createElement('div', {
 		class: 'bubble-other-wrap'
-	});
-	let contentHtml = '';
+	});	let contentHtml = '';
 	if (msgType === 'image' || msgType === 'image_private') {
 		const safeImgSrc = escapeHTML(msg).replace(/javascript:/gi, '');
 		contentHtml = `<img src="${safeImgSrc}"alt="image"class="bubble-img">`
+	} else if (msgType === 'file' || msgType === 'file_private') {
+		// Handle file messages
+		contentHtml = renderFileMessage(msg, false);
 	} else {
 		contentHtml = textToHTML(msg)
 	}
@@ -252,6 +259,133 @@ export function showImageModal(src) {
 	on(modal, 'remove', cleanup);
 	on($('.img-modal-close', modal), 'click', cleanup);
 	updateTransform()
+}
+
+// Render file message content
+// 渲染文件消息内容
+function renderFileMessage(fileData, isSender) {
+	const {
+		fileId,
+		fileName,
+		originalSize,
+		totalVolumes
+	} = fileData;
+	const safeFileName = escapeHTML(fileName);
+	const formattedSize = formatFileSize(originalSize);
+
+	// Determine file icon based on extension
+	// 根据扩展名确定文件图标
+	const fileExtension = fileName.split('.').pop().toLowerCase();
+	let fileIcon = '📄'; // Default document icon 默认文档图标
+
+	const iconMap = {
+		// Images
+		'jpg': '🖼️',
+		'jpeg': '🖼️',
+		'png': '🖼️',
+		'gif': '🖼️',
+		'bmp': '🖼️',
+		'svg': '🖼️',
+		'webp': '🖼️',
+		// Videos
+		'mp4': '🎬',
+		'avi': '🎬',
+		'mov': '🎬',
+		'mkv': '🎬',
+		'wmv': '🎬',
+		'flv': '🎬',
+		'webm': '🎬',
+		// Audio
+		'mp3': '🎵',
+		'wav': '🎵',
+		'flac': '🎵',
+		'aac': '🎵',
+		'ogg': '🎵',
+		'm4a': '🎵',
+		// Documents
+		'pdf': '📕',
+		'doc': '📄',
+		'docx': '📄',
+		'txt': '📄',
+		'rtf': '📄',
+		'xls': '📊',
+		'xlsx': '📊',
+		'csv': '📊',
+		'ppt': '📈',
+		'pptx': '📈',
+		// Archives
+		'zip': '🗜️',
+		'rar': '🗜️',
+		'7z': '🗜️',
+		'tar': '🗜️',
+		'gz': '🗜️',
+		// Code
+		'js': '💻',
+		'html': '💻',
+		'css': '💻',
+		'py': '💻',
+		'java': '💻',
+		'cpp': '💻',
+		'c': '💻',
+		'php': '💻',
+		'rb': '💻',
+		'go': '💻',
+		'ts': '💻',
+		'json': '💻',
+		'xml': '💻'
+	};
+	if (iconMap[fileExtension]) {
+		fileIcon = iconMap[fileExtension];
+	}
+
+	// Check actual file transfer status
+	const transfer = window.fileTransfers ? window.fileTransfers.get(fileId) : null;
+	let statusText = 'Waiting...';
+	let progressWidth = '0%';
+	let downloadBtnStyle = 'display: none;';
+	
+	if (transfer) {
+		if (transfer.status === 'sending') {
+			const progress = (transfer.sentVolumes / transfer.totalVolumes) * 100;
+			progressWidth = `${progress}%`;
+			statusText = `Sending ${transfer.sentVolumes}/${transfer.totalVolumes}`;
+		} else if (transfer.status === 'receiving') {
+			const progress = (transfer.receivedVolumes.size / transfer.totalVolumes) * 100;
+			progressWidth = `${progress}%`;
+			statusText = `Receiving ${transfer.receivedVolumes.size}/${transfer.totalVolumes}`;
+		} else if (transfer.status === 'completed') {
+			progressWidth = '100%';
+			statusText = '✓ Completed';
+			downloadBtnStyle = isSender ? 'display: none;' : 'display: inline-block;';
+		}
+	} else if (isSender) {
+		statusText = 'Sent';
+		progressWidth = '100%';
+	}
+
+	return `
+		<div class="file-message" data-file-id="${fileId}">
+			<div class="file-info">
+				<div class="file-icon">${fileIcon}</div>
+				<div class="file-details">
+					<div class="file-name" title="${safeFileName}">${safeFileName}</div>
+					<div class="file-meta">
+						<span class="file-size">${formattedSize}</span>
+						<span class="file-volumes">${totalVolumes} volumes</span>
+					</div>
+				</div>
+			</div>
+			<div class="file-progress-container">
+				<div class="file-progress-bar">
+					<div class="file-progress" style="width: ${progressWidth}"></div>
+				</div>
+				<div class="file-status">${statusText}</div>
+			</div>
+			<button class="file-download-btn" style="${downloadBtnStyle}" onclick="window.downloadFile('${fileId}')">
+				📥 Download
+			</button>
+		</div>
+	`;
 }
 
 // Automatically adjust the height of the input area

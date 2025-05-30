@@ -242,10 +242,52 @@ export function handleClientMessage(idx, msg) {
 			return
 		}
 	}
+	
 	let msgType = msg.type || 'text';
+	
+	// Handle file messages
+	if (msgType.startsWith('file_')) {
+		// Import handleFileMessage function if needed
+		if (window.handleFileMessage) {
+			window.handleFileMessage(msg.data, msgType.includes('_private'));
+		}
+		
+		// Only add file_start messages to chat history
+		if (msgType === 'file_start' || msgType === 'file_start_private') {
+			let realUserName = msg.userName;
+			if (!realUserName && msg.clientId && newRd.userMap[msg.clientId]) {
+				realUserName = newRd.userMap[msg.clientId].userName || newRd.userMap[msg.clientId].username || newRd.userMap[msg.clientId].name
+			}
+			
+			roomsData[idx].messages.push({
+				type: 'other',
+				text: msg.data,
+				userName: realUserName,
+				avatar: realUserName,
+				msgType: msgType.includes('_private') ? 'file_private' : 'file',
+				timestamp: Date.now()
+			});
+			
+			const notificationMsgType = msgType.includes('_private') ? 'private file' : 'file';
+			if (window.notifyMessage) {
+				window.notifyMessage(newRd.roomName, notificationMsgType, `${msg.data.fileName}`, realUserName)
+			}
+			
+			if (activeRoomIndex !== idx) {
+				roomsData[idx].unreadCount = (roomsData[idx].unreadCount || 0) + 1;
+				renderRooms(activeRoomIndex)
+			} else {
+				renderChatArea()
+			}
+		}
+		return;
+	}
+	
+	// Handle legacy image detection
 	if (!msgType.includes('_private') && msg.data && msg.data.startsWith('data:image/')) {
 		msgType = 'image'
 	}
+	
 	let realUserName = msg.userName;
 	if (!realUserName && msg.clientId && newRd.userMap[msg.clientId]) {
 		realUserName = newRd.userMap[msg.clientId].userName || newRd.userMap[msg.clientId].username || newRd.userMap[msg.clientId].name

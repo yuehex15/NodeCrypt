@@ -2,11 +2,13 @@
 // Import the NodeCrypt module (used for encryption)
 import './NodeCrypt.js';
 
-// 从 util.image.js 中导入设置图片发送的函数
-// Import setupImageSend function from util.image.js
+// 从 util.file.js 中导入设置文件发送的函数
+// Import setupFileSend function from util.file.js
 import {
-	setupImageSend
-} from './util.image.js';
+	setupFileSend,
+	handleFileMessage,
+	downloadFile
+} from './util.file.js';
 
 // 从 util.emoji.js 中导入设置表情选择器的函数
 // Import setupEmojiPicker function from util.emoji.js
@@ -75,6 +77,8 @@ window.addSystemMsg = addSystemMsg;
 window.joinRoom = joinRoom;
 window.notifyMessage = notifyMessage;
 window.setupEmojiPicker = setupEmojiPicker;
+window.handleFileMessage = handleFileMessage;
+window.downloadFile = downloadFile;
 
 // 当 DOM 内容加载完成后执行初始化逻辑
 // Run initialization logic when the DOM content is fully loaded
@@ -176,25 +180,24 @@ window.addEventListener('DOMContentLoaded', () => {
 			}
 		});
 	}
-
-	// 设置发送图片功能
-	// Setup image sending functionality
-	setupImageSend({
+	// 设置发送文件功能
+	// Setup file sending functionality
+	setupFileSend({
 		inputSelector: '.input-message-input', // 消息输入框选择器 / Message input selector
 		attachBtnSelector: '.chat-attach-btn', // 附件按钮选择器 / Attach button selector
 		fileInputSelector: '.new-message-wrapper input[type="file"]', // 文件输入框选择器 / File input selector
-		onSend: (dataUrl) => {
+		onSend: (message) => {
 			const rd = roomsData[activeRoomIndex];
 			if (rd && rd.chat) {
 				if (rd.privateChatTargetId) {
-					// 私聊图片加密并发送
-					// Encrypt and send private image
+					// 私聊文件加密并发送
+					// Encrypt and send private file message
 					const targetClient = rd.chat.channel[rd.privateChatTargetId];
 					if (targetClient && targetClient.shared) {
 						const clientMessagePayload = {
 							a: 'm',
-							t: 'image_private',
-							d: dataUrl
+							t: message.type + '_private',
+							d: message
 						};
 						const encryptedClientMessage = rd.chat.encryptClientMessage(clientMessagePayload, targetClient.shared);
 						const serverRelayPayload = {
@@ -204,15 +207,23 @@ window.addEventListener('DOMContentLoaded', () => {
 						};
 						const encryptedMessageForServer = rd.chat.encryptServerMessage(serverRelayPayload, rd.chat.serverShared);
 						rd.chat.sendMessage(encryptedMessageForServer);
-						addMsg(dataUrl, false, 'image_private');
+						
+						// 添加到自己的聊天记录
+						if (message.type === 'file_start') {
+							addMsg(message, false, 'file_private');
+						}
 					} else {
-						addSystemMsg(`Cannot send private image to ${rd.privateChatTargetName}.User might not be fully connected.`)
+						addSystemMsg(`Cannot send private file to ${rd.privateChatTargetName}. User might not be fully connected.`)
 					}
 				} else {
-					// 公共频道发送图片
-					// Send image to public channel
-					rd.chat.sendChannelMessage('image', dataUrl);
-					addMsg(dataUrl, false, 'image');
+					// 公共频道文件发送
+					// Send file to public channel
+					rd.chat.sendChannelMessage(message.type, message);
+					
+					// 添加到自己的聊天记录
+					if (message.type === 'file_start') {
+						addMsg(message, false, 'file');
+					}
 				}
 			}
 		}

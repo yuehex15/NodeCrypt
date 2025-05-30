@@ -332,11 +332,10 @@ class NodeCrypt {
 					}
 				}
 				return
-			}
-			if (!this.channel[serverDecrypted.c].username) {
+			}			if (!this.channel[serverDecrypted.c].username) {
 				return
 			}
-			if (clientDecrypted.a === 'm' && this.isString(clientDecrypted.t) && this.isString(clientDecrypted.d)) {
+			if (clientDecrypted.a === 'm' && this.isString(clientDecrypted.t) && (this.isString(clientDecrypted.d) || this.isObject(clientDecrypted.d))) {
 				if (this.callbacks.onClientMessage) {
 					try {
 						this.callbacks.onClientMessage({
