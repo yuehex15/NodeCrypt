@@ -97,6 +97,9 @@ function hideUploadModal() {
 		uploadModal = null;
 		selectedFiles.clear();
 		onSendCallback = null;
+		
+		// 通知主模块重置拖拽标志位
+		window.dispatchEvent(new CustomEvent('fileUploadModalClosed'));
 	}, 300);
 }
 

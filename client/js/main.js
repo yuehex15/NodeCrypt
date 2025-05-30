@@ -268,3 +268,48 @@ window.addEventListener('DOMContentLoaded', () => {
 		});
 	}
 });
+
+// 全局拖拽文件自动打开附件功能
+// Global drag file to auto trigger attach button
+let dragCounter = 0;
+let hasTriggeredAttach = false;
+
+// 监听文件上传模态框关闭事件，重置拖拽标志位
+window.addEventListener('fileUploadModalClosed', () => {
+	hasTriggeredAttach = false;
+});
+
+document.addEventListener('dragenter', (e) => {
+	dragCounter++;
+	if (!hasTriggeredAttach && e.dataTransfer.items.length > 0) {
+		// 检查是否有文件
+		for (let item of e.dataTransfer.items) {
+			if (item.kind === 'file') {
+				// 自动点击附件按钮
+				const attachBtn = document.querySelector('.chat-attach-btn');
+				if (attachBtn) {
+					attachBtn.click();
+					hasTriggeredAttach = true;
+				}
+				break;
+			}
+		}
+	}
+});
+
+document.addEventListener('dragleave', (e) => {
+	dragCounter--;
+	if (dragCounter === 0) {
+		hasTriggeredAttach = false;
+	}
+});
+
+document.addEventListener('dragover', (e) => {
+	e.preventDefault();
+});
+
+document.addEventListener('drop', (e) => {
+	e.preventDefault();
+	dragCounter = 0;
+	hasTriggeredAttach = false;
+});
