@@ -78,10 +78,10 @@ function setupSettingsPanel() {
 	const settings = loadSettings();	// Create settings content HTML
 	settingsContent.innerHTML = `
 		<div class="settings-section">
-			<div class="settings-section-title">通知设置</div>
+			<div class="settings-section-title">Notification Settings</div>
 			<div class="settings-item">
 				<div class="settings-item-label">
-					<div>桌面通知</div>
+					<div>Desktop Notifications</div>
 				</div>
 				<label class="switch">
 					<input type="checkbox" id="settings-notify" ${settings.notify ? 'checked' : ''}>
@@ -90,7 +90,7 @@ function setupSettingsPanel() {
 			</div>
 			<div class="settings-item">
 				<div class="settings-item-label">
-					<div>声音通知</div>
+					<div>Sound Notifications</div>
 				</div>
 				<label class="switch">
 					<input type="checkbox" id="settings-sound" ${settings.sound ? 'checked' : ''}>
@@ -98,7 +98,7 @@ function setupSettingsPanel() {
 				</label>
 			</div>
 		</div>		<div class="settings-section">
-			<div class="settings-section-title">主题设置</div>
+			<div class="settings-section-title">Theme Settings</div>
 			<div class="theme-selector" id="theme-selector">
 				${THEMES.map(theme => `
 					<div class="theme-item ${settings.theme === theme.id ? 'active' : ''}" data-theme-id="${theme.id}" style="background: ${theme.background}; background-size: cover; background-position: center;">
