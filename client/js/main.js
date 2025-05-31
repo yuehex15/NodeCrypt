@@ -281,6 +281,8 @@ window.addEventListener('DOMContentLoaded', () => {
 		onSend: (message) => {
 			const rd = roomsData[activeRoomIndex];
 			if (rd && rd.chat) {
+				const userName = rd.myUserName || '';
+				const msgWithUser = { ...message, userName };
 				if (rd.privateChatTargetId) {
 					// 私聊文件加密并发送
 					// Encrypt and send private file message
@@ -288,8 +290,8 @@ window.addEventListener('DOMContentLoaded', () => {
 					if (targetClient && targetClient.shared) {
 						const clientMessagePayload = {
 							a: 'm',
-							t: message.type + '_private',
-							d: message
+							t: msgWithUser.type + '_private',
+							d: msgWithUser
 						};
 						const encryptedClientMessage = rd.chat.encryptClientMessage(clientMessagePayload, targetClient.shared);
 						const serverRelayPayload = {
@@ -301,19 +303,19 @@ window.addEventListener('DOMContentLoaded', () => {
 						rd.chat.sendMessage(encryptedMessageForServer);
 						
 						// 添加到自己的聊天记录
-						if (message.type === 'file_start') {
-							addMsg(message, false, 'file_private');
+						if (msgWithUser.type === 'file_start') {
+							addMsg(msgWithUser, false, 'file_private');
 						}					} else {
 						addSystemMsg(`${t('system.private_file_failed', 'Cannot send private file to')} ${rd.privateChatTargetName}. ${t('system.user_not_connected', 'User might not be fully connected.')}`)
 					}
 				} else {
 					// 公共频道文件发送
 					// Send file to public channel
-					rd.chat.sendChannelMessage(message.type, message);
+					rd.chat.sendChannelMessage(msgWithUser.type, msgWithUser);
 					
 					// 添加到自己的聊天记录
-					if (message.type === 'file_start') {
-						addMsg(message, false, 'file');
+					if (msgWithUser.type === 'file_start') {
+						addMsg(msgWithUser, false, 'file');
 					}
 				}
 			}		}

@@ -122,7 +122,11 @@ export function addMsg(text, isHistory = false, msgType = 'text', timestamp = nu
 export function addOtherMsg(msg, userName = '', avatar = '', isHistory = false, msgType = 'text', timestamp = null) {
 	if (!userName && activeRoomIndex >= 0) {
 		const rd = roomsData[activeRoomIndex];
-		if (rd && msg && msg.clientId && rd.userMap[msg.clientId]) {			userName = rd.userMap[msg.clientId].userName || rd.userMap[msg.clientId].username || rd.userMap[msg.clientId].name || t('ui.anonymous', 'Anonymous')
+		// 优先使用文件消息自带的 userName 字段
+		if (msg && msg.userName) {
+			userName = msg.userName;
+		} else if (rd && msg && msg.clientId && rd.userMap[msg.clientId]) {
+			userName = rd.userMap[msg.clientId].userName || rd.userMap[msg.clientId].username || rd.userMap[msg.clientId].name || t('ui.anonymous', 'Anonymous')
 		}
 	}
 	userName = userName || t('ui.anonymous', 'Anonymous');

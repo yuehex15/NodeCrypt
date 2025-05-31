@@ -363,7 +363,14 @@ export function setupFileSend({
 			// Import and show upload modal
 			import('./util.fileUpload.js').then(({ showFileUploadModal }) => {
 				showFileUploadModal(async (files) => {
-					await handleFilesUpload(files, onSend);
+					// 传递 userName 给 onSend
+					const userName = window.roomsData && window.activeRoomIndex >= 0
+						? (window.roomsData[window.activeRoomIndex]?.myUserName || '')
+						: '';
+					await handleFilesUpload(files, (msg) => {
+						// 合并 userName 字段
+						onSend({ ...msg, userName });
+					});
 				});
 			});
 		});
@@ -611,7 +618,7 @@ function updateFileProgress(fileId) {
 // Handle incoming file messages
 // 处理接收到的文件消息
 export function handleFileMessage(message, isPrivate = false) {
-	const { type, fileId } = message;
+	const { type, fileId, userName } = message;
 	
 	switch (type) {
 		case 'file_start':
@@ -629,7 +636,7 @@ export function handleFileMessage(message, isPrivate = false) {
 // Handle file start message
 // 处理文件开始消息
 function handleFileStart(message, isPrivate) {
-	const { fileId, fileName, originalSize, compressedSize, totalVolumes, originalHash, archiveHash, fileCount, fileManifest, isArchive } = message;
+	const { fileId, fileName, originalSize, compressedSize, totalVolumes, originalHash, archiveHash, fileCount, fileManifest, isArchive, userName } = message;
 	
 	const fileTransfer = {
 		fileId,
@@ -644,7 +651,8 @@ function handleFileStart(message, isPrivate) {
 		archiveHash,
 		fileCount,
 		fileManifest,
-		isArchive
+		isArchive,
+		userName // 记录发送者名字
 	};
 	
 	window.fileTransfers.set(fileId, fileTransfer);
@@ -660,7 +668,8 @@ function handleFileStart(message, isPrivate) {
 				originalSize,
 				totalVolumes,
 				fileCount,
-				isArchive: true
+				isArchive: true,
+				userName
 			};
 		} else {
 			displayData = {
@@ -668,11 +677,12 @@ function handleFileStart(message, isPrivate) {
 				fileId,
 				fileName,
 				originalSize,
-				totalVolumes
+				totalVolumes,
+				userName
 			};
 		}
 		
-		window.addOtherMsg(displayData, '', '', false, isPrivate ? 'file_private' : 'file');
+		window.addOtherMsg(displayData, userName, userName, false, isPrivate ? 'file_private' : 'file');
 	}
 }
 
