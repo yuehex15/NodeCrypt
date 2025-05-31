@@ -537,9 +537,9 @@ async function sendVolumes(fileId, volumes, onSend, updateProgress, fileName) {
 function updateFileProgress(fileId) {
 	const transfer = window.fileTransfers.get(fileId);
 	if (!transfer) return;
-	
 	const elements = document.querySelectorAll(`[data-file-id="${fileId}"]`);
 	elements.forEach(element => {
+		const progressContainer = element.querySelector('.file-progress-container');
 		const progressBar = element.querySelector('.file-progress');
 		const statusText = element.querySelector('.file-status');
 		const downloadBtn = element.querySelector('.file-download-btn');
@@ -549,24 +549,59 @@ function updateFileProgress(fileId) {
 		
 		if (transfer.status === 'sending') {
 			const progress = (transfer.sentVolumes / transfer.totalVolumes) * 100;
+			if (progressContainer) {
+				progressContainer.style.display = 'block';
+				progressContainer.classList.remove('fade-out');
+			}
 			if (progressBar) progressBar.style.width = `${progress}%`;
 			if (statusText) statusText.textContent = `Sending ${transfer.sentVolumes}/${transfer.totalVolumes}`;
-			if (downloadBtn) downloadBtn.style.display = 'none';
+			if (downloadBtn) {
+				downloadBtn.classList.remove('show', 'animate-in');
+				downloadBtn.style.display = 'none';
+			}
 		} else if (transfer.status === 'receiving') {
 			const progress = (transfer.receivedVolumes.size / transfer.totalVolumes) * 100;
+			if (progressContainer) {
+				progressContainer.style.display = 'block';
+				progressContainer.classList.remove('fade-out');
+			}
 			if (progressBar) progressBar.style.width = `${progress}%`;
 			if (statusText) statusText.textContent = `Receiving ${transfer.receivedVolumes.size}/${transfer.totalVolumes}`;
-			if (downloadBtn) downloadBtn.style.display = 'none';
+			if (downloadBtn) {
+				downloadBtn.classList.remove('show', 'animate-in');
+				downloadBtn.style.display = 'none';
+			}
 		} else if (transfer.status === 'completed') {
-			if (progressBar) progressBar.style.width = '100%';
-			if (statusText) statusText.textContent = '✓ Completed';
+			// 传输完成时的动画序列
+			if (progressContainer) {
+				// 先添加淡出动画类
+				progressContainer.classList.add('fade-out');
+				// 延迟后完全隐藏
+				setTimeout(() => {
+					progressContainer.style.display = 'none';
+				}, 400);
+			}
+			
 			if (downloadBtn) {
 				// 只有接收方才显示下载按钮
 				if (isSender) {
+					downloadBtn.classList.remove('show', 'animate-in');
 					downloadBtn.style.display = 'none';
 				} else {
-					downloadBtn.style.display = 'inline-block';
-					downloadBtn.disabled = false;
+					// 延迟显示下载按钮，等进度条消失动画完成
+					setTimeout(() => {
+						downloadBtn.style.display = 'flex';
+						downloadBtn.classList.add('show');
+						downloadBtn.disabled = false;
+						// 添加进入动画
+						setTimeout(() => {
+							downloadBtn.classList.add('animate-in');
+						}, 50);
+						// 清理动画类
+						setTimeout(() => {
+							downloadBtn.classList.remove('animate-in');
+						}, 550);
+					}, 200);
 				}
 			}
 		}

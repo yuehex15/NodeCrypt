@@ -997,27 +997,13 @@ body {
 
 /* File message styles */
 /* 文件消息样式 */
-.file-message {
-	max-width: 320px;
-	border-radius: 16px;
-	margin: 6px 0;
-	font-family: inherit;
-	background: rgba(255, 255, 255, 0.95);
-	border: 1px solid rgba(48, 168, 247, 0.1);
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-	transition: all 0.2s ease;
-}
-
-.file-message:hover {
-	transform: translateY(-1px);
-	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-}
 
 .file-main-content {
 	display: flex;
 	align-items: center;
-	padding: 12px 16px;
+	padding: 6px 6px;
 	gap: 12px;
+	max-width: 200px;
 }
 
 .file-info {
@@ -1058,21 +1044,49 @@ body {
 
 .file-download-btn {
 	padding: 10px;
-	background: linear-gradient(135deg, #30a8f7, #4fc3f7);
+	background: linear-gradient(135deg, #52abff, #4fc3f7);
 	color: white;
 	border: none;
 	border-radius: 12px;
 	font-size: 12px;
 	font-weight: 600;
 	cursor: pointer;
-	transition: all 0.2s ease;
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 	display: none;
 	align-items: center;
 	justify-content: center;
 	width: 40px;
 	height: 40px;
 	flex-shrink: 0;
-	box-shadow: 0 2px 8px rgba(48, 168, 247, 0.3);
+	opacity: 0;
+	transform: scale(0.8) translateY(5px);
+	position: relative;
+	overflow: hidden;
+}
+
+.file-download-btn.show {
+	opacity: 1;
+	transform: scale(1) translateY(0);
+	display: flex;
+}
+
+.file-download-btn.show.animate-in {
+	animation: downloadBtnAppear 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes downloadBtnAppear {
+	0% {
+		opacity: 0;
+		transform: scale(0.6) translateY(10px) rotate(-5deg);
+	}
+	60% {
+		opacity: 1;
+		transform: scale(1.1) translateY(-2px) rotate(2deg);
+	}
+	100% {
+		opacity: 1;
+		transform: scale(1) translateY(0) rotate(0deg);
+	}
 }
 
 .file-download-btn svg {
@@ -1084,12 +1098,10 @@ body {
 .file-download-btn:hover {
 	background: linear-gradient(135deg, #2196f3, #42a5f5);
 	transform: translateY(-2px);
-	box-shadow: 0 4px 16px rgba(48, 168, 247, 0.4);
 }
 
 .file-download-btn:active {
 	transform: translateY(0);
-	box-shadow: 0 2px 8px rgba(48, 168, 247, 0.3);
 }
 
 .file-download-btn:disabled {
@@ -1102,6 +1114,16 @@ body {
 .file-progress-container {
 	padding: 0 16px 12px;
 	margin-top: -4px;
+	opacity: 1;
+	max-height: 60px;
+	overflow: hidden;
+	transition: opacity 0.4s ease, max-height 0.4s ease, padding 0.4s ease;
+}
+
+.file-progress-container.fade-out {
+	opacity: 0;
+	max-height: 0;
+	padding: 0 16px 0;
 }
 
 .file-progress-bar {
@@ -1112,6 +1134,7 @@ body {
 	overflow: hidden;
 	margin-bottom: 8px;
 	box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+	transition: opacity 0.3s ease;
 }
 
 .file-progress {
@@ -1160,9 +1183,6 @@ body {
 	box-shadow: 0 2px 8px rgba(255, 193, 7, 0.1);
 }
 
-.bubble.private-message .file-message:hover {
-	box-shadow: 0 4px 16px rgba(255, 193, 7, 0.2);
-}
 
 .bubble.private-message .file-message .file-download-btn {
 	background: linear-gradient(135deg, #ff9800, #ffb74d);
@@ -1567,11 +1587,6 @@ body {
 	}
 }
 
-/* File message animation enhancements */
-/* 文件消息动画增强 */
-.file-message {
-	animation: fadeInUp 0.3s ease-out;
-}
 
 @keyframes fadeInUp {
 	from {
