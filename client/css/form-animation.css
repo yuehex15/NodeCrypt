@@ -16,7 +16,7 @@
 .input-group input:focus + .floating-label,
 .input-group input:not(:placeholder-shown) + .floating-label {
   color: #30a8f7;
-  transform: translateY(-35px);
+  transform: translateY(-40px);
 }
 
 .input-group .floating-label span {

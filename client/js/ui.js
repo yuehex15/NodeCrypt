@@ -70,7 +70,7 @@ function validateRoomData(roomData) {
 
 // Copy text to clipboard with fallback
 // 复制文本到剪贴板（含降级处理）
-function copyToClipboard(text, successMessage = t('action.copied', 'Copied to clipboard!'), errorPrefix = t('action.copy_failed', 'Copy failed, text:')) {
+function copyToClipboard(text, successMessage = t('action.copied', 'Copied to clipboard!'), errorPrefix = t('action.copy_failed', 'Copy failed, url:')) {
 	if (!text) {
 		window.addSystemMsg && window.addSystemMsg(t('action.nothing_to_copy', 'Nothing to copy'));
 		return;
@@ -568,4 +568,13 @@ window.addEventListener('languageChange', () => {
 	
 	// Refresh chat input placeholder
 	updateChatInputStyle();
+});
+
+// Listen for regenerate login form event
+// 监听重新生成登录表单事件
+window.addEventListener('regenerateLoginForm', () => {
+	const loginFormContainer = document.getElementById('login-form');
+	if (loginFormContainer) {
+		loginFormContainer.innerHTML = generateLoginForm(false);
+	}
 });

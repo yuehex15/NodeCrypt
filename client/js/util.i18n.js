@@ -41,9 +41,9 @@ const LANGUAGES = {
 			'file.selected_files': 'Selected Files',
 			'file.clear_all': 'Clear All',
 			'file.cancel': 'Cancel',
-			'file.send_files': 'Send Files',
-			'file.sending': 'Sending',
-			'file.receiving': 'Receiving',			'file.files': 'files',
+			'file.send_files': 'Send Files',			'file.sending': 'Sending',
+			'file.receiving': 'Receiving',
+			'file.files': 'files',
 			'file.total': 'Total',
 			'file.files_selected': '{count} files selected, {size} total',
 			'file.upload_files': 'Upload Files',
@@ -124,9 +124,9 @@ const LANGUAGES = {
 			'file.selected_files': '已选择的文件',
 			'file.clear_all': '清空所有',
 			'file.cancel': '取消',
-			'file.send_files': '发送文件',
-			'file.sending': '发送中',
-			'file.receiving': '接收中',			'file.files': '个文件',
+			'file.send_files': '发送文件',			'file.sending': '发送中',
+			'file.receiving': '接收中',
+			'file.files': '个文件',
 			'file.total': '总计',
 			'file.files_selected': '选中 {count} 个文件，总计 {size}',
 			'file.upload_files': '上传文件',
@@ -164,7 +164,7 @@ const LANGUAGES = {
 			'system.file_send_failed': '文件发送失败：',
 			'system.joined': '加入了对话',
 			'system.left': '离开了对话',
-			'system.secured': '连接已安全',
+			'system.secured': '已建立端到端安全连接',
 			'system.private_message_failed': '无法发送私信给',
 			'system.private_file_failed': '无法发送私密文件给',
 			'system.user_not_connected': '用户可能未完全连接。',
@@ -228,7 +228,29 @@ export function getAvailableLanguages() {
 export function initI18n(settings) {
 	if (settings && settings.language) {
 		setLanguage(settings.language);
+	} else {
+		// Auto-detect browser language
+		// 自动检测浏览器语言
+		const browserLang = detectBrowserLanguage();
+		setLanguage(browserLang);
 	}
+}
+
+// Detect browser language and return supported language code
+// 检测浏览器语言并返回支持的语言代码
+function detectBrowserLanguage() {
+	const navigatorLang = navigator.language || navigator.userLanguage || 'en';
+	
+	// Extract language code (e.g., 'zh-CN' -> 'zh', 'en-US' -> 'en')
+	const langCode = navigatorLang.split('-')[0].toLowerCase();
+	
+	// Check if we support this language
+	if (LANGUAGES[langCode]) {
+		return langCode;
+	}
+	
+	// Default fallback to English
+	return 'en';
 }
 
 // Update static HTML text elements
@@ -245,27 +267,20 @@ export function updateStaticTexts() {
 	if (loginTitle) {
 		loginTitle.textContent = t('ui.enter_node', 'Enter a Node');
 	}
-	
-	// Update login form content with new translations
+		// Update login form content with new translations
 	const loginFormContainer = document.getElementById('login-form');
 	if (loginFormContainer) {
-		// Import and regenerate login form with current language
-		import('./ui.js').then(({ generateLoginForm }) => {
-			loginFormContainer.innerHTML = generateLoginForm(false);
-		});
+		// Use a custom event to trigger form regeneration instead of dynamic import
+		// 使用自定义事件触发表单重新生成，而不是动态导入
+		window.dispatchEvent(new CustomEvent('regenerateLoginForm'));
 	}
 	
 	// Update sidebar username label
 	const sidebarUsername = document.getElementById('sidebar-username');
 	if (sidebarUsername) {
-		import('./room.js').then(roomMod => {
-			const roomsData = roomMod.roomsData;
-			const activeRoomIndex = roomMod.activeRoomIndex;
-			const rd = roomsData && roomsData.length > 0 && activeRoomIndex >= 0 ? roomsData[activeRoomIndex] : null;
-			sidebarUsername.textContent = rd && rd.myUserName ? rd.myUserName : t('ui.my_name', 'My Name');
-		}).catch(() => {
-			sidebarUsername.textContent = t('ui.my_name', 'My Name');
-		});
+		// Use a custom event to update sidebar username instead of dynamic import
+		// 使用自定义事件更新侧边栏用户名，而不是动态导入
+		window.dispatchEvent(new CustomEvent('updateSidebarUsername'));
 	}
 		// Update "Enter a Node" text in sidebar
 	const joinRoomText = document.getElementById('join-room-text');

@@ -3,6 +3,9 @@
 import { deflate, inflate } from 'fflate';
 import { showFileUploadModal } from './util.fileUpload.js';
 
+// 分卷大小统一配置
+const DEFAULT_VOLUME_SIZE = 512 * 1024; // 512KB
+
 // File transfer state management
 // 文件传输状态管理
 window.fileTransfers = new Map();
@@ -49,9 +52,11 @@ async function calculateHash(data) {
 	return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+
+
 // Compress file into volumes with optimized compression
 // 将文件压缩为分卷，优化压缩算法
-async function compressFileToVolumes(file, volumeSize = 96 * 1024) { // 96KB原始数据，base64后约128KB
+async function compressFileToVolumes(file, volumeSize = DEFAULT_VOLUME_SIZE) { // 96KB原始数据，base64后约128KB
 	return new Promise((resolve, reject) => {
 		const reader = new FileReader();
 		reader.onload = async function(e) {
@@ -97,7 +102,7 @@ async function compressFileToVolumes(file, volumeSize = 96 * 1024) { // 96KB原�
 
 // Compress multiple files into a single archive with volumes
 // 将多个文件压缩为单个分卷归档
-async function compressFilesToArchive(files, volumeSize = 96 * 1024) {	try {
+async function compressFilesToArchive(files, volumeSize = DEFAULT_VOLUME_SIZE) {	try {
 		// Create a simple archive format: [file1_size][file1_name_length][file1_name][file1_data][file2_size]...
 		// 创建简单的归档格式
 		const archiveData = [];

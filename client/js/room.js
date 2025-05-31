@@ -366,3 +366,19 @@ export function exitRoom() {
 }
 
 export { roomsData, activeRoomIndex };
+
+// Listen for sidebar username update event
+// 监听侧边栏用户名更新事件
+window.addEventListener('updateSidebarUsername', () => {
+	if (activeRoomIndex >= 0 && roomsData[activeRoomIndex]) {
+		const rd = roomsData[activeRoomIndex];
+		const sidebarUsername = document.getElementById('sidebar-username');
+		if (sidebarUsername && rd.myUserName) {
+			sidebarUsername.textContent = rd.myUserName;
+		}
+		// Also update the avatar to ensure consistency
+		if (rd.myUserName) {
+			setSidebarAvatar(rd.myUserName);
+		}
+	}
+});

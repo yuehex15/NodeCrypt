@@ -23,8 +23,9 @@ import { t, setLanguage, getCurrentLanguage, initI18n } from './util.i18n.js';
 const DEFAULT_SETTINGS = {
 	notify: false,
 	sound: false,
-	theme: 'theme1',
-	language: 'en' // 'en' for English, 'zh' for Chinese
+	theme: 'theme1'
+	// 注意：我们不设置默认语言，让系统自动检测浏览器语言
+	// Note: We don't set a default language, let the system auto-detect browser language
 };
 
 // Load settings from localStorage

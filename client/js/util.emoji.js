@@ -66,10 +66,9 @@ export function setupEmojiPicker({
 		// 点击外部隐藏选择器
 		on(document, 'click', (ev) => {
 			if (!picker.contains(ev.target) && ev.target !== btn) {
-				hidePickerWithAnimation();
+		hidePickerWithAnimation();
 			}
 		});
-		console.log('Emoji picker initialized successfully')
 	} catch (error) {
 		console.error('Failed to initialize emoji picker:', error)
 	}

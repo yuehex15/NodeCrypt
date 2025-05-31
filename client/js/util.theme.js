@@ -82,11 +82,9 @@ export function applyTheme(themeId) {
 		} else {
 			mainElement.style.background = theme.background;
 		}
-				// Add transition effect for smooth theme switching
-		// 添加过渡效果，实现平滑的主题切换
+				// Add transition effect for smooth theme switching		// 添加过渡效果，实现平滑的主题切换
 		mainElement.style.transition = 'background 0.5s ease-in-out, background-image 0.5s ease-in-out';
 		
-		console.log(`Applied theme: ${themeId}`);
 		return true;
 	} else {
 		console.warn('Main element not found');
