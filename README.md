@@ -2,9 +2,22 @@
 
 🌐 **[English README](README_EN.md)**
 
-本项目支持一键部署到cloudflare
+## 🚀 部署说明
 
+### 方法一：一键部署到 Cloudflare Workers
+
+点击下方按钮即可一键部署到 Cloudflare Workers：
 [![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button?projectName=NodeCrypt)](https://deploy.workers.cloudflare.com/?url=https://github.com/shuaiplus/NodeCrypt)
+> 注意：此方式会基于主仓库创建新项目，后续主仓库更新不会自动同步。
+
+### 方法二：自动同步 fork 并部署（推荐长期维护）
+1. 先 fork 本项目到你自己的 GitHub 账号。
+2. 打开 Cloudflare Workers 控制台，选择“从 GitHub 导入”，并选择你 fork 的仓库进行部署。
+> 本项目已内置自动同步 workflow，fork 后无需任何操作，主仓库的更新会自动同步到你的 fork 仓库，Cloudflare 也会自动重新部署，无需手动维护。
+
+### 方法三：本地开发部署
+克隆项目并安装依赖后，使用 `npm run dev` 启动开发服务器。
+使用 `npm run deploy` 部署到 Cloudflare Workers。
 
 ## 📝 项目简介
 
@@ -109,13 +122,6 @@ sequenceDiagram
 - **aes-js**：纯 JavaScript AES 实现，支持多种模式
 - **js-chacha20**：ChaCha20 流加密算法的 JavaScript 实现
 - **js-sha256**：SHA-256 哈希算法实现
-
-## 🚀 部署说明
-
-### 本地开发
-克隆项目并安装依赖后，使用 `npm run dev` 启动开发服务器。
-
-使用 `npm run deploy` 部署到 Cloudflare Workers。
 
 ## 🔬 安全验证
 
