@@ -23,6 +23,9 @@ import {
 import {
 	formatFileSize
 } from './util.file.js';
+import {
+	t
+} from './util.i18n.js';
 
 // Render the chat area
 // 渲染聊天区域
@@ -119,11 +122,10 @@ export function addMsg(text, isHistory = false, msgType = 'text', timestamp = nu
 export function addOtherMsg(msg, userName = '', avatar = '', isHistory = false, msgType = 'text', timestamp = null) {
 	if (!userName && activeRoomIndex >= 0) {
 		const rd = roomsData[activeRoomIndex];
-		if (rd && msg && msg.clientId && rd.userMap[msg.clientId]) {
-			userName = rd.userMap[msg.clientId].userName || rd.userMap[msg.clientId].username || rd.userMap[msg.clientId].name || 'Anonymous'
+		if (rd && msg && msg.clientId && rd.userMap[msg.clientId]) {			userName = rd.userMap[msg.clientId].userName || rd.userMap[msg.clientId].username || rd.userMap[msg.clientId].name || t('ui.anonymous', 'Anonymous')
 		}
 	}
-	userName = userName || 'Anonymous';
+	userName = userName || t('ui.anonymous', 'Anonymous');
 	let ts = isHistory ? timestamp : (timestamp || Date.now());
 	if (!isHistory && activeRoomIndex >= 0) {
 		roomsData[activeRoomIndex].messages.push({
@@ -236,15 +238,14 @@ export function updateChatInputStyle() {
 	const chatInputArea = $('.chat-input-area');
 	const placeholder = $('.input-field-placeholder');
 	const inputMessageInput = $('.input-message-input');
-	if (!chatInputArea || !placeholder || !inputMessageInput) return;
-	if (rd && rd.privateChatTargetId) {
+	if (!chatInputArea || !placeholder || !inputMessageInput) return;	if (rd && rd.privateChatTargetId) {
 		addClass(chatInputArea, 'private-mode');
 		addClass(inputMessageInput, 'private-mode');
-		placeholder.textContent = `Private Message to ${escapeHTML(rd.privateChatTargetName)}`
+		placeholder.textContent = `${t('ui.private_message_to', 'Private Message to')} ${escapeHTML(rd.privateChatTargetName)}`
 	} else {
 		removeClass(chatInputArea, 'private-mode');
 		removeClass(inputMessageInput, 'private-mode');
-		placeholder.textContent = 'Message'
+		placeholder.textContent = t('ui.message', 'Message')
 	}
 	const html = inputMessageInput.innerHTML.replace(/<br\s*\/?>(\s*)?/gi, '').replace(/&nbsp;/g, '').replace(/\u200B/g, '').trim();
 	placeholder.style.opacity = (html === '') ? '1' : '0'

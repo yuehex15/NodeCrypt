@@ -20,6 +20,7 @@ import {
 	$id,
 	createElement
 } from './util.dom.js';
+import { t } from './util.i18n.js';
 let roomsData = [];
 let activeRoomIndex = -1;
 
@@ -126,7 +127,7 @@ export function joinRoom(userName, roomName, password, modal = null, onResult) {
 				closed = true;
 				onResult(true)
 			}
-			addSystemMsg("Server connection secured")
+			addSystemMsg(t('system.secured', 'connection secured'))
 		},
 		onClientSecured: (user) => handleClientSecured(idx, user),
 		onClientList: (list, selfId) => handleClientList(idx, list, selfId),
@@ -189,9 +190,8 @@ export function handleClientSecured(idx, user) {
 	}
 	const isNew = !rd.knownUserIds.has(user.clientId);
 	if (isNew) {
-		rd.knownUserIds.add(user.clientId);
-		const name = user.userName || user.username || user.name || 'Anonymous';
-		const msg = `${name} joined`;
+		rd.knownUserIds.add(user.clientId);		const name = user.userName || user.username || user.name || t('ui.anonymous', 'Anonymous');
+		const msg = `${name} ${t('system.joined', 'joined the conversation')}`;
 		rd.messages.push({
 			type: 'system',
 			text: msg

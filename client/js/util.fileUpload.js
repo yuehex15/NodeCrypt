@@ -10,12 +10,78 @@ import {
 	removeClass
 } from './util.dom.js';
 import { formatFileSize } from './util.file.js';
+import { t } from './util.i18n.js';
 
 // File upload modal state
 // 文件上传模态框状态
 let uploadModal = null;
-let selectedFiles = new Map(); // Map<fileId, File>
+let selectedFiles = new Map();
+let fileIdCounter = 0;
 let onSendCallback = null;
+
+// Listen for language changes to update modal text
+// 监听语言变更以更新模态框文本
+window.addEventListener('languageChange', () => {
+	if (uploadModal) {
+		updateModalTexts();
+	}
+});
+
+// Update modal texts when language changes
+// 语言切换时更新模态框文本
+function updateModalTexts() {
+	if (!uploadModal) return;
+	
+	// Update modal title
+	const modalTitle = uploadModal.querySelector('.file-upload-header h3');
+	if (modalTitle) {
+		modalTitle.textContent = t('file.upload_files', 'Upload Files');
+	}
+	
+	// Update file list title
+	const fileListTitle = uploadModal.querySelector('.file-list-title');
+	if (fileListTitle) {
+		fileListTitle.textContent = t('file.selected_files', 'Selected Files');
+	}
+	
+	// Update clear all button
+	const clearAllBtn = uploadModal.querySelector('.file-clear-all-btn');
+	if (clearAllBtn) {
+		clearAllBtn.textContent = t('file.clear_all', 'Clear All');
+	}
+	
+	// Update cancel button
+	const cancelBtn = uploadModal.querySelector('.file-upload-cancel-btn');
+	if (cancelBtn) {
+		cancelBtn.textContent = t('file.cancel', 'Cancel');
+	}
+	
+	// Update send files button
+	const sendBtn = uploadModal.querySelector('.file-upload-send-btn');
+	if (sendBtn) {
+		sendBtn.textContent = t('file.send_files', 'Send Files');
+	}
+	
+	// Update drag drop text
+	const dragDropText = uploadModal.querySelector('.file-drop-text');
+	if (dragDropText) {
+		dragDropText.innerHTML = `
+			<p><strong>${t('file.drag_drop', 'Drag and drop files here')}</strong></p>
+			<p>${t('file.or', 'or')} <button class="file-browse-btn" type="button">${t('file.browse_files', 'browse files')}</button></p>
+		`;
+		
+		// Re-attach browse button event
+		const browseBtn = dragDropText.querySelector('.file-browse-btn');
+		if (browseBtn) {
+			on(browseBtn, 'click', handleBrowseClick);
+		}
+	}
+	
+	// Update summary if files are selected
+	if (selectedFiles.size > 0) {
+		updateFileListDisplay();
+	}
+}
 
 // Generate unique file ID
 // 生成唯一文件ID
@@ -29,33 +95,31 @@ function createUploadModal() {
 	const modal = createElement('div', {
 		class: 'file-upload-modal'
 	}, `
-		<div class="file-upload-overlay"></div>
-		<div class="file-upload-container">
+		<div class="file-upload-overlay"></div>		<div class="file-upload-container">
 			<div class="file-upload-header">
-				<h3>Upload Files</h3>
+				<h3>${t('file.upload_files', 'Upload Files')}</h3>
 				<button class="file-upload-close">&times;</button>
 			</div>
-			<div class="file-upload-content">
-				<div class="file-drop-zone" id="file-drop-zone">
+			<div class="file-upload-content">				<div class="file-drop-zone" id="file-drop-zone">
 					<div class="file-drop-icon">📁</div>
 					<div class="file-drop-text">
-						<p><strong>Drag and drop files here</strong></p>
-						<p>or <button class="file-browse-btn" type="button">browse files</button></p>
+						<p><strong>${t('file.drag_drop', 'Drag and drop files here')}</strong></p>
+						<p>${t('file.or', 'or')} <button class="file-browse-btn" type="button">${t('file.browse_files', 'browse files')}</button></p>
 					</div>
 					<input type="file" id="file-upload-input" multiple style="display: none;" accept="*/*">
 				</div>
 				<div class="file-list-container" id="file-list-container" style="display: none;">
 					<div class="file-list-header">
-						<span class="file-list-title">Selected Files</span>
-						<button class="file-clear-all-btn" type="button">Clear All</button>
+						<span class="file-list-title">${t('file.selected_files', 'Selected Files')}</span>
+						<button class="file-clear-all-btn" type="button">${t('file.clear_all', 'Clear All')}</button>
 					</div>
 					<div class="file-list" id="file-list"></div>
 					<div class="file-list-summary" id="file-list-summary"></div>
 				</div>
 			</div>
 			<div class="file-upload-footer">
-				<button class="file-upload-cancel-btn" type="button">Cancel</button>
-				<button class="file-upload-send-btn" type="button" disabled>Send Files</button>
+				<button class="file-upload-cancel-btn" type="button">${t('file.cancel', 'Cancel')}</button>
+				<button class="file-upload-send-btn" type="button" disabled>${t('file.send_files', 'Send Files')}</button>
 			</div>
 		</div>
 	`);
@@ -247,14 +311,12 @@ function updateFileList() {
 			e.preventDefault();
 			removeFile(fileId);
 		});
-	}
-
-	// Update summary
+	}	// Update summary
 	const totalSize = Array.from(selectedFiles.values()).reduce((sum, file) => sum + file.size, 0);
-	fileListSummary.innerHTML = `
-		<strong>${selectedFiles.size}</strong> files selected, 
-		<strong>${formatFileSize(totalSize)}</strong> total
-	`;
+	const summaryText = t('file.files_selected', '{count} files selected, {size} total')
+		.replace('{count}', selectedFiles.size)
+		.replace('{size}', formatFileSize(totalSize));
+	fileListSummary.innerHTML = summaryText;
 }
 
 // Update send button state
@@ -283,7 +345,7 @@ async function handleSendFiles() {
 	} catch (error) {
 		console.error('Error sending files:', error);
 		if (window.addSystemMsg) {
-			window.addSystemMsg(`Failed to send files: ${error.message}`);
+			window.addSystemMsg(`${t('system.file_send_failed', 'Failed to send files:')} ${error.message}`);
 		}
 	}
 }

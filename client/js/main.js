@@ -30,6 +30,7 @@ import {
 	initSettings,         // 初始化设置 / Initialize settings
 	notifyMessage         // 通知信息提示 / Display notification message
 } from './util.settings.js';
+import { t, updateStaticTexts } from './util.i18n.js';
 
 // 从 util.theme.js 中导入主题功能函数
 // Import theme functions from util.theme.js
@@ -86,6 +87,11 @@ window.config = {
 	debug: true                       // 是否开启调试模式 / Enable debug mode
 };
 
+// 在文档开始加载前就初始化语言设置，防止闪烁
+// Initialize language settings before document starts loading
+initSettings();
+updateStaticTexts();
+
 // 把一些函数挂载到 window 对象上供其他模块使用
 // Expose functions to the global window object for accessibility
 window.addSystemMsg = addSystemMsg;
@@ -99,6 +105,12 @@ window.downloadFile = downloadFile;
 // 当 DOM 内容加载完成后执行初始化逻辑
 // Run initialization logic when the DOM content is fully loaded
 window.addEventListener('DOMContentLoaded', () => {
+	// 移除预加载样式类，允许过渡效果
+	// Remove preload class to allow transitions
+	setTimeout(() => {
+		document.body.classList.remove('preload');
+	}, 300);
+	
 	// 初始化登录表单 / Initialize login form
 	initLoginForm();
 
@@ -121,13 +133,14 @@ window.addEventListener('DOMContentLoaded', () => {
 	preventSpaceInput($id('password'));
 	// 初始化辅助功能和界面设置
 	// Initialize autofill, input placeholders, and menus
-	autofillRoomPwd();
-	setupInputPlaceholder();
+	autofillRoomPwd();	setupInputPlaceholder();
 	setupMoreBtnMenu();
-	setupImagePreview();
-	setupEmojiPicker();
-	initSettings();
+	setupImagePreview();	setupEmojiPicker();
+	// 由于我们已经在DOM加载前预先初始化了语言设置，这里不需要重复初始化
+	// initSettings();
+	// updateStaticTexts(); // 在初始化设置后更新静态文本 / Update static texts after initializing settings
 	initTheme(); // 初始化主题 / Initialize theme
+	
 	const settingsBtn = $id('settings-btn'); // 设置按钮 / Settings button
 	if (settingsBtn) {
 		settingsBtn.onclick = (e) => {
@@ -198,11 +211,10 @@ window.addEventListener('DOMContentLoaded', () => {
 							p: encryptedClientMessage,
 							c: rd.privateChatTargetId
 						};
-						const encryptedMessageForServer = rd.chat.encryptServerMessage(serverRelayPayload, rd.chat.serverShared);
-						rd.chat.sendMessage(encryptedMessageForServer);
+						const encryptedMessageForServer = rd.chat.encryptServerMessage(serverRelayPayload, rd.chat.serverShared);						rd.chat.sendMessage(encryptedMessageForServer);
 						addMsg(messageContent, false, 'image_private');
 					} else {
-						addSystemMsg(`Cannot send private message to ${rd.privateChatTargetName}.User might not be fully connected.`)
+						addSystemMsg(`${t('system.private_message_failed', 'Cannot send private message to')} ${rd.privateChatTargetName}. ${t('system.user_not_connected', 'User might not be fully connected.')}`)
 					}
 				} else {
 					// 公共频道图片消息发送
@@ -232,10 +244,9 @@ window.addEventListener('DOMContentLoaded', () => {
 							c: rd.privateChatTargetId
 						};
 						const encryptedMessageForServer = rd.chat.encryptServerMessage(serverRelayPayload, rd.chat.serverShared);
-						rd.chat.sendMessage(encryptedMessageForServer);
-						addMsg(text, false, 'text_private');
+						rd.chat.sendMessage(encryptedMessageForServer);					addMsg(text, false, 'text_private');
 					} else {
-						addSystemMsg(`Cannot send private message to ${rd.privateChatTargetName}.User might not be fully connected.`)
+						addSystemMsg(`${t('system.private_message_failed', 'Cannot send private message to')} ${rd.privateChatTargetName}. ${t('system.user_not_connected', 'User might not be fully connected.')}`)
 					}
 				} else {
 					// 公共频道消息发送
@@ -292,9 +303,8 @@ window.addEventListener('DOMContentLoaded', () => {
 						// 添加到自己的聊天记录
 						if (message.type === 'file_start') {
 							addMsg(message, false, 'file_private');
-						}
-					} else {
-						addSystemMsg(`Cannot send private file to ${rd.privateChatTargetName}. User might not be fully connected.`)
+						}					} else {
+						addSystemMsg(`${t('system.private_file_failed', 'Cannot send private file to')} ${rd.privateChatTargetName}. ${t('system.user_not_connected', 'User might not be fully connected.')}`)
 					}
 				} else {
 					// 公共频道文件发送
@@ -348,6 +358,12 @@ window.addEventListener('DOMContentLoaded', () => {
 			}
 		});
 	}
+});
+
+// Listen for language change events
+// 监听语言切换事件
+window.addEventListener('languageChange', (event) => {
+	updateStaticTexts();
 });
 
 // 全局拖拽文件自动打开附件功能

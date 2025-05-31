@@ -138,6 +138,64 @@ body {
 	margin-top: 4px;
 }
 
+/* Language switcher specific styles */
+/* 语言切换器专用样式 */
+.language-current {
+	font-weight: 500;
+	color: #30a8f7;
+	font-size: 0.85rem;
+	letter-spacing: 0.3px;
+}
+
+.settings-item .switch + .language-indicator {
+	display: none;
+}
+
+/* Language selector styles */
+/* 语言选择器样式 */
+.language-selector {
+	position: relative;
+}
+
+.language-select {
+	background: #fff;
+	border: 1px solid #e0e0e0;
+	border-radius: 8px;
+	padding: 8px 32px 8px 12px;
+	font-size: 14px;
+	color: #333;
+	cursor: pointer;
+	outline: none;
+	appearance: none;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	min-width: 120px;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease;
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+	background-repeat: no-repeat;
+	background-position: right 8px center;
+	background-size: 16px;
+}
+
+.language-select:hover {
+	border-color: #30a8f7;
+}
+
+.language-select:focus {
+	border-color: #30a8f7;
+	box-shadow: 0 0 0 3px rgba(48, 168, 247, 0.1);
+}
+
+.language-select option {
+	padding: 8px 12px;
+	color: #333;
+	background: #fff;
+}
+
+.language-select option:hover {
+	background: #f5f5f5;
+}
+
 /* Theme selector styles */
 /* 主题选择器样式 */
 .theme-selector {

@@ -14,12 +14,17 @@ import {
 // Import theme utilities
 // 导入主题工具函数
 import { THEMES, getCurrentTheme, applyTheme } from './util.theme.js';
+
+// Import i18n utilities
+// 导入国际化工具函数
+import { t, setLanguage, getCurrentLanguage, initI18n } from './util.i18n.js';
 // Default settings
 // 默认设置
 const DEFAULT_SETTINGS = {
 	notify: false,
 	sound: false,
-	theme: 'theme1'
+	theme: 'theme1',
+	language: 'en' // 'en' for English, 'zh' for Chinese
 };
 
 // Load settings from localStorage
@@ -43,19 +48,23 @@ function saveSettings(settings) {
 	const {
 		notify,
 		sound,
-		theme
+		theme,
+		language
 	} = settings;
 	localStorage.setItem('settings', JSON.stringify({
 		notify,
 		sound,
-		theme
+		theme,
+		language
 	}))
 }
 
 // Apply settings to the document
 // 应用设置到文档
 function applySettings(settings) {
-	document.documentElement.lang = 'en'
+	// Initialize i18n with current language setting
+	// 根据当前语言设置初始化国际化
+	initI18n(settings);
 }
 
 // Ask for browser notification permission
@@ -73,15 +82,22 @@ function askNotificationPermission(callback) {
 function setupSettingsPanel() {
 	const settingsSidebar = $id('settings-sidebar');
 	const settingsContent = $id('settings-content');
+	const settingsTitle = $id('settings-title');
 	if (!settingsSidebar || !settingsContent) return;
 
-	const settings = loadSettings();	// Create settings content HTML
+	const settings = loadSettings();
+	
+	// Update settings title
+	// 更新设置标题
+	if (settingsTitle) {
+		settingsTitle.textContent = t('settings.title', 'Settings');
+	}// Create settings content HTML
 	settingsContent.innerHTML = `
 		<div class="settings-section">
-			<div class="settings-section-title">Notification Settings</div>
+			<div class="settings-section-title">${t('settings.notification', 'Notification Settings')}</div>
 			<div class="settings-item">
 				<div class="settings-item-label">
-					<div>Desktop Notifications</div>
+					<div>${t('settings.desktop_notifications', 'Desktop Notifications')}</div>
 				</div>
 				<label class="switch">
 					<input type="checkbox" id="settings-notify" ${settings.notify ? 'checked' : ''}>
@@ -90,15 +106,31 @@ function setupSettingsPanel() {
 			</div>
 			<div class="settings-item">
 				<div class="settings-item-label">
-					<div>Sound Notifications</div>
+					<div>${t('settings.sound_notifications', 'Sound Notifications')}</div>
 				</div>
 				<label class="switch">
 					<input type="checkbox" id="settings-sound" ${settings.sound ? 'checked' : ''}>
 					<span class="slider"></span>
 				</label>
 			</div>
-		</div>		<div class="settings-section">
-			<div class="settings-section-title">Theme Settings</div>
+		</div>
+				<div class="settings-section">
+			<div class="settings-section-title">${t('settings.language', 'Language Settings')}</div>
+			<div class="settings-item">
+				<div class="settings-item-label">
+					<div>${t('settings.language_switch', 'Language')}</div>
+				</div>
+				<div class="language-selector">
+					<select id="settings-language" class="language-select">
+						<option value="en" ${settings.language === 'en' ? 'selected' : ''}>🇺🇸 English</option>
+						<option value="zh" ${settings.language === 'zh' ? 'selected' : ''}>🇨🇳 中文</option>
+					</select>
+				</div>
+			</div>
+		</div>
+		
+		<div class="settings-section">
+			<div class="settings-section-title">${t('settings.theme', 'Theme Settings')}</div>
 			<div class="theme-selector" id="theme-selector">
 				${THEMES.map(theme => `
 					<div class="theme-item ${settings.theme === theme.id ? 'active' : ''}" data-theme-id="${theme.id}" style="background: ${theme.background}; background-size: cover; background-position: center;">
@@ -106,10 +138,32 @@ function setupSettingsPanel() {
 				`).join('')}
 			</div>
 		</div>
-	`;
-
-	const notifyCheckbox = $('#settings-notify', settingsContent);
+	`;	const notifyCheckbox = $('#settings-notify', settingsContent);
 	const soundCheckbox = $('#settings-sound', settingsContent);
+	const languageSelect = $('#settings-language', settingsContent);
+	
+	// Language select event handler
+	// 语言选择事件处理
+	on(languageSelect, 'change', e => {
+		const newLanguage = e.target.value;
+		settings.language = newLanguage;
+		
+		// Set language immediately
+		// 立即设置语言
+		setLanguage(newLanguage);
+		
+		// Save settings
+		// 保存设置
+		saveSettings(settings);
+		applySettings(settings);
+		
+		// Refresh the settings panel to show updated translations
+		// 刷新设置面板以显示更新的翻译
+		setTimeout(() => {
+			setupSettingsPanel();
+		}, 100);
+	});
+	
 	on(notifyCheckbox, 'change', e => {
 		const checked = e.target.checked;
 		if (checked) {
@@ -375,6 +429,17 @@ function initSettings() {
 	if (settings.theme) {
 		applyTheme(settings.theme);
 	}
+	
+	// Listen for language change events to update UI
+	// 监听语言变更事件以更新UI
+	window.addEventListener('languageChange', () => {
+		// Update settings title if settings panel is open
+		// 如果设置面板已打开，更新设置标题
+		const settingsTitle = $id('settings-title');
+		if (settingsTitle) {
+			settingsTitle.textContent = t('settings.title', 'Settings');
+		}
+	});
 }
 
 // Maximum notification text length
@@ -413,16 +478,15 @@ function playSoundNotification() {
 function showDesktopNotification(roomName, text, msgType, sender) {
 	if (!('Notification' in window) || Notification.permission !== 'granted') return;
 	let body;
-	const senderPrefix = sender ? `${sender}:` : '';
-	if (msgType === 'image' || msgType === 'private image') {
-		body = `${senderPrefix}[image]`;
+	const senderPrefix = sender ? `${sender}:` : '';	if (msgType === 'image' || msgType === 'private image') {
+		body = `${senderPrefix}${t('notification.image', '[image]')}`;
 		if (msgType === 'private image') {
-			body = `(Private)${body}`
+			body = `${t('notification.private', '(Private)')}${body}`
 		}
 	} else if (msgType === 'text' || msgType === 'private text') {
 		body = `${senderPrefix}${truncateText(text)}`;
 		if (msgType === 'private text') {
-			body = `(Private)${body}`
+			body = `${t('notification.private', '(Private)')}${body}`
 		}
 	} else {
 		body = truncateText(text)
