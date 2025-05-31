@@ -361,8 +361,9 @@ function renderFileMessage(fileData, isSender) {
 	// For archive files, show file count and total size
 	let displayName, displayMeta;
 	if (isArchive && fileCount) {
-		displayName = `${fileCount} files`;
-		displayMeta = `Total: ${formatFileSize(originalSize)}`;
+		// 使用 i18n，保持原格式
+		displayName = `${fileCount}${t('file.files', ' files')}`;
+		displayMeta = `${t('file.total', 'Total')}: ${formatFileSize(originalSize)}`;
 	} else {
 		displayName = fileName;
 		displayMeta = formatFileSize(originalSize);

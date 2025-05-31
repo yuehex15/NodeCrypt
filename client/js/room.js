@@ -217,7 +217,7 @@ export function handleClientLeft(idx, clientId) {
 	}
 	const user = rd.userMap[clientId];
 	const name = user ? (user.userName || user.username || user.name || 'Anonymous') : 'Anonymous';
-	const msg = `${name} left`;
+	const msg = `${name} ${t('system.left', 'left the conversation')}`;
 	rd.messages.push({
 		type: 'system',
 		text: msg

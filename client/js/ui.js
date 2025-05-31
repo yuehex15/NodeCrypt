@@ -264,6 +264,13 @@ export function renderUserList(updateHeader = false) {
 	if (!rd) return;
 	const me = rd.userList.find(u => u.clientId === rd.myId);
 	const others = rd.userList.filter(u => u.clientId !== rd.myId);
+	// 新增：如有其他成员，顶部插入简洁提示
+	if (others.length > 0) {
+		const tip = document.createElement('div');
+		tip.className = 'member-tip member-tip-center';
+		tip.textContent = t('ui.start_private_chat', '选择用户开始私信');
+		userListEl.appendChild(tip);
+	}
 	if (me) userListEl.appendChild(createUserItem(me, true));
 	others.forEach(u => userListEl.appendChild(createUserItem(u, false)));
 	if (updateHeader) {

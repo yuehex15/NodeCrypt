@@ -24,6 +24,7 @@ const LANGUAGES = {
 			'ui.private_message_to': 'Private Message to',
 			'ui.me': ' (me)',
 			'ui.anonymous': 'Anonymous',
+			'ui.start_private_chat': 'Select for private chat',
 			
 			// Settings panel
 			'settings.title': 'Settings',
@@ -79,6 +80,7 @@ const LANGUAGES = {
 			'system.security_warning': '⚠️ This link uses an old format. Room data is not encrypted.',
 			'system.file_send_failed': 'Failed to send files:',
 			'system.joined': 'joined the conversation',
+			'system.left': 'left the conversation',
 			'system.secured': 'connection secured',
 			'system.private_message_failed': 'Cannot send private message to',
 			'system.private_file_failed': 'Cannot send private file to',
@@ -91,20 +93,21 @@ const LANGUAGES = {
 		flag: '🇨🇳',
 		translations: {
 			// Login and main UI
-			'ui.enter_node': '进入节点',
+			'ui.enter_node': '进入新的节点',
 			'ui.username': '用户名',
 			'ui.node_name': '节点名称',
 			'ui.node_password': '节点密码',
 			'ui.optional': '（可选）',
-			'ui.enter': '进入',
+			'ui.enter': '确定',
 			'ui.connecting': '连接中...',
-			'ui.node_exists': '节点已存在',
+			'ui.node_exists': '此节点已存在',
 			'ui.my_name': '我的名字',
-			'ui.members': '成员',
+			'ui.members': '在线成员',
 			'ui.message': '消息',
 			'ui.private_message_to': '私信给',
 			'ui.me': '（我）',
 			'ui.anonymous': '匿名用户',
+			'ui.start_private_chat': '选择用户开始私信',
 			
 			// Settings panel
 			'settings.title': '设置',
@@ -160,6 +163,7 @@ const LANGUAGES = {
 			'system.security_warning': '⚠️ 此链接使用旧格式，房间数据未加密。',
 			'system.file_send_failed': '文件发送失败：',
 			'system.joined': '加入了对话',
+			'system.left': '离开了对话',
 			'system.secured': '连接已安全',
 			'system.private_message_failed': '无法发送私信给',
 			'system.private_file_failed': '无法发送私密文件给',

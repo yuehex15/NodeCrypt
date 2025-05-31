@@ -139,7 +139,7 @@ body {
 }
 
 /* Language switcher specific styles */
-/* 语言切换器专用样式 */
+/* 语言切换器专用样式 */npx browserify ChatCrypt.cjs -o ChatCrypt.js
 .language-current {
 	font-weight: 500;
 	color: #30a8f7;
@@ -183,7 +183,7 @@ body {
 
 .language-select:focus {
 	border-color: #30a8f7;
-	box-shadow: 0 0 0 3px rgba(48, 168, 247, 0.1);
+	box-shadow: 0 0 0 3px rgba(48,168,247,0.1);
 }
 
 .language-select option {
@@ -982,10 +982,8 @@ body {
 }
 
 .rightbar-header {
-	padding: 23.27px 18px 24px 18px;
+	padding: 20.27px 18px 24px 18px;
 	border-bottom: 1px solid #dcdcdc;
-	background: #fff;
-	border-radius: 0 12px 0 0;
 }
 
 .rightbar-group {
@@ -1071,6 +1069,20 @@ body {
 	color: #30a8f7;
 }
 
+.member-tip {
+  font-size: 13px;
+  color: #888;
+  padding: 4px 18px 2px 18px;
+  margin: 0 0 2px 0;
+  user-select: none;
+}
+
+.member-tip-center {
+  text-align: center;
+  justify-content: center;
+  display: flex;
+}
+
 ::-webkit-scrollbar {
 	width: 4px;
 	background: #fff;
@@ -1096,7 +1108,7 @@ body {
 .file-main-content {
 	display: flex;
 	align-items: center;
-	padding: 6px 6px;
+	padding: 3px 3px;
 	gap: 12px;
 	max-width: 200px;
 }
@@ -1619,7 +1631,7 @@ body {
 	}
 	
 	.file-main-content {
-		padding: 10px 14px;
+		padding: 3px 3px;
 		gap: 10px;
 	}
 	
@@ -1657,37 +1669,6 @@ body {
 	.file-status {
 		font-size: 10px;
 		padding: 3px 6px;
-	}
-}
-
-@media (max-width: 480px) {
-	.file-message {
-		max-width: 240px;
-	}
-	
-	.file-main-content {
-		padding: 8px 12px;
-		gap: 8px;
-		/* 保持水平布局，不改为垂直 */
-		display: flex;
-		align-items: center;
-	}
-	
-	.file-info {
-		flex: 1;
-		min-width: 0;
-	}
-	
-	.file-download-btn {
-		width: 32px;
-		height: 32px;
-		padding: 6px;
-		flex-shrink: 0;
-	}
-	
-	.file-download-btn svg {
-		width: 16px;
-		height: 16px;
 	}
 }
 
