@@ -509,7 +509,6 @@ body {
 	font-size: 12px;
 	color: #999;
 	margin-left: 0;
-	margin-top: 6px;
 	align-self: flex-end;
 	position: absolute;
 	right: 3px;
@@ -543,16 +542,45 @@ body {
 .bubble .bubble-meta {
 	font-size: 12px;
 	color: #999;
-	margin-top: 4px;
 	text-align: right;
 }
 
-.bubble-meta {
-	font-size: 12px;
-	color: #999;
-	margin-left: 10px;
-	vertical-align: baseline;
-	display: inline;
+/* Special positioning for file message bubbles */
+/* 文件消息气泡的特殊定位 */
+.bubble:has(.file-message) .bubble-meta {
+	position: static;
+	margin-left: 0;
+	align-self: flex-end;
+	text-align: right;
+}
+
+/* Remove right padding for file message bubbles since timestamp is not absolute */
+/* 移除文件消息气泡的右边距，因为时间戳不是绝对定位 */
+.bubble.me:has(.file-message) {
+	padding: 10px 10px 7px 10px;
+}
+
+.bubble.other:has(.file-message) {
+	padding: 1px 10px 5px 10px;
+}
+
+/* Fallback for browsers that don't support :has() */
+/* 为不支持 :has() 的浏览器提供后备方案 */
+.bubble.file-bubble .bubble-meta {
+	position: static;
+	margin-left: 0;
+	align-self: flex-end;
+	text-align: right;
+}
+
+/* Fallback: Remove right padding for file message bubbles */
+/* 后备方案：移除文件消息气泡的右边距 */
+.bubble.me.file-bubble {
+	padding: 10px 10px 7px 10px;
+}
+
+.bubble.other.file-bubble {
+	padding: 1px 10px 5px 10px;
 }
 
 .bubble-other-wrap {
@@ -997,6 +1025,15 @@ body {
 
 /* File message styles */
 /* 文件消息样式 */
+
+.file-message {
+	overflow: hidden;
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	max-width: 320px;
+	width: 100%;
+	position: relative;
+}
+
 
 .file-main-content {
 	display: flex;
