@@ -4,7 +4,7 @@ import { deflate, inflate } from 'fflate';
 import { showFileUploadModal } from './util.fileUpload.js';
 
 // 分卷大小统一配置
-const DEFAULT_VOLUME_SIZE = 512 * 1024; // 512KB
+const DEFAULT_VOLUME_SIZE = 256 * 1024; // 512KB
 
 // File transfer state management
 // 文件传输状态管理
