@@ -2,9 +2,22 @@
 
 🌐 **[中文版 README](README.md)**
 
-One-click deployment to Cloudflare supported
+## 🚀 Deployment Instructions
 
+### Method 1: One-Click Deploy to Cloudflare Workers
+
+Click the button below for one-click deployment to Cloudflare Workers:
 [![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button?projectName=NodeCrypt)](https://deploy.workers.cloudflare.com/?url=https://github.com/shuaiplus/NodeCrypt)
+> Note: This method creates a new project based on the main repository. Future updates to the main repository will not be automatically synchronized.
+
+### Method 2: Auto-Sync Fork and Deploy (Recommended for Long-term Maintenance)
+1. First, fork this project to your own GitHub account.
+2. Open the Cloudflare Workers console, select "Import from GitHub," and choose your forked repository for deployment.
+> This project has built-in auto-sync workflow. After forking, no action is required. Updates from the main repository will automatically sync to your fork, and Cloudflare will automatically redeploy without manual maintenance.
+
+### Method 3: Local Development Deployment
+After cloning the project and installing dependencies, use `npm run dev` to start the development server.
+Use `npm run deploy` to deploy to Cloudflare Workers.
 
 ## 📝 Project Introduction
 
@@ -24,6 +37,7 @@ NodeCrypt is a truly end-to-end encrypted chat system that implements a complete
 - **End-to-End Encryption**: Messages are encrypted from sender to receiver throughout the entire process; no intermediate node can decrypt them
 - **Forward Secrecy**: Even if keys are compromised, historical messages cannot be decrypted because there are no historical messages at all
 - **Anonymous Communication**: Users do not need to register real identities; supports temporary anonymous chat
+- **Rich Experience**: Support for sending images and files, with optional themes and languages
 
 ### Privacy Protection Mechanisms
 
@@ -111,13 +125,6 @@ sequenceDiagram
 - **aes-js**: Pure JavaScript AES implementation supporting multiple modes
 - **js-chacha20**: JavaScript implementation of ChaCha20 stream cipher
 - **js-sha256**: SHA-256 hash algorithm implementation
-
-## 🚀 Deployment Instructions
-
-### Local Development
-After cloning the project and installing dependencies, use `npm run dev` to start the development server.
-
-Use `npm run deploy` to deploy to Cloudflare Workers.
 
 ## 🔬 Security Verification
 
