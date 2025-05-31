@@ -382,28 +382,21 @@ async function handleFilesUpload(files, onSend) {
 		let progressElement = null;
 		
 		function showProgress(message) {
-			if (window.addSystemMsg) {
-				progressElement = window.addSystemMsg(message);
-			}
+			// 删除系统提示
 		}
 		
 		function updateProgress(message) {
-			if (progressElement && progressElement.querySelector) {
-				const content = progressElement.querySelector('.bubble-content');
-				if (content) {
-					content.innerHTML = message;
-				}
-			}
+			// 删除系统提示
 		}
 		
 		if (files.length === 1) {
 			// Single file upload
 			const file = files[0];
-			showProgress(`Compressing ${file.name}...`);
+			showProgress();
 			
 			const { volumes, originalSize, compressedSize, originalHash } = await compressFileToVolumes(file);
 			
-			updateProgress(`✓ Compressed ${file.name} (${volumes.length} volumes, ${formatFileSize(compressedSize)})`);
+			updateProgress();
 			
 			// Create file transfer state
 			const fileTransfer = {
@@ -436,11 +429,11 @@ async function handleFilesUpload(files, onSend) {
 		} else {
 			// Multiple files upload - create archive
 			const totalSize = files.reduce((sum, file) => sum + file.size, 0);
-			showProgress(`Compressing ${files.length} files (${formatFileSize(totalSize)})...`);
+			showProgress();
 			
 			const { volumes, originalSize, compressedSize, archiveHash, fileCount, fileManifest } = await compressFilesToArchive(files);
 			
-			updateProgress(`✓ Compressed ${files.length} files (${volumes.length} volumes, ${formatFileSize(compressedSize)})`);
+			updateProgress();
 			
 			// Create file transfer state for archive
 			const fileTransfer = {
@@ -686,12 +679,12 @@ export async function downloadFile(fileId) {
 	try {
 		if (transfer.isArchive) {
 			// Download archive as multiple files
-			const extractedFiles = await decompressArchiveToFiles(transfer.volumeData, transfer.fileManifest, transfer.archiveHash);
-			window.addSystemMsg(`Downloaded ${extractedFiles.length} files`);
+			await decompressArchiveToFiles(transfer.volumeData, transfer.fileManifest, transfer.archiveHash);
+			// 删除系统提示
 		} else {
 			// Download single file
 			await decompressVolumesToFile(transfer.volumeData, transfer.fileName, transfer.originalHash);
-			window.addSystemMsg(`Downloaded ${transfer.fileName}`);
+			// 删除系统提示
 		}
 	} catch (error) {
 		console.error('Download error:', error);

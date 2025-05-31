@@ -191,7 +191,7 @@ export function handleClientSecured(idx, user) {
 	if (isNew) {
 		rd.knownUserIds.add(user.clientId);
 		const name = user.userName || user.username || user.name || 'Anonymous';
-		const msg = `${name}joined`;
+		const msg = `${name} joined`;
 		rd.messages.push({
 			type: 'system',
 			text: msg
@@ -217,7 +217,7 @@ export function handleClientLeft(idx, clientId) {
 	}
 	const user = rd.userMap[clientId];
 	const name = user ? (user.userName || user.username || user.name || 'Anonymous') : 'Anonymous';
-	const msg = `${name}left`;
+	const msg = `${name} left`;
 	rd.messages.push({
 		type: 'system',
 		text: msg
