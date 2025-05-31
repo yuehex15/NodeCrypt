@@ -10,6 +10,12 @@ import {
 	downloadFile
 } from './util.file.js';
 
+// 从 util.image.js 中导入图片处理功能
+// Import image processing functions from util.image.js
+import {
+	setupImagePaste
+} from './util.image.js';
+
 // 从 util.emoji.js 中导入设置表情选择器的函数
 // Import setupEmojiPicker function from util.emoji.js
 import {
@@ -51,9 +57,11 @@ import {
 // Import chat-related functions from chat.js
 import {
 	addMsg,               // 添加普通消息到聊天窗口 / Add a normal message to chat
+	addOtherMsg,          // 添加其他用户消息 / Add message from other users
 	addSystemMsg,         // 添加系统消息 / Add a system message
 	setupImagePreview,    // 设置图片预览功能 / Setup image preview
-	setupInputPlaceholder // 设置输入框的占位提示 / Setup placeholder for input box
+	setupInputPlaceholder, // 设置输入框的占位提示 / Setup placeholder for input box
+	autoGrowInput         // 自动调整输入框高度 / Auto adjust input height
 } from './chat.js';
 
 // 从 ui.js 中导入 UI 界面相关的功能
@@ -81,6 +89,7 @@ window.config = {
 // 把一些函数挂载到 window 对象上供其他模块使用
 // Expose functions to the global window object for accessibility
 window.addSystemMsg = addSystemMsg;
+window.addOtherMsg = addOtherMsg;
 window.joinRoom = joinRoom;
 window.notifyMessage = notifyMessage;
 window.setupEmojiPicker = setupEmojiPicker;
@@ -137,8 +146,12 @@ window.addEventListener('DOMContentLoaded', () => {
 	}
 	// 点击其他地方时关闭设置面板 (已移除，因为现在使用侧边栏形式)
 	// Close settings panel when clicking outside (removed since we now use sidebar format)
-
 	const input = document.querySelector('.input-message-input'); // 消息输入框 / Message input box
+	
+	// 设置图片粘贴功能
+	// Setup image paste functionality
+	const imagePasteHandler = setupImagePaste('.input-message-input');
+	
 	if (input) {
 		input.focus(); // 自动聚焦 / Auto focus
 		input.addEventListener('keydown', (e) => {
@@ -146,45 +159,108 @@ window.addEventListener('DOMContentLoaded', () => {
 			// Pressing Enter (without Shift) sends the message
 			if (e.key === 'Enter' && !e.shiftKey) {
 				e.preventDefault();
-				const text = input.innerText.trim(); // 获取输入的文本 / Get input text
-				const rd = roomsData[activeRoomIndex]; // 当前房间数据 / Current room data
-				if (text && rd && rd.chat) {
-					if (rd.privateChatTargetId) {
-						// 私聊消息加密并发送
-						// Encrypt and send private message
-						const targetClient = rd.chat.channel[rd.privateChatTargetId];
-						if (targetClient && targetClient.shared) {
-							const clientMessagePayload = {
-								a: 'm',
-								t: 'text_private',
-								d: text
-							};
-							const encryptedClientMessage = rd.chat.encryptClientMessage(clientMessagePayload, targetClient.shared);
-							const serverRelayPayload = {
-								a: 'c',
-								p: encryptedClientMessage,
-								c: rd.privateChatTargetId
-							};
-							const encryptedMessageForServer = rd.chat.encryptServerMessage(serverRelayPayload, rd.chat.serverShared);
-							rd.chat.sendMessage(encryptedMessageForServer);
-							addMsg(text, false, 'text_private');
-						} else {
-							addSystemMsg(`Cannot send private message to ${rd.privateChatTargetName}.User might not be fully connected.`)
-						}
-					} else {
-						// 公共频道消息发送
-						// Send public message
-						rd.chat.sendChannelMessage('text', text);
-						addMsg(text);
-					}
-					// 清空输入框并触发 input 事件
-					// Clear input and trigger input event
-					input.innerText = '';
-					input.dispatchEvent(new Event('input'));
-				}
+				sendMessage();
 			}
 		});
 	}
+	
+	// 发送消息的统一函数
+	// Unified function to send messages
+	function sendMessage() {
+		const text = input.innerText.trim(); // 获取输入的文本 / Get input text
+		const images = imagePasteHandler ? imagePasteHandler.getCurrentImages() : []; // 获取所有图片
+
+		if (!text && images.length === 0) return; // 如果没有文本且没有图片，则不发送
+		const rd = roomsData[activeRoomIndex]; // 当前房间数据 / Current room data
+		
+		if (rd && rd.chat) {
+			if (images.length > 0) {
+				// 发送包含图片的消息 (支持多图和文字合并)
+				// Send message with images (supports multiple images and text combined)
+				const messageContent = {
+					text: text || '', // 包含文字内容，如果有的话
+					images: images    // 包含所有图片数据
+				};
+
+				if (rd.privateChatTargetId) {
+					// 私聊图片消息加密并发送
+					// Encrypt and send private image message
+					const targetClient = rd.chat.channel[rd.privateChatTargetId];
+					if (targetClient && targetClient.shared) {
+						const clientMessagePayload = {
+							a: 'm',
+							t: 'image_private',
+							d: messageContent
+						};
+						const encryptedClientMessage = rd.chat.encryptClientMessage(clientMessagePayload, targetClient.shared);
+						const serverRelayPayload = {
+							a: 'c',
+							p: encryptedClientMessage,
+							c: rd.privateChatTargetId
+						};
+						const encryptedMessageForServer = rd.chat.encryptServerMessage(serverRelayPayload, rd.chat.serverShared);
+						rd.chat.sendMessage(encryptedMessageForServer);
+						addMsg(messageContent, false, 'image_private');
+					} else {
+						addSystemMsg(`Cannot send private message to ${rd.privateChatTargetName}.User might not be fully connected.`)
+					}
+				} else {
+					// 公共频道图片消息发送
+					// Send image message to public channel
+					rd.chat.sendChannelMessage('image', messageContent);
+					addMsg(messageContent, false, 'image');
+				}
+				
+				imagePasteHandler.clearImages(); // 清除所有图片预览
+			} else if (text) {
+				// 发送纯文本消息
+				// Send text-only message
+				if (rd.privateChatTargetId) {
+					// 私聊消息加密并发送
+					// Encrypt and send private message
+					const targetClient = rd.chat.channel[rd.privateChatTargetId];
+					if (targetClient && targetClient.shared) {
+						const clientMessagePayload = {
+							a: 'm',
+							t: 'text_private',
+							d: text
+						};
+						const encryptedClientMessage = rd.chat.encryptClientMessage(clientMessagePayload, targetClient.shared);
+						const serverRelayPayload = {
+							a: 'c',
+							p: encryptedClientMessage,
+							c: rd.privateChatTargetId
+						};
+						const encryptedMessageForServer = rd.chat.encryptServerMessage(serverRelayPayload, rd.chat.serverShared);
+						rd.chat.sendMessage(encryptedMessageForServer);
+						addMsg(text, false, 'text_private');
+					} else {
+						addSystemMsg(`Cannot send private message to ${rd.privateChatTargetName}.User might not be fully connected.`)
+					}
+				} else {
+					// 公共频道消息发送
+					// Send public message
+					rd.chat.sendChannelMessage('text', text);
+					addMsg(text);				}
+			}
+			
+			// 清空输入框并触发 input 事件
+			// Clear input and trigger input event
+			input.innerHTML = ''; // 清空输入框内容 / Clear input field content
+			if (imagePasteHandler && typeof imagePasteHandler.refreshPlaceholder === 'function') {
+				imagePasteHandler.refreshPlaceholder(); // 更新 placeholder 状态
+			}
+			autoGrowInput(); // 调整输入框高度
+		}
+	}
+	
+	// 为发送按钮添加点击事件
+	// Add click event for send button
+	const sendButton = document.querySelector('.send-message-btn');
+	if (sendButton) {
+		sendButton.addEventListener('click', sendMessage);
+	}
+	
 	// 设置发送文件功能
 	// Setup file sending functionality
 	setupFileSend({
@@ -230,9 +306,9 @@ window.addEventListener('DOMContentLoaded', () => {
 						addMsg(message, false, 'file');
 					}
 				}
-			}
-		}
+			}		}
 	});
+
 
 	// 判断是否为移动端
 	// Check if the device is mobile

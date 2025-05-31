@@ -244,7 +244,6 @@ export function handleClientMessage(idx, msg) {
 	}
 	
 	let msgType = msg.type || 'text';
-	
 	// Handle file messages
 	if (msgType.startsWith('file_')) {
 		// Import handleFileMessage function if needed
@@ -252,21 +251,13 @@ export function handleClientMessage(idx, msg) {
 			window.handleFileMessage(msg.data, msgType.includes('_private'));
 		}
 		
-		// Only add file_start messages to chat history
+		// Send notification but don't add to messages array
+		// (util.file.js already handles display via addOtherMsg)
 		if (msgType === 'file_start' || msgType === 'file_start_private') {
 			let realUserName = msg.userName;
 			if (!realUserName && msg.clientId && newRd.userMap[msg.clientId]) {
 				realUserName = newRd.userMap[msg.clientId].userName || newRd.userMap[msg.clientId].username || newRd.userMap[msg.clientId].name
 			}
-			
-			roomsData[idx].messages.push({
-				type: 'other',
-				text: msg.data,
-				userName: realUserName,
-				avatar: realUserName,
-				msgType: msgType.includes('_private') ? 'file_private' : 'file',
-				timestamp: Date.now()
-			});
 			
 			const notificationMsgType = msgType.includes('_private') ? 'private file' : 'file';
 			if (window.notifyMessage) {
@@ -276,30 +267,42 @@ export function handleClientMessage(idx, msg) {
 			if (activeRoomIndex !== idx) {
 				roomsData[idx].unreadCount = (roomsData[idx].unreadCount || 0) + 1;
 				renderRooms(activeRoomIndex)
-			} else {
-				renderChatArea()
 			}
+			// No need to call renderChatArea() since util.file.js handles display
 		}
-		return;
+		return; // Don't process file messages further
 	}
-	
-	// Handle legacy image detection
-	if (!msgType.includes('_private') && msg.data && msg.data.startsWith('data:image/')) {
-		msgType = 'image'
+		// Handle image messages (both new and legacy formats)
+	if (msgType === 'image' || msgType === 'image_private') {
+		// Already has correct type
+	} else if (!msgType.includes('_private')) {
+		// Handle legacy image detection
+		if (msg.data && typeof msg.data === 'string' && msg.data.startsWith('data:image/')) {
+			msgType = 'image';
+		} else if (msg.data && typeof msg.data === 'object' && msg.data.image) {
+			msgType = 'image';
+		}
 	}
-	
 	let realUserName = msg.userName;
 	if (!realUserName && msg.clientId && newRd.userMap[msg.clientId]) {
 		realUserName = newRd.userMap[msg.clientId].userName || newRd.userMap[msg.clientId].username || newRd.userMap[msg.clientId].name
 	}
+	
+	// Add message to messages array for chat history
 	roomsData[idx].messages.push({
 		type: 'other',
 		text: msg.data,
 		userName: realUserName,
 		avatar: realUserName,
-		msgType,
+		msgType: msgType,
 		timestamp: Date.now()
 	});
+	
+	// Add message to chat display using addOtherMsg
+	if (window.addOtherMsg) {
+		window.addOtherMsg(msg.data, realUserName, realUserName, false, msgType);
+	}
+	
 	const notificationMsgType = msgType.includes('_private') ? `private ${msgType.split('_')[0]}` : msgType;
 	if (window.notifyMessage) {
 		window.notifyMessage(newRd.roomName, notificationMsgType, msg.data, realUserName)
@@ -307,8 +310,6 @@ export function handleClientMessage(idx, msg) {
 	if (activeRoomIndex !== idx) {
 		roomsData[idx].unreadCount = (roomsData[idx].unreadCount || 0) + 1;
 		renderRooms(activeRoomIndex)
-	} else {
-		renderChatArea()
 	}
 }
 

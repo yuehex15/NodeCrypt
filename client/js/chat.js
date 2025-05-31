@@ -16,6 +16,7 @@ import {
 	$id,
 	createElement,
 	on,
+	off,
 	addClass,
 	removeClass
 } from './util.dom.js';
@@ -56,10 +57,48 @@ export function addMsg(text, isHistory = false, msgType = 'text', timestamp = nu
 	if (!chatArea) return;
 	let className = 'bubble me' + (msgType.includes('_private') ? ' private-message' : '');
 	const date = new Date(ts);
-	const time = date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');	let contentHtml = '';
-	if (msgType === 'image' || msgType === 'image_private') {
-		const safeImgSrc = escapeHTML(text).replace(/javascript:/gi, '');
-		contentHtml = `<img src="${safeImgSrc}"alt="image"class="bubble-img">`
+	const time = date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');	let contentHtml = '';	if (msgType === 'image' || msgType === 'image_private') {
+		// Handle image messages (can contain both text and images)
+		if (typeof text === 'object' && text.images && Array.isArray(text.images)) {
+			// New multi-image format: {text: "", images: ["data:image...", "data:image..."]}
+			const messageText = text.text ? textToHTML(text.text) : '';
+			const imageElements = text.images.map(imgData => {
+				const safeImgSrc = escapeHTML(imgData).replace(/javascript:/gi, '');
+				return `<img src="${safeImgSrc}" alt="image" class="bubble-img">`;
+			}).join('');
+					if (messageText && imageElements) {
+				// Mixed content: text + images
+				contentHtml = `<div class="mixed-content">
+					<div class="message-text">${messageText}</div>
+					${imageElements}
+				</div>`;
+			} else if (imageElements) {
+				// Images only
+				contentHtml = imageElements;
+			} else {
+				// Fallback to text only
+				contentHtml = messageText;
+			}
+		} else if (typeof text === 'object' && text.image) {
+			// Legacy single image format: {text: "", image: "data:image..."}
+			const safeImgSrc = escapeHTML(text.image).replace(/javascript:/gi, '');
+			const messageText = text.text ? textToHTML(text.text) : '';
+			
+			if (messageText) {
+				// Mixed content: text + image
+				contentHtml = `<div class="mixed-content">
+					<div class="message-text">${messageText}</div>
+					<img src="${safeImgSrc}" alt="image" class="bubble-img">
+				</div>`;
+			} else {
+				// Image only
+				contentHtml = `<img src="${safeImgSrc}" alt="image" class="bubble-img">`;
+			}
+		} else {
+			// Legacy format: plain image data URL
+			const safeImgSrc = escapeHTML(text).replace(/javascript:/gi, '');
+			contentHtml = `<img src="${safeImgSrc}" alt="image" class="bubble-img">`;
+		}
 	} else if (msgType === 'file' || msgType === 'file_private') {
 		// Handle file messages
 		contentHtml = renderFileMessage(text, true);
@@ -101,10 +140,48 @@ export function addOtherMsg(msg, userName = '', avatar = '', isHistory = false, 
 	if (!chatArea) return;
 	const bubbleWrap = createElement('div', {
 		class: 'bubble-other-wrap'
-	});	let contentHtml = '';
-	if (msgType === 'image' || msgType === 'image_private') {
-		const safeImgSrc = escapeHTML(msg).replace(/javascript:/gi, '');
-		contentHtml = `<img src="${safeImgSrc}"alt="image"class="bubble-img">`
+	});	let contentHtml = '';	if (msgType === 'image' || msgType === 'image_private') {
+		// Handle image messages (can contain both text and images)
+		if (typeof msg === 'object' && msg.images && Array.isArray(msg.images)) {
+			// New multi-image format: {text: "", images: ["data:image...", "data:image..."]}
+			const messageText = msg.text ? textToHTML(msg.text) : '';
+			const imageElements = msg.images.map(imgData => {
+				const safeImgSrc = escapeHTML(imgData).replace(/javascript:/gi, '');
+				return `<img src="${safeImgSrc}" alt="image" class="bubble-img">`;
+			}).join('');
+					if (messageText && imageElements) {
+				// Mixed content: text + images
+				contentHtml = `<div class="mixed-content">
+					<div class="message-text">${messageText}</div>
+					${imageElements}
+				</div>`;
+			} else if (imageElements) {
+				// Images only
+				contentHtml = imageElements;
+			} else {
+				// Fallback to text only
+				contentHtml = messageText;
+			}
+		} else if (typeof msg === 'object' && msg.image) {
+			// Legacy single image format: {text: "", image: "data:image..."}
+			const safeImgSrc = escapeHTML(msg.image).replace(/javascript:/gi, '');
+			const messageText = msg.text ? textToHTML(msg.text) : '';
+			
+			if (messageText) {
+				// Mixed content: text + image
+				contentHtml = `<div class="mixed-content">
+					<div class="message-text">${messageText}</div>
+					<img src="${safeImgSrc}" alt="image" class="bubble-img">
+				</div>`;
+			} else {
+				// Image only
+				contentHtml = `<img src="${safeImgSrc}" alt="image" class="bubble-img">`;
+			}
+		} else {
+			// Legacy format: plain image data URL
+			const safeImgSrc = escapeHTML(msg).replace(/javascript:/gi, '');
+			contentHtml = `<img src="${safeImgSrc}" alt="image" class="bubble-img">`;
+		}
 	} else if (msgType === 'file' || msgType === 'file_private') {
 		// Handle file messages
 		contentHtml = renderFileMessage(msg, false);	} else {
