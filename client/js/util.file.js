@@ -1,14 +1,7 @@
 // Import necessary modules
 // 导入必要的模块
-import {
-	$,
-	$id,
-	createElement,
-	on,
-	addClass,
-	removeClass
-} from './util.dom.js';
 import { deflate, inflate } from 'fflate';
+import { showFileUploadModal } from './util.fileUpload.js';
 
 // File transfer state management
 // 文件传输状态管理
@@ -360,17 +353,14 @@ export function setupFileSend({
 			e.preventDefault();
 			e.stopPropagation();
 			
-			// Import and show upload modal
-			import('./util.fileUpload.js').then(({ showFileUploadModal }) => {
-				showFileUploadModal(async (files) => {
-					// 传递 userName 给 onSend
-					const userName = window.roomsData && window.activeRoomIndex >= 0
-						? (window.roomsData[window.activeRoomIndex]?.myUserName || '')
-						: '';
-					await handleFilesUpload(files, (msg) => {
-						// 合并 userName 字段
-						onSend({ ...msg, userName });
-					});
+			showFileUploadModal(async (files) => {
+				// 传递 userName 给 onSend
+				const userName = window.roomsData && window.activeRoomIndex >= 0
+					? (window.roomsData[window.activeRoomIndex]?.myUserName || '')
+					: '';
+				await handleFilesUpload(files, (msg) => {
+					// 合并 userName 字段
+					onSend({ ...msg, userName });
 				});
 			});
 		});

@@ -365,7 +365,4 @@ export function exitRoom() {
 	return false
 }
 
-export {
-	roomsData,
-	activeRoomIndex
-};
+export { roomsData, activeRoomIndex };

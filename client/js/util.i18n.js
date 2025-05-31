@@ -254,10 +254,18 @@ export function updateStaticTexts() {
 			loginFormContainer.innerHTML = generateLoginForm(false);
 		});
 	}
-		// Update sidebar username label
+	
+	// Update sidebar username label
 	const sidebarUsername = document.getElementById('sidebar-username');
 	if (sidebarUsername) {
-		sidebarUsername.textContent = t('ui.my_name', 'My Name');
+		import('./room.js').then(roomMod => {
+			const roomsData = roomMod.roomsData;
+			const activeRoomIndex = roomMod.activeRoomIndex;
+			const rd = roomsData && roomsData.length > 0 && activeRoomIndex >= 0 ? roomsData[activeRoomIndex] : null;
+			sidebarUsername.textContent = rd && rd.myUserName ? rd.myUserName : t('ui.my_name', 'My Name');
+		}).catch(() => {
+			sidebarUsername.textContent = t('ui.my_name', 'My Name');
+		});
 	}
 		// Update "Enter a Node" text in sidebar
 	const joinRoomText = document.getElementById('join-room-text');
