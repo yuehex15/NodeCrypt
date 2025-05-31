@@ -1573,17 +1573,26 @@ body {
 	.file-main-content {
 		padding: 8px 12px;
 		gap: 8px;
-		flex-direction: column;
-		align-items: stretch;
+		/* 保持水平布局，不改为垂直 */
+		display: flex;
+		align-items: center;
 	}
 	
 	.file-info {
-		margin-bottom: 8px;
+		flex: 1;
+		min-width: 0;
 	}
-		.file-download-btn {
-		width: 36px;
-		height: 36px;
-		align-self: flex-end;
+	
+	.file-download-btn {
+		width: 32px;
+		height: 32px;
+		padding: 6px;
+		flex-shrink: 0;
+	}
+	
+	.file-download-btn svg {
+		width: 16px;
+		height: 16px;
 	}
 }
 
