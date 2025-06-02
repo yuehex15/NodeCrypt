@@ -236,43 +236,66 @@ export function handleClientLeft(idx, clientId) {
 export function handleClientMessage(idx, msg) {
 	const newRd = roomsData[idx];
 	if (!newRd) return;
-	if (msg.userName === newRd.myUserName && !msg.type.includes('_private')) {
-		const currentRd = roomsData[idx];
-		if (currentRd && msg.clientId === currentRd.myId && msg.type.includes('_private')) {} else if (msg.clientId === newRd.myId) {
-			return
-		}
+
+	// Prevent processing own messages unless it's a private message sent to oneself
+	if (msg.clientId === newRd.myId && msg.userName === newRd.myUserName && !msg.type.includes('_private')) {
+		return;
 	}
-	
+
 	let msgType = msg.type || 'text';
+
 	// Handle file messages
 	if (msgType.startsWith('file_')) {
-		// Import handleFileMessage function if needed
-		if (window.handleFileMessage) {
-			window.handleFileMessage(msg.data, msgType.includes('_private'));
-		}
-		
-		// Send notification but don't add to messages array
-		// (util.file.js already handles display via addOtherMsg)
+		// Part 1: Update message history and send notifications (for 'file_start' type)
 		if (msgType === 'file_start' || msgType === 'file_start_private') {
 			let realUserName = msg.userName;
 			if (!realUserName && msg.clientId && newRd.userMap[msg.clientId]) {
-				realUserName = newRd.userMap[msg.clientId].userName || newRd.userMap[msg.clientId].username || newRd.userMap[msg.clientId].name
+				realUserName = newRd.userMap[msg.clientId].userName || newRd.userMap[msg.clientId].username || newRd.userMap[msg.clientId].name;
 			}
+			const historyMsgType = msgType === 'file_start_private' ? 'file_private' : 'file';
 			
+			const fileId = msg.data && msg.data.fileId;
+			if (fileId) { // Only proceed if we have a fileId
+				const messageAlreadyInHistory = newRd.messages.some(
+					m => m.msgType === historyMsgType && m.text && m.text.fileId === fileId && m.userName === realUserName
+				);
+
+				if (!messageAlreadyInHistory) {
+					newRd.messages.push({
+						type: 'other',
+						text: msg.data, // This is the file metadata object
+						userName: realUserName,
+						avatar: realUserName,
+						msgType: historyMsgType,
+						timestamp: (msg.data && msg.data.timestamp) || Date.now() 
+					});
+				}
+			}
+
 			const notificationMsgType = msgType.includes('_private') ? 'private file' : 'file';
-			if (window.notifyMessage) {
-				window.notifyMessage(newRd.roomName, notificationMsgType, `${msg.data.fileName}`, realUserName)
+			if (window.notifyMessage && msg.data && msg.data.fileName) {
+				window.notifyMessage(newRd.roomName, notificationMsgType, `${msg.data.fileName}`, realUserName);
 			}
-			
-			if (activeRoomIndex !== idx) {
-				roomsData[idx].unreadCount = (roomsData[idx].unreadCount || 0) + 1;
-				renderRooms(activeRoomIndex)
-			}
-			// No need to call renderChatArea() since util.file.js handles display
 		}
-		return; // Don't process file messages further
+
+		// Part 2: Handle UI interaction (rendering in active room, or unread count in inactive room)
+		if (activeRoomIndex === idx) {
+			// If it's the active room, delegate to util.file.js to handle UI and file transfer state.
+			// This applies to all file-related messages (file_start, file_volume, file_end, etc.)
+			if (window.handleFileMessage) {
+				window.handleFileMessage(msg.data, msgType.includes('_private'));
+			}
+		} else {
+			// If it's not the active room, only increment unread count for 'file_start' messages.
+			if (msgType === 'file_start' || msgType === 'file_start_private') {
+				newRd.unreadCount = (newRd.unreadCount || 0) + 1;
+				renderRooms(activeRoomIndex);
+			}
+		}
+		return; // File messages are fully handled.
 	}
-		// Handle image messages (both new and legacy formats)
+
+	// Handle image messages (both new and legacy formats)
 	if (msgType === 'image' || msgType === 'image_private') {
 		// Already has correct type
 	} else if (!msgType.includes('_private')) {
@@ -285,9 +308,9 @@ export function handleClientMessage(idx, msg) {
 	}
 	let realUserName = msg.userName;
 	if (!realUserName && msg.clientId && newRd.userMap[msg.clientId]) {
-		realUserName = newRd.userMap[msg.clientId].userName || newRd.userMap[msg.clientId].username || newRd.userMap[msg.clientId].name
+		realUserName = newRd.userMap[msg.clientId].userName || newRd.userMap[msg.clientId].username || newRd.userMap[msg.clientId].name;
 	}
-	
+
 	// Add message to messages array for chat history
 	roomsData[idx].messages.push({
 		type: 'other',
@@ -297,19 +320,20 @@ export function handleClientMessage(idx, msg) {
 		msgType: msgType,
 		timestamp: Date.now()
 	});
-	
-	// Add message to chat display using addOtherMsg
-	if (window.addOtherMsg) {
-		window.addOtherMsg(msg.data, realUserName, realUserName, false, msgType);
+
+	// Only add message to chat display if it's for the active room
+	if (activeRoomIndex === idx) {
+		if (window.addOtherMsg) {
+			window.addOtherMsg(msg.data, realUserName, realUserName, false, msgType);
+		}
+	} else {
+		roomsData[idx].unreadCount = (roomsData[idx].unreadCount || 0) + 1;
+		renderRooms(activeRoomIndex);
 	}
-	
+
 	const notificationMsgType = msgType.includes('_private') ? `private ${msgType.split('_')[0]}` : msgType;
 	if (window.notifyMessage) {
-		window.notifyMessage(newRd.roomName, notificationMsgType, msg.data, realUserName)
-	}
-	if (activeRoomIndex !== idx) {
-		roomsData[idx].unreadCount = (roomsData[idx].unreadCount || 0) + 1;
-		renderRooms(activeRoomIndex)
+		window.notifyMessage(newRd.roomName, notificationMsgType, msg.data, realUserName);
 	}
 }
 

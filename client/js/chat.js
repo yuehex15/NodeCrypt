@@ -131,16 +131,6 @@ export function addOtherMsg(msg, userName = '', avatar = '', isHistory = false, 
 	}
 	userName = userName || t('ui.anonymous', 'Anonymous');
 	let ts = isHistory ? timestamp : (timestamp || Date.now());
-	if (!isHistory && activeRoomIndex >= 0) {
-		roomsData[activeRoomIndex].messages.push({
-			type: 'other',
-			text: msg,
-			userName,
-			avatar,
-			msgType,
-			timestamp: ts
-		})
-	}
 	if (!ts) return;
 	const chatArea = $id('chat-area');
 	if (!chatArea) return;
