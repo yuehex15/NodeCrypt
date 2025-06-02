@@ -21,5 +21,5 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ toLower(github.repository) }}:latest
-            ghcr.io/${{ toLower(github.repository) }}:${{ github.sha }}
+            ghcr.io/shuaiplus/nodecrypt:latest
+            ghcr.io/shuaiplus/nodecrypt:${{ github.sha }}
