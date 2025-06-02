@@ -1283,13 +1283,11 @@ body {
 	box-sizing: border-box;
 }
 
+.bubble.private-message .file-meta,
+.bubble.private-message .file-name{
+    color:#ffffff !important;
 
-.bubble.private-message .file-message {
-	background: rgba(255, 248, 220, 0.95);
-	border: 1px solid rgba(255, 193, 7, 0.2);
-	box-shadow: 0 2px 8px rgba(255, 193, 7, 0.1);
 }
-
 
 .bubble.private-message .file-message .file-download-btn {
 	background: linear-gradient(135deg, #ff9800, #ffb74d);
@@ -1307,6 +1305,7 @@ body {
 
 .bubble.private-message .file-message .file-status {
 	background: rgba(255, 152, 0, 0.05);
+	color: #ffffff !important;
 }
 
 /* File Upload Modal Styles */
