@@ -15,7 +15,15 @@
 2. 打开 Cloudflare Workers 控制台，选择“从 GitHub 导入”，并选择你 fork 的仓库进行部署。
 > 本项目已内置自动同步 workflow，fork 后无需任何操作，主仓库的更新会自动同步到你的 fork 仓库，Cloudflare 也会自动重新部署，无需手动维护。
 
-### 方法三：本地开发部署
+### 方法三：Docker 一键部署（推荐自托管）
+
+```bash
+docker run -d --name nodecrypt -p 80:80 shua1/nodecrypt
+```
+
+访问 http://localhost:80
+
+### 方法四：本地开发部署
 克隆项目并安装依赖后，使用 `npm run dev` 启动开发服务器。
 使用 `npm run deploy` 部署到 Cloudflare Workers。
 

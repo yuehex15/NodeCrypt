@@ -15,7 +15,15 @@ Click the button below for one-click deployment to Cloudflare Workers:
 2. Open the Cloudflare Workers console, select "Import from GitHub," and choose your forked repository for deployment.
 > This project has built-in auto-sync workflow. After forking, no action is required. Updates from the main repository will automatically sync to your fork, and Cloudflare will automatically redeploy without manual maintenance.
 
-### Method 3: Local Development Deployment
+### Method 3: Docker One-Click Deployment (Recommended for Self-hosting)
+
+```bash
+docker run -d --name nodecrypt -p 80:80 shua1/nodecrypt
+```
+
+Access http://localhost:80
+
+### Method 4: Local Development Deployment
 After cloning the project and installing dependencies, use `npm run dev` to start the development server.
 Use `npm run deploy` to deploy to Cloudflare Workers.
 
