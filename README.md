@@ -19,7 +19,10 @@
 
 ```bash
 docker run -d --name nodecrypt -p 80:80 shua1/nodecrypt
+or
+docker run -d --name nodecrypt -p 80:80 ghcr.io/shuaiplus/nodecrypt
 ```
+
 
 访问 http://localhost:80
 
