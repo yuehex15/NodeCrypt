@@ -1828,4 +1828,19 @@ body {
 		max-height: 150px;
 	}
 }
+.powered-by {
+  text-align: center;
+  color: #aaa;
+  font-size: 13px;
+  margin: 24px 0 8px 0;
+  letter-spacing: 0.2px;
+}
+.powered-by a {
+  color: #30a8f7;
+  text-decoration: none;
+}
+.powered-by a:hover {
+  text-decoration: underline;
+}
+
 
