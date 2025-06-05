@@ -114,7 +114,6 @@ export function joinRoom(userName, roomName, password, modal = null, onResult) {
 				onResult(false)
 			}
 		},		onServerSecured: () => {
-			setStatus('Secure connection to node');
 			if (modal) modal.remove();
 			else {
 				const loginContainer = $id('login-container');

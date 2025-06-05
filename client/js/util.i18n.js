@@ -75,8 +75,7 @@ const LANGUAGES = {
 			'action.copy_not_supported': 'Copy not supported in this environment',
 			'action.action_failed': 'Action failed. Please try again.',
 			'action.cannot_share': 'Cannot share:',
-			
-			// System messages
+					// System messages
 			'system.security_warning': '⚠️ This link uses an old format. Room data is not encrypted.',
 			'system.file_send_failed': 'Failed to send files:',
 			'system.joined': 'joined the conversation',
@@ -85,6 +84,30 @@ const LANGUAGES = {
 			'system.private_message_failed': 'Cannot send private message to',
 			'system.private_file_failed': 'Cannot send private file to',
 			'system.user_not_connected': 'User might not be fully connected.',
+					// Help page
+			'help.title': 'User Guide',
+			'help.back_to_login': 'Back to Login',
+			'help.usage_guide': 'User Guide',
+			'help.what_is_nodecrypt': '🔐 What is NodeCrypt?',
+			'help.what_is_nodecrypt_desc': 'NodeCrypt is an open-source end-to-end encrypted chat system with a database-free architecture. All messages are encrypted locally on your device, and servers and intermediaries cannot decrypt any of your chat content.',
+			'help.how_to_start': '🚀 How to Start?',
+			'help.step_username': 'Username',
+			'help.step_username_desc': 'Choose a nickname',
+			'help.step_node_name': 'Node Name',
+			'help.step_node_name_desc': 'Create or join an existing node',
+			'help.step_password': 'Node Password',
+			'help.step_password_desc': 'Ensure node independence when room names are the same',
+			'help.step_join': 'Click "Join Room"',
+			'help.step_join_desc': 'Start end-to-end encrypted chatting',
+			'help.security_features': '🔑 Security Features',
+			'help.e2e_encryption': 'End-to-End Encryption',
+			'help.e2e_encryption_desc': 'Messages can only be decrypted by you and the recipient',
+			'help.no_history': 'No History Records',
+			'help.no_history_desc': 'New users cannot see historical messages',
+			'help.password_protection': 'Password Protection',
+			'help.password_protection_desc': 'Room password participates in the encryption process',
+			'help.anonymous_communication': 'Anonymous Communication',
+			'help.anonymous_communication_desc': 'No need to register real identity',
 		}
 	},
 	zh: {
@@ -158,8 +181,7 @@ const LANGUAGES = {
 			'action.copy_not_supported': '此环境不支持复制功能',
 			'action.action_failed': '操作失败，请重试。',
 			'action.cannot_share': '无法分享：',
-			
-			// System messages
+					// System messages
 			'system.security_warning': '⚠️ 此链接使用旧格式，房间数据未加密。',
 			'system.file_send_failed': '文件发送失败：',
 			'system.joined': '加入了对话',
@@ -168,6 +190,31 @@ const LANGUAGES = {
 			'system.private_message_failed': '无法发送私信给',
 			'system.private_file_failed': '无法发送私密文件给',
 			'system.user_not_connected': '用户可能未完全连接。',
+			
+			// Help page
+			'help.title': '使用说明',
+			'help.back_to_login': '返回登录',
+			'help.usage_guide': '使用说明',
+			'help.what_is_nodecrypt': '🔐 什么是 NodeCrypt？',
+			'help.what_is_nodecrypt_desc': 'NodeCrypt 是一个开源的端到端加密聊天系统，采用无数据库架构设计。所有消息在您的设备上本地加密，服务器和中间人无法解密您的任何聊天内容。',
+			'help.how_to_start': '🚀 如何开始？',
+			'help.step_username': '用户名',
+			'help.step_username_desc': '选择一个昵称',
+			'help.step_node_name': '节点名称',
+			'help.step_node_name_desc': '创建或加入现有节点',
+			'help.step_password': '节点密码',
+			'help.step_password_desc': '确保房间号相同时节点的独立性',
+			'help.step_join': '点击"加入房间"',
+			'help.step_join_desc': '开始端到端加密聊天',
+			'help.security_features': '🔑 安全特性',
+			'help.e2e_encryption': '端到端加密',
+			'help.e2e_encryption_desc': '消息仅您和接收者可解密',
+			'help.no_history': '无历史记录',
+			'help.no_history_desc': '新用户无法看到历史消息',
+			'help.password_protection': '密码保护',
+			'help.password_protection_desc': '房间密码参与加密过程',
+			'help.anonymous_communication': '匿名通信',
+			'help.anonymous_communication_desc': '无需注册真实身份',
 		}
 	}
 };
@@ -323,11 +370,30 @@ export function updateStaticTexts() {
 		settingsBtn.title = t('action.settings', 'Settings');
 		settingsBtn.setAttribute('aria-label', t('action.settings', 'Settings'));
 	}
-	
-	// Update back button title
+		// Update back button title
 	const backBtn = document.getElementById('settings-back-btn');
 	if (backBtn) {
 		backBtn.title = t('action.back', 'Back');
 		backBtn.setAttribute('aria-label', t('action.back', 'Back'));
 	}
+	
+	// Update all elements with data-i18n attribute
+	// 更新所有具有data-i18n属性的元素
+	const i18nElements = document.querySelectorAll('[data-i18n]');
+	i18nElements.forEach(element => {
+		const key = element.getAttribute('data-i18n');
+		if (key) {
+			element.textContent = t(key, element.textContent || key);
+		}
+	});
+	
+	// Update all elements with data-i18n-title attribute
+	// 更新所有具有data-i18n-title属性的元素
+	const i18nTitleElements = document.querySelectorAll('[data-i18n-title]');
+	i18nTitleElements.forEach(element => {
+		const key = element.getAttribute('data-i18n-title');
+		if (key) {
+			element.title = t(key, element.title || key);
+		}
+	});
 }
