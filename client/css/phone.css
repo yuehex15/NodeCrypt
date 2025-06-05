@@ -157,7 +157,9 @@
 		left: 2vw !important;
 	}
 	
-	/* Settings sidebar mobile styles - removed duplicate rules since they are above */
+	.flip-card {
+	width: 95%;
+}
 }
 
 .member.private-chat-active {
