@@ -63,6 +63,19 @@ body {
 	z-index: 10;
 }
 
+/* Firefox兼容性修复：控制翻转时按钮的可见性 */
+.flip-card-inner.flipped .flip-card-front .help-btn {
+	visibility: hidden;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.flip-card-inner:not(.flipped) .flip-card-back .help-btn {
+	visibility: hidden;
+	opacity: 0;
+	pointer-events: none;
+}
+
 .help-btn:hover {
 	background: #30a8f7;
 	border-color: #30a8f7;

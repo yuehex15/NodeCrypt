@@ -598,13 +598,19 @@ export function initFlipCard() {
 	
 	// 当前旋转角度 / Current rotation angle
 	let currentRotation = 0;
-	
-	// 执行翻转操作 / Execute flip operation
+		// 执行翻转操作 / Execute flip operation
 	function performFlip() {
 		currentRotation += 180;
 		const flipCardInner = flipCard.querySelector('.flip-card-inner');
 		if (flipCardInner) {
 			flipCardInner.style.transform = `rotateX(${currentRotation}deg)`;
+			
+			// 添加或移除flipped类来控制按钮可见性（Firefox兼容性修复）
+			if (currentRotation % 360 === 180 || currentRotation % 360 === -180) {
+				flipCardInner.classList.add('flipped');
+			} else {
+				flipCardInner.classList.remove('flipped');
+			}
 		}
 	}
 	
