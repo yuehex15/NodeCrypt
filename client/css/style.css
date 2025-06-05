@@ -6,6 +6,12 @@ body {
 	background: #fff;
 }
 
+.login-page{
+display: flex;
+justify-content: center;
+flex-direction: column;
+}
+
 .container {
 	display: flex;
 	height: 100vh;

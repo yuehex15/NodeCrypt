@@ -113,15 +113,16 @@ export function joinRoom(userName, roomName, password, modal = null, onResult) {
 				closed = true;
 				onResult(false)
 			}
-		},
-		onServerSecured: () => {
+		},		onServerSecured: () => {
 			setStatus('Secure connection to node');
 			if (modal) modal.remove();
 			else {
 				const loginContainer = $id('login-container');
 				if (loginContainer) loginContainer.style.display = 'none';
 				const chatContainer = $id('chat-container');
-				if (chatContainer) chatContainer.style.display = ''
+				if (chatContainer) chatContainer.style.display = '';
+				
+
 			}
 			if (onResult && !closed) {
 				closed = true;

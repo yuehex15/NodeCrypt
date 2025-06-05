@@ -76,7 +76,8 @@ import {	renderUserList,       // 渲染用户列表 / Render user list
 	setupTabs,            // 设置页面标签切换 / Setup tab switching
 	autofillRoomPwd,      // 自动填充房间密码 / Autofill room password
 	generateLoginForm,    // 生成登录表单HTML / Generate login form HTML
-	initLoginForm         // 初始化登录表单 / Initialize login form
+	initLoginForm,        // 初始化登录表单 / Initialize login form
+	initFlipCard          // 初始化翻转卡片功能 / Initialize flip card functionality
 } from './ui.js';
 
 // 设置全局配置参数
@@ -125,12 +126,15 @@ window.addEventListener('DOMContentLoaded', () => {
 	if (joinBtn) {
 		joinBtn.onclick = openLoginModal; // 点击打开登录窗口 / Click to open login modal
 	}
-
 	// 阻止用户输入用户名、房间名和密码时输入空格
 	// Prevent space input for username, room name, and password fields
 	preventSpaceInput($id('userName'));
 	preventSpaceInput($id('roomName'));
 	preventSpaceInput($id('password'));
+	
+	// 初始化翻转卡片功能 / Initialize flip card functionality
+	initFlipCard();
+	
 	// 初始化辅助功能和界面设置
 	// Initialize autofill, input placeholders, and menus
 	autofillRoomPwd();	setupInputPlaceholder();

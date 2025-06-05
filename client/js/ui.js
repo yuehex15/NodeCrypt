@@ -557,6 +557,10 @@ export function initLoginForm() {
 		// Only initialize if login form is empty
 		loginFormContainer.innerHTML = generateLoginForm(false);
 	}
+	
+	// 为登录页面添加class，用于手机适配
+	// Add class to login page for mobile adaptation
+	document.body.classList.add('login-page');
 }
 
 // Listen for language change events to refresh UI
@@ -578,3 +582,75 @@ window.addEventListener('regenerateLoginForm', () => {
 		loginFormContainer.innerHTML = generateLoginForm(false);
 	}
 });
+
+// 初始化翻转卡片功能
+// Initialize flip card functionality
+export function initFlipCard() {
+	const flipCard = document.getElementById('flip-card');
+	const helpBtn = document.getElementById('help-btn');
+	const backBtn = document.getElementById('back-btn');
+	
+	if (!flipCard || !helpBtn || !backBtn) return;
+		// 检测是否为触摸设备 / Detect touch device
+	// 更准确的触摸设备检测方法
+	const isTouchDevice = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+	
+	// 翻转到帮助页面 / Flip to help page
+	function flipToHelp() {
+		flipCard.classList.add('flipped');
+	}
+	
+	// 翻转回登录页面 / Flip back to login page
+	function flipToLogin() {
+		flipCard.classList.remove('flipped');
+	}
+	
+	if (isTouchDevice) {
+		// 移动端：点击切换 / Mobile: click to toggle
+		helpBtn.addEventListener('click', (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			flipToHelp();
+		});
+		
+		backBtn.addEventListener('click', (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			flipToLogin();
+		});
+	} else {
+		// 桌面端：鼠标悬停切换 / Desktop: hover to toggle
+		let hoverTimeout;
+		
+		helpBtn.addEventListener('mouseenter', () => {
+			clearTimeout(hoverTimeout);
+			hoverTimeout = setTimeout(() => {
+				flipToHelp();
+			}, 30); // 30ms延迟，避免误触
+		});
+		
+		helpBtn.addEventListener('mouseleave', () => {
+			clearTimeout(hoverTimeout);
+		});
+		
+		// 鼠标离开卡片时返回登录页面
+		flipCard.addEventListener('mouseleave', () => {
+			clearTimeout(hoverTimeout);
+			hoverTimeout = setTimeout(() => {
+				flipToLogin();
+			}, 30); // 30ms延迟，给用户时间查看内容
+		});
+		
+		// 鼠标进入卡片时取消返回
+		flipCard.addEventListener('mouseenter', () => {
+			clearTimeout(hoverTimeout);
+		});
+		
+		// 返回按钮点击事件（桌面端也可以点击）
+		backBtn.addEventListener('click', (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			flipToLogin();
+		});
+	}
+}
