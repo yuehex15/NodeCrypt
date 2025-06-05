@@ -591,18 +591,21 @@ export function initFlipCard() {
 	const backBtn = document.getElementById('back-btn');
 	
 	if (!flipCard || !helpBtn || !backBtn) return;
-		// 检测是否为触摸设备 / Detect touch device
+	
+	// 检测是否为触摸设备 / Detect touch device
 	// 更准确的触摸设备检测方法
 	const isTouchDevice = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
 	
-	// 翻转到帮助页面 / Flip to help page
-	function flipToHelp() {
-		flipCard.classList.add('flipped');
-	}
+	// 当前旋转角度 / Current rotation angle
+	let currentRotation = 0;
 	
-	// 翻转回登录页面 / Flip back to login page
-	function flipToLogin() {
-		flipCard.classList.remove('flipped');
+	// 执行翻转操作 / Execute flip operation
+	function performFlip() {
+		currentRotation += 180;
+		const flipCardInner = flipCard.querySelector('.flip-card-inner');
+		if (flipCardInner) {
+			flipCardInner.style.transform = `rotateX(${currentRotation}deg)`;
+		}
 	}
 	
 	if (isTouchDevice) {
@@ -610,47 +613,59 @@ export function initFlipCard() {
 		helpBtn.addEventListener('click', (e) => {
 			e.preventDefault();
 			e.stopPropagation();
-			flipToHelp();
+			performFlip();
 		});
 		
 		backBtn.addEventListener('click', (e) => {
 			e.preventDefault();
 			e.stopPropagation();
-			flipToLogin();
-		});
-	} else {
-		// 桌面端：鼠标悬停切换 / Desktop: hover to toggle
-		let hoverTimeout;
+			performFlip();
+		});	} else {
+		// 桌面端：鼠标悬停持续旋转 / Desktop: hover to continuously rotate
+		let rotationInterval;
+		let isHovering = false;
 		
-		helpBtn.addEventListener('mouseenter', () => {
-			clearTimeout(hoverTimeout);
-			hoverTimeout = setTimeout(() => {
-				flipToHelp();
-			}, 30); // 30ms延迟，避免误触
+		// 开始持续旋转
+		function startContinuousRotation() {
+			if (isHovering) return; // 避免重复启动
+			isHovering = true;
+			
+			// 立即执行一次旋转
+			performFlip();
+			
+			// 然后每800ms旋转一次（与CSS动画时长一致）
+			rotationInterval = setInterval(() => {
+				if (isHovering) {
+					performFlip();
+				}
+			}, 800);
+		}
+		
+		// 停止持续旋转
+		function stopContinuousRotation() {
+			isHovering = false;
+			if (rotationInterval) {
+				clearInterval(rotationInterval);
+				rotationInterval = null;
+			}
+		}
+		
+		// 帮助按钮事件
+		helpBtn.addEventListener('mouseenter', startContinuousRotation);
+		helpBtn.addEventListener('mouseleave', stopContinuousRotation);
+		helpBtn.addEventListener('click', (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			performFlip();
 		});
 		
-		helpBtn.addEventListener('mouseleave', () => {
-			clearTimeout(hoverTimeout);
-		});
-		
-		// 鼠标离开卡片时返回登录页面
-		flipCard.addEventListener('mouseleave', () => {
-			clearTimeout(hoverTimeout);
-			hoverTimeout = setTimeout(() => {
-				flipToLogin();
-			}, 30); // 30ms延迟，给用户时间查看内容
-		});
-		
-		// 鼠标进入卡片时取消返回
-		flipCard.addEventListener('mouseenter', () => {
-			clearTimeout(hoverTimeout);
-		});
-		
-		// 返回按钮点击事件（桌面端也可以点击）
+		// 返回按钮事件（同样的逻辑）
+		backBtn.addEventListener('mouseenter', startContinuousRotation);
+		backBtn.addEventListener('mouseleave', stopContinuousRotation);
 		backBtn.addEventListener('click', (e) => {
 			e.preventDefault();
 			e.stopPropagation();
-			flipToLogin();
+			performFlip();
 		});
 	}
 }
