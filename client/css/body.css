@@ -354,3 +354,34 @@ body {
 	user-select: none;
 }
 
+
+.send-message-btn {
+  background: rgb(3, 169, 244);
+  background: linear-gradient(
+    138deg,
+    rgba(3, 169, 244, 1) 15%,
+    rgba(63, 180, 233, 1) 65%
+  );
+  position: relative;
+  cursor: pointer;
+  font-size: 17px;
+  padding: 0.7em 0.7em;
+  border-radius: 50px;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+.send-message-btn:hover {
+  background: #fff;
+  transition: all 0.6s;
+}
+.send-message-btn .text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  fill: #fff;
+  transition: all 0.2s;
+}
+.send-message-btn:hover .text {
+  fill: rgb(3, 169, 244);
+  transition: all 0.6s;
+}
+
