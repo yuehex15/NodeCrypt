@@ -693,8 +693,7 @@ body {
 	display: flex;
 	align-items: center;
 	flex-direction: column;
-	width: 100%;
-	max-width: 100%;
+	width: 80%;
 	justify-content: center;
 	border-radius: var(--chat-input-border-radius);
 	min-height: 37px;
@@ -849,14 +848,14 @@ body {
 	margin: 0;
 	resize: none;
 	color: #222;
-	width: 100%;
+	width: 99%;
 	overflow-y: auto !important;
 	display: block;
 	white-space: pre-wrap;
 	word-break: break-word;
 	word-wrap: break-word;
 	overflow-wrap: break-word;
-	max-width: 100%;
+	max-width: 99%;
 }
 
 .input-field-placeholder {
