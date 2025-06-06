@@ -500,7 +500,7 @@ flex-direction: column;
 .main::before {	content: "";
 	position: absolute;
 	inset: 0;
-	background: url(../assets/wallpaper.png) left top / auto 100% no-repeat;
+	background: url(../assets/wallpaper-1.webp) left top / auto 100% repeat-x;
 	opacity: 0.15;
 	mix-blend-mode: multiply;
 	pointer-events: none;
