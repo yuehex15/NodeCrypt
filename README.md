@@ -18,8 +18,6 @@
 ### 方法三：Docker 一键部署（推荐自托管）
 
 ```bash
-docker run -d --name nodecrypt -p 80:80 shua1/nodecrypt
-or
 docker run -d --name nodecrypt -p 80:80 ghcr.io/shuaiplus/nodecrypt
 ```
 
