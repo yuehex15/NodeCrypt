@@ -232,23 +232,48 @@ export function setupMobileUIHandlers() {
 			rightbar.classList.remove('mobile-open');
 			rightbarMask.classList.remove('active')
 		}
-	}	document.addEventListener('click', function(ev) {
-		if (!isMobile()) return;
-		if (sidebar && sidebar.classList.contains('mobile-open')) {
-			if (!sidebar.contains(ev.target) && ev.target !== mobileMenuBtn) {
-				sidebar.classList.remove('mobile-open');
-				if (sidebarMask) sidebarMask.classList.remove('active')
-			}
-		}
-		if (settingsSidebar && settingsSidebar.classList.contains('mobile-open')) {
-			if (!settingsSidebar.contains(ev.target)) {
+	}	// Consolidated click event listener for closing sidebars
+	document.addEventListener('click', function(ev) {
+		const settingsBtn = $id('settings-btn');
+		const isSettingsButtonClick = settingsBtn && settingsBtn.contains(ev.target);
+		const isSettingsBackButtonClick = $id('settings-back-btn') && $id('settings-back-btn').contains(ev.target);
+
+		// Close settings sidebar if open and click is outside (and not on the open button or back button)
+		if (settingsSidebar && (settingsSidebar.classList.contains('open') || settingsSidebar.classList.contains('mobile-open'))) {
+			if (!settingsSidebar.contains(ev.target) && !isSettingsButtonClick && !isSettingsBackButtonClick) {
 				closeSettingsPanel();
 			}
 		}
-		if (rightbar && rightbar.classList.contains('mobile-open')) {
-			if (!rightbar.contains(ev.target) && ev.target !== mobileInfoBtn) {
-				rightbar.classList.remove('mobile-open');
-				if (rightbarMask) rightbarMask.classList.remove('active')
+
+		if (isMobile()) {
+			// Mobile-specific logic
+			if (sidebar && sidebar.classList.contains('mobile-open')) {
+				if (!sidebar.contains(ev.target) && ev.target !== mobileMenuBtn) {
+					sidebar.classList.remove('mobile-open');
+					if (sidebarMask) sidebarMask.classList.remove('active');
+				}
+			}
+			if (settingsSidebar && settingsSidebar.classList.contains('mobile-open')) {
+				// 检查点击目标是否为设置按钮本身
+				const isSettingsButton = settingsBtn && settingsBtn.contains(ev.target);
+				if (!settingsSidebar.contains(ev.target) && !isSettingsButton) {
+					closeSettingsPanel();
+				}
+			}
+			if (rightbar && rightbar.classList.contains('mobile-open')) {
+				if (!rightbar.contains(ev.target) && ev.target !== mobileInfoBtn) {
+					rightbar.classList.remove('mobile-open');
+					if (rightbarMask) rightbarMask.classList.remove('active');
+				}
+			}
+		} else {
+			// Desktop-specific logic
+			// 如果设置侧边栏打开，并且点击位置在侧边栏外部且不是设置按钮本身
+			if (settingsSidebar && settingsSidebar.classList.contains('open')) {
+				const isSettingsButton = settingsBtn && settingsBtn.contains(ev.target);
+				if (!settingsSidebar.contains(ev.target) && !isSettingsButton) {
+					closeSettingsPanel();
+				}
 			}
 		}
 	})
@@ -633,7 +658,7 @@ export function initFlipCard() {
 		
 		// 开始持续旋转
 		function startContinuousRotation() {
-			if (isHovering) return; // 避免重复启动
+			if (isHovering) return; // 已经在旋转中
 			isHovering = true;
 			
 			// 立即执行一次旋转
@@ -656,18 +681,49 @@ export function initFlipCard() {
 			}
 		}
 		
-		// 帮助按钮事件
-		helpBtn.addEventListener('mouseenter', startContinuousRotation);
-		helpBtn.addEventListener('mouseleave', stopContinuousRotation);
+		// 检查鼠标是否在任一按钮上
+		function isMouseOverButton(e) {
+			const helpBtnRect = helpBtn.getBoundingClientRect();
+			const backBtnRect = backBtn.getBoundingClientRect();
+			const x = e.clientX;
+			const y = e.clientY;
+			
+			// 检查是否在帮助按钮上
+			const onHelpBtn = x >= helpBtnRect.left && x <= helpBtnRect.right && 
+							  y >= helpBtnRect.top && y <= helpBtnRect.bottom;
+			
+			// 检查是否在返回按钮上
+			const onBackBtn = x >= backBtnRect.left && x <= backBtnRect.right && 
+							  y >= backBtnRect.top && y <= backBtnRect.bottom;
+			
+			return onHelpBtn || onBackBtn;
+		}
+		
+		// 监听整个卡片的鼠标移动
+		flipCard.addEventListener('mousemove', (e) => {
+			if (isMouseOverButton(e)) {
+				if (!isHovering) {
+					startContinuousRotation();
+				}
+			} else {
+				if (isHovering) {
+					stopContinuousRotation();
+				}
+			}
+		});
+		
+		// 监听鼠标离开卡片
+		flipCard.addEventListener('mouseleave', () => {
+			stopContinuousRotation();
+		});
+		
+		// 按钮点击事件（保持原有功能）
 		helpBtn.addEventListener('click', (e) => {
 			e.preventDefault();
 			e.stopPropagation();
 			performFlip();
 		});
 		
-		// 返回按钮事件（同样的逻辑）
-		backBtn.addEventListener('mouseenter', startContinuousRotation);
-		backBtn.addEventListener('mouseleave', stopContinuousRotation);
 		backBtn.addEventListener('click', (e) => {
 			e.preventDefault();
 			e.stopPropagation();

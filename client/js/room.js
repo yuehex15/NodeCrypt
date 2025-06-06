@@ -353,19 +353,6 @@ export function togglePrivateChat(targetId, targetName) {
 	updateChatInputStyle()
 }
 
-// Set the status bar text
-// 设置状态栏文本
-export function setStatus(text) {
-	let statusBar = $id('status-bar');
-	if (!statusBar) {
-		statusBar = createElement('div', {
-			id: 'status-bar',
-			style: 'color:green;padding:4px 10px;font-size:13px;'
-		});
-		document.body.appendChild(statusBar)
-	}
-	statusBar.innerText = text
-}
 
 // Exit the current room
 // 退出当前房间

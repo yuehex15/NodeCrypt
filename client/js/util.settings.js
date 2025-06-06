@@ -379,14 +379,18 @@ function openSettingsPanel() {
 		// Mobile: hide main sidebar and show settings sidebar with mask
 		sidebar.classList.remove('mobile-open');
 		settingsSidebar.style.display = 'flex';
+		// Force reflow then add animation class
+		settingsSidebar.offsetHeight;
 		settingsSidebar.classList.add('mobile-open');
 		if (sidebarMask) {
 			sidebarMask.classList.add('active');
-		}
-	} else {
-		// Desktop: hide main sidebar and show settings sidebar
-		sidebar.style.display = 'none';
+		}	} else {
+		// Desktop: show settings sidebar as overlay with slide animation
 		settingsSidebar.style.display = 'flex';
+		// Force reflow then slide in
+		settingsSidebar.offsetHeight;
+		settingsSidebar.classList.add('open');
+		// Keep main sidebar visible - settings sidebar is an overlay
 	}
 	
 	// Setup settings content
@@ -397,25 +401,38 @@ function openSettingsPanel() {
 // 关闭设置面板
 function closeSettingsPanel() {
 	const settingsSidebar = $id('settings-sidebar');
-	const sidebar = $id('sidebar');
-	const sidebarMask = $id('mobile-sidebar-mask');
-	
-	if (!settingsSidebar || !sidebar) return;
-	
+	const sidebarMask = $id('mobile-sidebar-mask'); // mobile-sidebar-mask is used for settings on mobile
+
+	if (!settingsSidebar) return;
+
+	const animationEnded = () => {
+		settingsSidebar.style.display = 'none';
+		settingsSidebar.removeEventListener('transitionend', animationEnded);
+	};
+
 	if (isMobile()) {
-		// Mobile: hide settings sidebar and mask, show main sidebar if needed
 		settingsSidebar.classList.remove('mobile-open');
 		if (sidebarMask) {
 			sidebarMask.classList.remove('active');
 		}
-		// Don't auto-show main sidebar on mobile - let user click menu button
+		// Listen for transition end to set display none
+		settingsSidebar.addEventListener('transitionend', animationEnded);
+		// Fallback if transitionend doesn't fire (e.g., if no transition is defined or display:none is set too early by other means)
 		setTimeout(() => {
-			settingsSidebar.style.display = 'none';
-		}, 300); // Wait for animation to complete
+			if (!settingsSidebar.classList.contains('mobile-open')) { // check if it wasn't reopened
+				settingsSidebar.style.display = 'none';
+			}
+		}, 350); // Slightly longer than CSS transition
 	} else {
-		// Desktop: hide settings sidebar and show main sidebar
-		settingsSidebar.style.display = 'none';
-		sidebar.style.display = 'flex';
+		settingsSidebar.classList.remove('open');
+		// Listen for transition end to set display none
+		settingsSidebar.addEventListener('transitionend', animationEnded);
+		// Fallback
+		setTimeout(() => {
+			if (!settingsSidebar.classList.contains('open')) { // check if it wasn't reopened
+				settingsSidebar.style.display = 'none';
+			}
+		}, 350);
 	}
 }
 

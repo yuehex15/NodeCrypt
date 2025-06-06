@@ -9,6 +9,14 @@ const LANGUAGES = {
 		name: 'English',
 		flag: '🇺🇸',
 		translations: {
+			// Meta tags for SEO
+			'meta.description': 'NodeCrypt - True end-to-end encrypted chat system, no database, all messages encrypted locally, server only relays encrypted data, supports Cloudflare Workers, Docker, self-hosting and local development.',
+			'meta.keywords': 'end-to-end encryption, security, chat, WebSocket, Cloudflare Workers, JavaScript, E2EE, anonymous communication, AES, ECDH, RSA, ChaCha20, security, open source, NodeCrypt, shuaiplus',
+			'meta.og_title': 'NodeCrypt - End-to-End Encrypted Chat System',
+			'meta.og_description': 'NodeCrypt is a zero-knowledge, end-to-end encrypted open source chat system where all encryption and decryption is done locally on the client side, and servers cannot access plaintext. Supports multi-platform deployment, secure, anonymous, no message history.',
+			'meta.twitter_title': 'NodeCrypt - End-to-End Encrypted Chat System',
+			'meta.twitter_description': 'NodeCrypt is a zero-knowledge, end-to-end encrypted open source chat system where all encryption and decryption is done locally on the client side, and servers cannot access plaintext.',
+			
 			// Login and main UI
 			'ui.enter_node': 'Enter a Node',
 			'ui.username': 'Username',
@@ -88,26 +96,36 @@ const LANGUAGES = {
 			'help.title': 'User Guide',
 			'help.back_to_login': 'Back to Login',
 			'help.usage_guide': 'User Guide',
-			'help.what_is_nodecrypt': '🔐 What is NodeCrypt?',
-			'help.what_is_nodecrypt_desc': 'NodeCrypt is an open-source end-to-end encrypted chat system with a database-free architecture. All messages are encrypted locally on your device, and servers and intermediaries cannot decrypt any of your chat content.',
-			'help.how_to_start': '🚀 How to Start?',
-			'help.step_username': 'Username',
-			'help.step_username_desc': 'Choose a nickname',
-			'help.step_node_name': 'Node Name',
-			'help.step_node_name_desc': 'Create or join an existing node',
-			'help.step_password': 'Node Password',
-			'help.step_password_desc': 'Ensure node independence when room names are the same',
+			'help.what_is_nodecrypt': '🔐 What is NodeCrypt?',			'help.what_is_nodecrypt_desc': 'NodeCrypt is a true zero-knowledge end-to-end encrypted chat system. With a database-free architecture, all messages are encrypted locally on your device, and the server serves only as an encrypted data relay station, unable to access any of your plaintext content.',
+			'help.how_to_start': '🚀 Quick Start',
+			'help.step_username': 'Enter Username',
+			'help.step_username_desc': 'Choose a display name for the room, can be any name you like',
+			'help.step_node_name': 'Set Node Name',
+			'help.step_node_name_desc': 'Unique identifier for the room, equivalent to room number',
+			'help.step_password': 'Set Node Password',
+			'help.step_password_desc': 'Used to distinguish different rooms while participating in encryption process to enhance security',
 			'help.step_join': 'Click "Join Room"',
-			'help.step_join_desc': 'Start end-to-end encrypted chatting',
-			'help.security_features': '🔑 Security Features',
-			'help.e2e_encryption': 'End-to-End Encryption',
-			'help.e2e_encryption_desc': 'Messages can only be decrypted by you and the recipient',
-			'help.no_history': 'No History Records',
-			'help.no_history_desc': 'New users cannot see historical messages',
-			'help.password_protection': 'Password Protection',
-			'help.password_protection_desc': 'Room password participates in the encryption process',
-			'help.anonymous_communication': 'Anonymous Communication',
-			'help.anonymous_communication_desc': 'No need to register real identity',
+			'help.step_join_desc': 'System will automatically generate encryption keys and start secure chatting',
+			'help.security_features': '🔑 Security Features',			'help.e2e_encryption': '🛡️ End-to-End Encryption',
+			'help.e2e_encryption_desc': 'Uses AES-256 + ECDH encryption algorithm, messages can only be decrypted by you and the recipient',
+			'help.password_enhanced_encryption': '🔐 Password Enhanced Encryption',
+			'help.password_enhanced_encryption_desc': 'Node password directly participates in encryption key generation, providing additional security protection layer',
+			'help.no_history': '🚫 Zero History Records',
+			'help.no_history_desc': 'All messages exist only in current session, offline users cannot get historical messages',
+			'help.anonymous_communication': '🎭 Complete Anonymity',
+			'help.anonymous_communication_desc': 'No account registration required, no personal information collected',
+			'help.decentralized': '🌐 Decentralized',
+			'help.decentralized_desc': 'Supports self-hosted deployment, server does not participate in encryption/decryption process',			'help.usage_tips': '💡 Usage Tips',
+			'help.important_note': '⚠️ Important Note',
+			'help.room_isolation_note': 'Same node name but different passwords are two completely independent rooms that cannot communicate with each other.',
+			'help.tip_private_chat': 'Private Chat',
+			'help.tip_private_chat_desc': 'Use complex node names and passwords, share only with specific people',
+			'help.tip_group_chat': 'Group Chat',
+			'help.tip_group_chat_desc': 'Use simple and memorable node names and passwords for easy multi-user joining',
+			'help.tip_security_reminder': 'Security Reminder',
+			'help.tip_security_reminder_desc': 'Both node name and password must be exactly the same to enter the same room',
+			'help.tip_password_strategy': 'Password Strategy',
+			'help.tip_password_strategy_desc': 'Recommend using strong passwords containing letters, numbers and symbols',
 		}
 	},
 	zh: {
@@ -115,6 +133,14 @@ const LANGUAGES = {
 		name: '中文',
 		flag: '🇨🇳',
 		translations: {
+			// Meta tags for SEO
+			'meta.description': 'NodeCrypt - 真正的端到端加密聊天系统，无数据库，所有消息本地加密，服务器仅做加密数据中转，支持 Cloudflare Workers、Docker、自托管和本地开发。',
+			'meta.keywords': '端到端加密, 安全, 聊天, WebSocket, Cloudflare Workers, JavaScript, E2EE, 匿名通信, AES, ECDH, RSA, ChaCha20, 安全, 开源, NodeCrypt, shuaiplus',
+			'meta.og_title': 'NodeCrypt - 端到端加密聊天系统',
+			'meta.og_description': 'NodeCrypt 是一个端到端加密的开源聊天系统，所有加密解密均在客户端本地完成，服务器无法获取明文。支持多平台部署，安全、匿名、无历史消息。',
+			'meta.twitter_title': 'NodeCrypt - 端到端加密聊天系统',
+			'meta.twitter_description': 'NodeCrypt 是一个端到端加密的开源聊天系统，所有加密解密均在客户端本地完成，服务器无法获取明文。',
+			
 			// Login and main UI
 			'ui.enter_node': '进入新的节点',
 			'ui.username': '用户名',
@@ -195,26 +221,37 @@ const LANGUAGES = {
 			'help.title': '使用说明',
 			'help.back_to_login': '返回登录',
 			'help.usage_guide': '使用说明',
-			'help.what_is_nodecrypt': '🔐 什么是 NodeCrypt？',
-			'help.what_is_nodecrypt_desc': 'NodeCrypt 是一个开源的端到端加密聊天系统，采用无数据库架构设计。所有消息在您的设备上本地加密，服务器和中间人无法解密您的任何聊天内容。',
-			'help.how_to_start': '🚀 如何开始？',
-			'help.step_username': '用户名',
-			'help.step_username_desc': '选择一个昵称',
-			'help.step_node_name': '节点名称',
-			'help.step_node_name_desc': '创建或加入现有节点',
-			'help.step_password': '节点密码',
-			'help.step_password_desc': '确保房间号相同时节点的独立性',
+			'help.what_is_nodecrypt': '🔐 什么是 NodeCrypt？',			'help.what_is_nodecrypt_desc': 'NodeCrypt 是一个真正的端到端加密聊天系统。采用无数据库架构，所有消息在您的设备上本地加密，服务器仅作为加密数据的中转站，无法获取您的任何明文内容。',
+			'help.how_to_start': '🚀 快速开始',
+			'help.step_username': '输入用户名',
+			'help.step_username_desc': '选择一个在房间中显示的昵称，可以是任何您喜欢的名称',
+			'help.step_node_name': '设置节点名',
+			'help.step_node_name_desc': '房间的唯一标识符，相当于房间号',
+			'help.step_password': '设置节点密码',
+			'help.step_password_desc': '用于区分不同房间，同时参与加密过程，提升安全性',
 			'help.step_join': '点击"加入房间"',
-			'help.step_join_desc': '开始端到端加密聊天',
+			'help.step_join_desc': '系统将自动生成加密密钥，开始安全聊天',
 			'help.security_features': '🔑 安全特性',
-			'help.e2e_encryption': '端到端加密',
-			'help.e2e_encryption_desc': '消息仅您和接收者可解密',
-			'help.no_history': '无历史记录',
-			'help.no_history_desc': '新用户无法看到历史消息',
-			'help.password_protection': '密码保护',
-			'help.password_protection_desc': '房间密码参与加密过程',
-			'help.anonymous_communication': '匿名通信',
-			'help.anonymous_communication_desc': '无需注册真实身份',
+			'help.e2e_encryption': '🛡️ 端到端加密',
+			'help.e2e_encryption_desc': '使用 AES-256 + ECDH 加密算法，消息仅您和接收者可解密',
+			'help.password_enhanced_encryption': '🔐 密码增强加密',
+			'help.password_enhanced_encryption_desc': '节点密码直接参与加密密钥生成，提供额外的安全保护层',
+			'help.no_history': '🚫 零历史记录',
+			'help.no_history_desc': '所有消息仅存在于当前会话，离线用户无法获取历史消息',
+			'help.anonymous_communication': '🎭 完全匿名',
+			'help.anonymous_communication_desc': '无需注册账户，不收集任何个人信息',
+			'help.decentralized': '🌐 去中心化',
+			'help.decentralized_desc': '支持自托管部署，服务器不参与加密解密过程',			'help.usage_tips': '💡 使用技巧',
+			'help.important_note': '⚠️ 重要提示',
+			'help.room_isolation_note': '相同节点名但不同密码的是两个完全独立的房间，无法相互通信。',
+			'help.tip_private_chat': '私人对话',
+			'help.tip_private_chat_desc': '使用复杂的节点名和密码，只分享给特定人员',
+			'help.tip_group_chat': '群聊',
+			'help.tip_group_chat_desc': '使用简单易记的节点名和密码，方便多人加入',
+			'help.tip_security_reminder': '安全提醒',
+			'help.tip_security_reminder_desc': '节点名和密码都需要完全一致才能进入同一个房间',
+			'help.tip_password_strategy': '密码策略',
+			'help.tip_password_strategy_desc': '建议使用包含字母、数字和符号的强密码',
 		}
 	}
 };
@@ -396,4 +433,48 @@ export function updateStaticTexts() {
 			element.title = t(key, element.title || key);
 		}
 	});
+	
+	// Update meta tags
+	// 更新meta标签
+	updateMetaTags();
+}
+
+// Update meta tags with current language
+// 使用当前语言更新meta标签
+function updateMetaTags() {
+	// Update description meta tag
+	const metaDescription = document.querySelector('meta[name="description"]');
+	if (metaDescription) {
+		metaDescription.content = t('meta.description', metaDescription.content);
+	}
+	
+	// Update keywords meta tag
+	const metaKeywords = document.querySelector('meta[name="keywords"]');
+	if (metaKeywords) {
+		metaKeywords.content = t('meta.keywords', metaKeywords.content);
+	}
+	
+	// Update og:title meta tag
+	const metaOgTitle = document.querySelector('meta[property="og:title"]');
+	if (metaOgTitle) {
+		metaOgTitle.content = t('meta.og_title', metaOgTitle.content);
+	}
+	
+	// Update og:description meta tag
+	const metaOgDescription = document.querySelector('meta[property="og:description"]');
+	if (metaOgDescription) {
+		metaOgDescription.content = t('meta.og_description', metaOgDescription.content);
+	}
+	
+	// Update twitter:title meta tag
+	const metaTwitterTitle = document.querySelector('meta[name="twitter:title"]');
+	if (metaTwitterTitle) {
+		metaTwitterTitle.content = t('meta.twitter_title', metaTwitterTitle.content);
+	}
+	
+	// Update twitter:description meta tag
+	const metaTwitterDescription = document.querySelector('meta[name="twitter:description"]');
+	if (metaTwitterDescription) {
+		metaTwitterDescription.content = t('meta.twitter_description', metaTwitterDescription.content);
+	}
 }

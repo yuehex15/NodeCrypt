@@ -7,18 +7,17 @@
 	<link rel="stylesheet" href="css/body.css">
 	<link rel="stylesheet" href="css/phone.css">
 	<link rel="stylesheet" href="css/form-animation.css">
-	<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
-	<meta name="description" content="NodeCrypt - 真正的端到端加密聊天系统，无数据库，所有消息本地加密，服务器仅做加密数据中转，支持 Cloudflare Workers、Docker、自托管和本地开发。">
-	<meta name="keywords" content="端到端加密, 安全, 聊天, WebSocket, Cloudflare Workers, JavaScript, E2EE, 匿名通信, AES, ECDH, RSA, ChaCha20, 安全, 开源, NodeCrypt, shuaiplus">
+	<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">	<meta name="description" content="NodeCrypt - True end-to-end encrypted chat system, no database, all messages encrypted locally, server only relays encrypted data, supports Cloudflare Workers, Docker, self-hosting and local development.">
+	<meta name="keywords" content="end-to-end encryption, security, chat, WebSocket, Cloudflare Workers, JavaScript, E2EE, anonymous communication, AES, ECDH, RSA, ChaCha20, security, open source, NodeCrypt, shuaiplus">
 	<meta name="author" content="shuaiplus">
-	<meta property="og:title" content="NodeCrypt - 端到端加密聊天系统">
-	<meta property="og:description" content="NodeCrypt 是一个零知识、端到端加密的开源聊天系统，所有加密解密均在客户端本地完成，服务器无法获取明文。支持多平台部署，安全、匿名、无历史消息。">
+	<meta property="og:title" content="NodeCrypt - End-to-End Encrypted Chat System">
+	<meta property="og:description" content="NodeCrypt is a zero-knowledge, end-to-end encrypted open source chat system where all encryption and decryption is done locally on the client side, and servers cannot access plaintext. Supports multi-platform deployment, secure, anonymous, no message history.">
 	<meta property="og:type" content="website">
 	<meta property="og:url" content="https://github.com/shuaiplus/NodeCrypt">
 	<meta property="og:image" content="https://crypt.works/client/assets/favicon.svg">
 	<meta name="twitter:card" content="summary_large_image">
-	<meta name="twitter:title" content="NodeCrypt - 端到端加密聊天系统">
-	<meta name="twitter:description" content="NodeCrypt 是一个零知识、端到端加密的开源聊天系统，所有加密解密均在客户端本地完成，服务器无法获取明文。">
+	<meta name="twitter:title" content="NodeCrypt - End-to-End Encrypted Chat System">
+	<meta name="twitter:description" content="NodeCrypt is a zero-knowledge, end-to-end encrypted open source chat system where all encryption and decryption is done locally on the client side, and servers cannot access plaintext.">
 	<meta name="twitter:image" content="https://crypt.works/client/assets/favicon.svg">
 	<meta name="google-site-verification" content="2KGYZcUDyYzGVeYAQ9mMRUGcTiMyZqFF6D7232SyGgw" />
 	<style>
@@ -55,30 +54,71 @@
 						<svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 							<path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 						</svg>
-					</button>					<h2 data-i18n="help.usage_guide">使用说明</h2>
+					</button>					<h2 data-i18n="help.usage_guide"></h2>
 					<div class="help-content">
 						<div class="help-section">
-							<h3 data-i18n="help.what_is_nodecrypt">🔐 什么是 NodeCrypt？</h3>
-							<p data-i18n="help.what_is_nodecrypt_desc">NodeCrypt 是一个开源的端到端加密聊天系统，采用无数据库架构设计。所有消息在您的设备上本地加密，服务器和中间人无法解密您的任何聊天内容。</p>
+							<h3 data-i18n="help.what_is_nodecrypt"></h3>
+							<p data-i18n="help.what_is_nodecrypt_desc"></p>
 						</div>
 						
 						<div class="help-section">
-							<h3 data-i18n="help.how_to_start">🚀 如何开始？</h3>
+							<h3 data-i18n="help.how_to_start"></h3>
 							<ol>
-								<li><strong data-i18n="help.step_username">输入用户名</strong>：<span data-i18n="help.step_username_desc">选择一个昵称</span></li>
-								<li><strong data-i18n="help.step_node_name">输入节点名</strong>：<span data-i18n="help.step_node_name_desc">创建或加入现有房间</span></li>
-								<li><strong data-i18n="help.step_password">设置节点密码</strong>：<span data-i18n="help.step_password_desc">用于排除巧合性</span></li>
-								<li><strong data-i18n="help.step_join">点击"加入房间"</strong>：<span data-i18n="help.step_join_desc">开始安全聊天</span></li>
+								<li>
+									<strong data-i18n="help.step_username"></strong>：
+									<span data-i18n="help.step_username_desc"></span>
+								</li>
+								<li>
+									<strong data-i18n="help.step_node_name"></strong>：
+									<span data-i18n="help.step_node_name_desc"></span>
+								</li>
+								<li>
+									<strong data-i18n="help.step_password"></strong>：
+									<span data-i18n="help.step_password_desc"></span>
+								</li>
+								<li>
+									<strong data-i18n="help.step_join"></strong>：
+									<span data-i18n="help.step_join_desc"></span>
+								</li>
 							</ol>
+							<div class="help-important">
+								<strong data-i18n="help.important_note"></strong>：<span data-i18n="help.room_isolation_note"></span>
+							</div>
 						</div>
 						
 						<div class="help-section">
-							<h3 data-i18n="help.security_features">🔑 安全特性</h3>
+							<h3 data-i18n="help.security_features"></h3>
 							<ul>
-								<li><strong data-i18n="help.e2e_encryption">端到端加密</strong>：<span data-i18n="help.e2e_encryption_desc">消息仅您和接收者可解密</span></li>
-								<li><strong data-i18n="help.no_history">无历史记录</strong>：<span data-i18n="help.no_history_desc">新用户无法看到历史消息</span></li>
-								<li><strong data-i18n="help.password_protection">密码保护</strong>：<span data-i18n="help.password_protection_desc">房间密码参与加密过程</span></li>
-								<li><strong data-i18n="help.anonymous_communication">匿名通信</strong>：<span data-i18n="help.anonymous_communication_desc">无需注册真实身份</span></li>
+								<li>
+									<strong data-i18n="help.e2e_encryption"></strong>：
+									<span data-i18n="help.e2e_encryption_desc"></span>
+								</li>
+								<li>
+									<strong data-i18n="help.password_enhanced_encryption"></strong>：
+									<span data-i18n="help.password_enhanced_encryption_desc"></span>
+								</li>
+								<li>
+									<strong data-i18n="help.no_history"></strong>：
+									<span data-i18n="help.no_history_desc"></span>
+								</li>
+								<li>
+									<strong data-i18n="help.anonymous_communication"></strong>：
+									<span data-i18n="help.anonymous_communication_desc"></span>
+								</li>
+								<li>
+									<strong data-i18n="help.decentralized"></strong>：
+									<span data-i18n="help.decentralized_desc"></span>
+								</li>
+							</ul>
+						</div>
+						
+						<div class="help-section">
+							<h3 data-i18n="help.usage_tips"></h3>
+							<ul>
+								<li><strong data-i18n="help.tip_private_chat"></strong>：<span data-i18n="help.tip_private_chat_desc"></span></li>
+								<li><strong data-i18n="help.tip_group_chat"></strong>：<span data-i18n="help.tip_group_chat_desc"></span></li>
+								<li><strong data-i18n="help.tip_security_reminder"></strong>：<span data-i18n="help.tip_security_reminder_desc"></span></li>
+								<li><strong data-i18n="help.tip_password_strategy"></strong>：<span data-i18n="help.tip_password_strategy_desc"></span></li>
 							</ul>
 						</div>
 					</div>

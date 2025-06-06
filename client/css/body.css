@@ -454,6 +454,7 @@ body {
 	top: 50%;
 	transform: translateY(-50%);
 	transition: transform 0.2s ease, color 0.2s ease;
+	z-index: 5;
 }
 
 .chat-attach-btn-abs:hover {
@@ -522,30 +523,49 @@ body {
   padding: 0.7em 0.7em;
   border-radius: 50px;
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
-  margin: 0px 0px 3px 10px;
-  transition: all 0.2s ease;
+  margin: 0px 0px 3px 7px;
+  transition: all 0.3s ease;
+  z-index: 10;
 }
 .send-message-btn:hover {
-  background: #fff;
-  transition: all 0.6s;
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
 }
 .send-message-btn:active {
-  transform: scale(0.95);
-  box-shadow: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.15);
-  transition: all 0.1s;
+  transform: scale(0.95) translateY(0px);
+  box-shadow: 0 0.3rem 0.8rem rgba(3, 169, 244, 0.2);
+  transition: all 0.1s ease;
 }
 .send-message-btn .text {
   display: flex;
   align-items: center;
   justify-content: center;
   fill: #fff;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
 }
 .send-message-btn:hover .text {
-  fill: rgb(3, 169, 244);
-  transition: all 0.6s;
+  transform: scale(1.05);
+  transition: all 0.3s ease;
 }
 .send-message-btn:active .text {
-  fill: #fff;
-  transition: all 0.1s;
+  transform: scale(0.95);
+  transition: all 0.1s ease;
+}
+
+/* 确保发送按钮的点击区域不被其他元素遮挡 */
+.send-message-btn {
+  position: relative;
+  z-index: 10;
+}
+
+/* 确保发送按钮在所有父容器中都有足够的层级 */
+.chat-input-wrapper .send-message-btn {
+  position: relative;
+  z-index: 15;
+}
+
+/* 防止任何绝对定位的元素遮挡发送按钮 */
+.new-message-wrapper {
+  position: relative;
+  z-index: 1;
 }
