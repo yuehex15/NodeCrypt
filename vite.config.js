@@ -50,12 +50,6 @@ export default defineConfig({
 						if (/aes-js|elliptic|js-chacha20|js-sha256/.test(id)) {
 							return 'crypto-libs'
 						}
-						if (id.includes('emoji-picker-element')) {
-							return 'emoji-libs'
-						}
-						if (id.includes('@dicebear')) {
-							return 'avatar-libs'
-						}
 						return 'vendor-deps'
 					}
 					return undefined

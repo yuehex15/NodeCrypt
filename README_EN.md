@@ -18,7 +18,7 @@ Click the button below for one-click deployment to Cloudflare Workers:
 ### Method 3: Docker One-Click Deployment (Recommended for Self-hosting)
 
 ```bash
-docker run -d --name nodecrypt -p 80:80 shua1/nodecrypt
+docker run -d --name nodecrypt -p 80:80 ghcr.io/shuaiplus/nodecrypt
 ```
 
 Access http://localhost:80
