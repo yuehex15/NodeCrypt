@@ -9,7 +9,8 @@ body {
 	perspective: 1000px;
 	max-width: 400px;
 	width: 100%;
-	height: 500px; /* 固定高度，避免翻转时高度变化 */
+	height: 500px;
+	position: relative;
 }
 
 .flip-card-inner {
@@ -17,10 +18,12 @@ body {
 	width: 100%;
 	height: 100%;
 	text-align: center;
-	transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+	transition: transform 0.3s ease;
 	transform-style: preserve-3d;
-	transform-origin: center center; /* 设置旋转中心为卡片中心 */
-	transform: rotateX(0deg); /* 初始状态 */
+}
+
+.flip-card-inner.flipped {
+	transform: rotateX(180deg);
 }
 
 .flip-card-front,
@@ -30,7 +33,6 @@ body {
 	left: 0;
 	width: 100%;
 	height: 100%;
-	backface-visibility: hidden;
 	border-radius: 14px;
 	padding: 39px 15px 20px 15px;
 	box-shadow: 0 2px 16px rgba(60, 80, 100, 0.09);
@@ -38,6 +40,7 @@ body {
 	box-sizing: border-box;
 	display: flex;
 	flex-direction: column;
+	backface-visibility: hidden;
 }
 
 .flip-card-back {
@@ -63,7 +66,7 @@ body {
 	z-index: 10;
 }
 
-/* Firefox兼容性修复：控制翻转时按钮的可见性 */
+/* 控制翻转时按钮的可见性 */
 .flip-card-inner.flipped .flip-card-front .help-btn {
 	visibility: hidden;
 	opacity: 0;

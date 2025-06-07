@@ -617,117 +617,33 @@ export function initFlipCard() {
 	
 	if (!flipCard || !helpBtn || !backBtn) return;
 	
-	// 检测是否为触摸设备 / Detect touch device
-	// 更准确的触摸设备检测方法
-	const isTouchDevice = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+	const flipCardInner = flipCard.querySelector('.flip-card-inner');
+	if (!flipCardInner) return;
 	
-	// 当前旋转角度 / Current rotation angle
-	let currentRotation = 0;
-		// 执行翻转操作 / Execute flip operation
-	function performFlip() {
-		currentRotation += 180;
-		const flipCardInner = flipCard.querySelector('.flip-card-inner');
-		if (flipCardInner) {
-			flipCardInner.style.transform = `rotateX(${currentRotation}deg)`;
-			
-			// 添加或移除flipped类来控制按钮可见性（Firefox兼容性修复）
-			if (currentRotation % 360 === 180 || currentRotation % 360 === -180) {
-				flipCardInner.classList.add('flipped');
-			} else {
-				flipCardInner.classList.remove('flipped');
-			}
+	// 翻转状态
+	let isFlipped = false;
+	
+	// 简单的翻转函数
+	function toggleFlip() {
+		isFlipped = !isFlipped;
+		if (isFlipped) {
+			flipCardInner.classList.add('flipped');
+		} else {
+			flipCardInner.classList.remove('flipped');
 		}
 	}
 	
-	if (isTouchDevice) {
-		// 移动端：点击切换 / Mobile: click to toggle
-		helpBtn.addEventListener('click', (e) => {
-			e.preventDefault();
-			e.stopPropagation();
-			performFlip();
-		});
-		
-		backBtn.addEventListener('click', (e) => {
-			e.preventDefault();
-			e.stopPropagation();
-			performFlip();
-		});	} else {
-		// 桌面端：鼠标悬停持续旋转 / Desktop: hover to continuously rotate
-		let rotationInterval;
-		let isHovering = false;
-		
-		// 开始持续旋转
-		function startContinuousRotation() {
-			if (isHovering) return; // 已经在旋转中
-			isHovering = true;
-			
-			// 立即执行一次旋转
-			performFlip();
-			
-			// 然后每800ms旋转一次（与CSS动画时长一致）
-			rotationInterval = setInterval(() => {
-				if (isHovering) {
-					performFlip();
-				}
-			}, 800);
-		}
-		
-		// 停止持续旋转
-		function stopContinuousRotation() {
-			isHovering = false;
-			if (rotationInterval) {
-				clearInterval(rotationInterval);
-				rotationInterval = null;
-			}
-		}
-		
-		// 检查鼠标是否在任一按钮上
-		function isMouseOverButton(e) {
-			const helpBtnRect = helpBtn.getBoundingClientRect();
-			const backBtnRect = backBtn.getBoundingClientRect();
-			const x = e.clientX;
-			const y = e.clientY;
-			
-			// 检查是否在帮助按钮上
-			const onHelpBtn = x >= helpBtnRect.left && x <= helpBtnRect.right && 
-							  y >= helpBtnRect.top && y <= helpBtnRect.bottom;
-			
-			// 检查是否在返回按钮上
-			const onBackBtn = x >= backBtnRect.left && x <= backBtnRect.right && 
-							  y >= backBtnRect.top && y <= backBtnRect.bottom;
-			
-			return onHelpBtn || onBackBtn;
-		}
-		
-		// 监听整个卡片的鼠标移动
-		flipCard.addEventListener('mousemove', (e) => {
-			if (isMouseOverButton(e)) {
-				if (!isHovering) {
-					startContinuousRotation();
-				}
-			} else {
-				if (isHovering) {
-					stopContinuousRotation();
-				}
-			}
-		});
-		
-		// 监听鼠标离开卡片
-		flipCard.addEventListener('mouseleave', () => {
-			stopContinuousRotation();
-		});
-		
-		// 按钮点击事件（保持原有功能）
-		helpBtn.addEventListener('click', (e) => {
-			e.preventDefault();
-			e.stopPropagation();
-			performFlip();
-		});
-		
-		backBtn.addEventListener('click', (e) => {
-			e.preventDefault();
-			e.stopPropagation();
-			performFlip();
-		});
-	}
+	// 帮助按钮点击事件
+	helpBtn.addEventListener('click', (e) => {
+		e.preventDefault();
+		e.stopPropagation();
+		toggleFlip();
+	});
+	
+	// 返回按钮点击事件
+	backBtn.addEventListener('click', (e) => {
+		e.preventDefault();
+		e.stopPropagation();
+		toggleFlip();
+	});
 }
